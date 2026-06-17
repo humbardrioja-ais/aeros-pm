@@ -1,0 +1,1754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1a73e8">
+<title>AerOS-PM</title>
+<link rel="manifest" href="#" id="manifest-link">
+<style>
+/* ===================== RESET & TOKENS ===================== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --brand:#1a73e8;--brand-dark:#1558b0;--brand-light:#e8f0fe;
+  --danger:#ea4335;--warn:#fbbc04;--ok:#34a853;
+  --bg:#f8f9fa;--surface:#ffffff;--surface2:#f1f3f4;
+  --border:#dadce0;--text:#202124;--text2:#5f6368;--text3:#80868b;
+  --radius:8px;--radius-lg:12px;--shadow:0 1px 3px rgba(0,0,0,.12);
+  --sidebar:240px;--topbar:56px;
+}
+[data-theme=dark]{
+  --bg:#1a1a1a;--surface:#2d2d2d;--surface2:#3a3a3a;
+  --border:#444;--text:#e8eaed;--text2:#9aa0a6;--text3:#5f6368;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;overflow-x:hidden}
+a{color:var(--brand);text-decoration:none}
+button{cursor:pointer;border:none;background:none;font:inherit;color:inherit}
+input,select,textarea{font:inherit;color:inherit;border:1px solid var(--border);border-radius:var(--radius);padding:7px 10px;background:var(--surface);width:100%;outline:none;transition:border-color .15s}
+input:focus,select:focus,textarea:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(26,115,232,.12)}
+textarea{resize:vertical;min-height:80px}
+label{font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:4px}
+
+/* ===================== LAYOUT ===================== */
+#app{display:flex;height:100vh;overflow:hidden}
+#sidebar{width:var(--sidebar);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;transition:width .2s;overflow:hidden}
+#sidebar.collapsed{width:56px}
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+#topbar{height:var(--topbar);background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;padding:0 16px;flex-shrink:0}
+#content{flex:1;overflow-y:auto;padding:20px}
+
+/* ===================== SIDEBAR ===================== */
+.sidebar-brand{padding:16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
+.sidebar-brand .logo{width:32px;height:32px;background:var(--brand);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:16px;flex-shrink:0}
+.sidebar-brand .name{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden}
+.nav-section{padding:8px 0;border-bottom:1px solid var(--border)}
+.nav-section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);padding:4px 16px;white-space:nowrap;overflow:hidden}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 16px;border-radius:0;cursor:pointer;transition:background .15s;white-space:nowrap;overflow:hidden;font-size:13.5px}
+.nav-item:hover{background:var(--brand-light)}
+.nav-item.active{background:var(--brand-light);color:var(--brand);font-weight:600}
+.nav-item .icon{font-size:17px;flex-shrink:0;width:20px;text-align:center}
+.nav-item .label{overflow:hidden;text-overflow:ellipsis}
+
+/* ===================== TOPBAR ===================== */
+.topbar-title{font-weight:700;font-size:16px;flex:1}
+.topbar-search{flex:1;max-width:400px;position:relative}
+.topbar-search input{padding-left:34px;border-radius:20px;background:var(--surface2)}
+.topbar-search .icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text3)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--radius);font-size:13px;font-weight:600;transition:all .15s;cursor:pointer}
+.btn-primary{background:var(--brand);color:#fff;border:none}.btn-primary:hover{background:var(--brand-dark)}
+.btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border)}.btn-secondary:hover{background:var(--border)}
+.btn-danger{background:#fce8e6;color:var(--danger);border:1px solid #fad2cf}
+.btn-sm{padding:4px 10px;font-size:12px}
+.btn-icon{padding:6px;border-radius:50%;width:34px;height:34px;justify-content:center}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0}
+
+/* ===================== CARDS & PANELS ===================== */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;box-shadow:var(--shadow)}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+.panel-header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;font-weight:700;font-size:14px}
+.panel-body{padding:16px}
+
+/* ===================== BADGES & STATUS ===================== */
+.badge{display:inline-flex;align-items:center;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px}
+.badge-p0{background:#fce8e6;color:#c5221f}
+.badge-p1{background:#fef7e0;color:#e37400}
+.badge-p2{background:#e8f0fe;color:#1967d2}
+.badge-p3{background:#e6f4ea;color:#137333}
+.status-inbox{background:#f1f3f4;color:#5f6368}
+.status-todo{background:#e8f0fe;color:#1967d2}
+.status-doing{background:#fef7e0;color:#e37400}
+.status-blocked{background:#fce8e6;color:#c5221f}
+.status-done{background:#e6f4ea;color:#137333}
+.tag{background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:2px 8px;font-size:11px;font-weight:600}
+
+/* ===================== TABLES ===================== */
+.data-table{width:100%;border-collapse:collapse}
+.data-table th{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--text2);padding:8px 12px;border-bottom:1px solid var(--border);text-align:left;background:var(--surface2)}
+.data-table td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:var(--surface2)}
+.data-table .actions{display:flex;gap:4px;opacity:0;transition:opacity .15s}
+.data-table tr:hover .actions{opacity:1}
+
+/* ===================== FORMS & MODALS ===================== */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px}
+.modal{background:var(--surface);border-radius:var(--radius-lg);width:100%;max-width:600px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.2)}
+.modal-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px}
+.modal-body{padding:20px}
+.modal-footer{padding:12px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+.form-row{margin-bottom:14px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+
+/* ===================== VIEWS ===================== */
+/* List */
+.task-row{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
+.task-row:hover{background:var(--surface2)}
+.task-check{width:18px;height:18px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s}
+.task-check.done{background:var(--ok);border-color:var(--ok);color:#fff}
+.task-title{flex:1;font-size:13.5px}
+.task-title.done{text-decoration:line-through;color:var(--text2)}
+.task-meta{display:flex;align-items:center;gap:8px;flex-shrink:0}
+
+/* Board */
+.board{display:flex;gap:14px;overflow-x:auto;padding-bottom:8px}
+.board-col{min-width:270px;max-width:270px;background:var(--surface2);border-radius:var(--radius-lg);padding:12px;flex-shrink:0}
+.board-col-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;font-weight:700;font-size:13px}
+.board-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px;margin-bottom:8px;cursor:pointer;box-shadow:var(--shadow);transition:box-shadow .15s}
+.board-card:hover{box-shadow:0 4px 12px rgba(0,0,0,.15)}
+.board-card-title{font-size:13px;font-weight:600;margin-bottom:6px}
+.board-card-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+
+/* Calendar */
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border)}
+.cal-cell{background:var(--surface);min-height:90px;padding:6px;font-size:12px}
+.cal-cell.other-month{background:var(--surface2);color:var(--text3)}
+.cal-cell.today{border-top:2px solid var(--brand)}
+.cal-day-num{font-weight:700;margin-bottom:4px;font-size:13px}
+.cal-event{background:var(--brand-light);color:var(--brand);border-radius:4px;padding:2px 5px;font-size:11px;margin-bottom:2px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.cal-event.done-event{background:#e6f4ea;color:var(--ok)}
+.cal-event.leave-event{background:#fce8e6;color:var(--danger)}
+.cal-event.mission-event{background:#fef7e0;color:#e37400}
+.cal-event.shoot-event{background:#f3e8ff;color:#7b1fa2}
+
+/* Timeline / Gantt */
+.gantt-wrap{overflow-x:auto}
+.gantt-row{display:flex;align-items:center;border-bottom:1px solid var(--border);min-height:40px}
+.gantt-label{width:220px;flex-shrink:0;padding:6px 12px;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gantt-track{flex:1;position:relative;height:28px}
+.gantt-bar{position:absolute;height:20px;top:4px;border-radius:4px;background:var(--brand);opacity:.8;display:flex;align-items:center;padding:0 6px;font-size:11px;color:#fff;font-weight:600;white-space:nowrap;overflow:hidden;cursor:pointer}
+
+/* Workload */
+.workload-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.workload-name{width:140px;flex-shrink:0;font-weight:600;font-size:13px}
+.workload-bar-wrap{flex:1;background:var(--surface2);border-radius:99px;height:10px;overflow:hidden}
+.workload-bar{height:100%;border-radius:99px;background:var(--brand);transition:width .3s}
+.workload-bar.overload{background:var(--danger)}
+.workload-count{width:60px;text-align:right;font-size:12px;color:var(--text2)}
+
+/* Eisenhower */
+.eisenhower{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:12px;height:calc(100vh - 160px)}
+.quadrant{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px;overflow-y:auto}
+.quadrant-header{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.q-do{border-top:3px solid var(--danger)}
+.q-schedule{border-top:3px solid var(--ok)}
+.q-delegate{border-top:3px solid var(--warn)}
+.q-drop{border-top:3px solid var(--text3)}
+
+/* Stats / Dashboard */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;text-align:center}
+.stat-num{font-size:32px;font-weight:800;color:var(--brand)}
+.stat-num.danger{color:var(--danger)}
+.stat-num.warn{color:#e37400}
+.stat-label{font-size:12px;color:var(--text2);margin-top:2px}
+.chart-placeholder{background:var(--surface2);border-radius:var(--radius);padding:40px;text-align:center;color:var(--text3);font-size:13px;border:1px dashed var(--border)}
+
+/* ===================== MEETING NOTES ===================== */
+.meeting-history{border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+.meeting-hist-item{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
+.meeting-hist-item:hover{background:var(--surface2)}
+.meeting-hist-item.active{background:var(--brand-light)}
+.meeting-date{font-size:12px;color:var(--text3);width:60px;flex-shrink:0}
+.meeting-title{font-weight:600;flex:1;font-size:13px}
+.meeting-badges{display:flex;gap:4px}
+.extracted-item{border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px;overflow:hidden}
+.ext-header{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--surface2);border-bottom:1px solid var(--border)}
+.ext-body{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px 10px}
+.ext-field label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;margin-bottom:2px}
+.ext-field input,.ext-field select{padding:4px 7px;font-size:12px}
+.conf-bar{height:4px;border-radius:99px;background:var(--border);margin-top:4px}
+.conf-fill{height:100%;border-radius:99px;background:var(--brand)}
+
+/* ===================== MEDIA MODULE ===================== */
+.shoot-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;margin-bottom:10px}
+.shoot-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.shoot-status{font-size:11px;font-weight:700;padding:3px 8px;border-radius:99px}
+.shoot-planned{background:#e8f0fe;color:#1967d2}
+.shoot-done{background:#e6f4ea;color:#137333}
+.shoot-reshoot{background:#fce8e6;color:#c5221f}
+.clip-list{background:var(--surface2);border-radius:var(--radius);padding:8px}
+.clip-row{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--border);font-size:12.5px}
+.clip-row:last-child{border-bottom:none}
+.clip-type{font-size:10px;font-weight:700;padding:2px 6px;border-radius:99px}
+.ct-broll{background:#dbeafe;color:#1e40af}
+.ct-interview{background:#f3e8ff;color:#6b21a8}
+.ct-aerial{background:#dcfce7;color:#15803d}
+.ct-product{background:#ffedd5;color:#9a3412}
+.ct-motion{background:#fef9c3;color:#854d0e}
+
+/* Platform badges */
+.plat{font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px}
+.plat-fb{background:#dbeafe;color:#1e40af}
+.plat-ig{background:#fdf4ff;color:#7e22ce}
+.plat-tt{background:#f0fdf4;color:#15803d}
+.plat-yt{background:#fee2e2;color:#b91c1c}
+.plat-li{background:#eff6ff;color:#1d4ed8}
+
+/* ===================== HR MODULES ===================== */
+.mission-card,.leave-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;margin-bottom:10px}
+.half-day-toggle{display:flex;gap:0;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-top:4px}
+.half-day-toggle button{flex:1;padding:6px;font-size:12px;font-weight:600;transition:all .15s}
+.half-day-toggle button.active{background:var(--brand);color:#fff}
+.approval-pill{font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px}
+.ap-pending{background:#fef7e0;color:#e37400}
+.ap-approved{background:#e6f4ea;color:#137333}
+.ap-rejected{background:#fce8e6;color:#c5221f}
+.cdo-balance{display:flex;gap:0;border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:14px}
+.cdo-bal-item{flex:1;text-align:center;padding:12px;border-right:1px solid var(--border)}
+.cdo-bal-item:last-child{border-right:none}
+.cdo-bal-num{font-size:22px;font-weight:800}
+.cdo-bal-label{font-size:11px;color:var(--text2);text-transform:uppercase}
+
+/* ===================== RESPONSIVE / MOBILE ===================== */
+#bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);z-index:100;padding:6px 0 env(safe-area-inset-bottom)}
+.bnav-items{display:flex;justify-content:space-around}
+.bnav-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 8px;font-size:10px;font-weight:600;color:var(--text2);cursor:pointer}
+.bnav-item.active{color:var(--brand)}
+.bnav-item .icon{font-size:20px}
+@media(max-width:768px){
+  #sidebar{display:none}
+  #bottom-nav{display:block}
+  #content{padding:12px;padding-bottom:72px}
+  .form-grid{grid-template-columns:1fr}
+  .form-grid-3{grid-template-columns:1fr}
+  .board{flex-direction:column}
+  .board-col{max-width:100%}
+  .eisenhower{grid-template-columns:1fr;height:auto}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .topbar-search{display:none}
+}
+
+/* ===================== UTILS ===================== */
+.flex{display:flex}.flex-1{flex:1}.items-center{align-items:center}.justify-between{justify-content:space-between}
+.gap-8{gap:8px}.gap-12{gap:12px}.gap-16{gap:16px}
+.mb-8{margin-bottom:8px}.mb-12{margin-bottom:12px}.mb-16{margin-bottom:16px}.mb-20{margin-bottom:20px}
+.mt-8{margin-top:8px}.mt-12{margin-top:12px}.mt-16{margin-top:16px}
+.p-0{padding:0}.text-sm{font-size:12px}.text-xs{font-size:11px}.font-bold{font-weight:700}
+.text-muted{color:var(--text2)}.text-danger{color:var(--danger)}.text-ok{color:var(--ok)}
+.hidden{display:none!important}
+.spinner{display:inline-block;width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--brand);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty-state{text-align:center;padding:48px 20px;color:var(--text2)}
+.empty-state .icon{font-size:40px;margin-bottom:12px}
+.empty-state p{font-size:14px}
+.toast{position:fixed;bottom:20px;right:20px;background:#333;color:#fff;padding:10px 18px;border-radius:var(--radius);font-size:13px;z-index:9999;opacity:0;transform:translateY(10px);transition:all .3s}
+.toast.show{opacity:1;transform:translateY(0)}
+.divider{height:1px;background:var(--border);margin:16px 0}
+select option{background:var(--surface);color:var(--text)}
+</style>
+</head>
+<body>
+
+<!-- ==================== APP SHELL ==================== -->
+<div id="app">
+  <!-- SIDEBAR -->
+  <nav id="sidebar">
+    <div class="sidebar-brand">
+      <div class="logo">A</div>
+      <span class="name">AerOS-PM</span>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Main</div>
+      <div class="nav-item active" onclick="nav('dashboard')"><span class="icon">📊</span><span class="label">Dashboard</span></div>
+      <div class="nav-item" onclick="nav('mytasks')"><span class="icon">✅</span><span class="label">My Tasks</span></div>
+      <div class="nav-item" onclick="nav('inbox')"><span class="icon">🔔</span><span class="label">Inbox</span></div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Views</div>
+      <div class="nav-item" onclick="nav('list')"><span class="icon">📋</span><span class="label">List</span></div>
+      <div class="nav-item" onclick="nav('board')"><span class="icon">🗂</span><span class="label">Board</span></div>
+      <div class="nav-item" onclick="nav('timeline')"><span class="icon">📅</span><span class="label">Timeline</span></div>
+      <div class="nav-item" onclick="nav('calendar')"><span class="icon">🗓</span><span class="label">Calendar</span></div>
+      <div class="nav-item" onclick="nav('workload')"><span class="icon">⚖️</span><span class="label">Workload</span></div>
+      <div class="nav-item" onclick="nav('eisenhower')"><span class="icon">🎯</span><span class="label">Eisenhower</span></div>
+      <div class="nav-item" onclick="nav('portfolio')"><span class="icon">🗄</span><span class="label">Portfolio</span></div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Work</div>
+      <div class="nav-item" onclick="nav('projects')"><span class="icon">📁</span><span class="label">Projects</span></div>
+      <div class="nav-item" onclick="nav('meetings')"><span class="icon">📝</span><span class="label">Meeting Notes</span></div>
+      <div class="nav-item" onclick="nav('media')"><span class="icon">🎬</span><span class="label">Media</span></div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">HR</div>
+      <div class="nav-item" onclick="nav('missions')"><span class="icon">🚀</span><span class="label">Missions</span></div>
+      <div class="nav-item" onclick="nav('cdo')"><span class="icon">📅</span><span class="label">Change Day Off</span></div>
+      <div class="nav-item" onclick="nav('leave')"><span class="icon">🌿</span><span class="label">Leave</span></div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Settings</div>
+      <div class="nav-item" onclick="nav('team')"><span class="icon">👥</span><span class="label">Team</span></div>
+      <div class="nav-item" onclick="nav('settings')"><span class="icon">⚙️</span><span class="label">Settings</span></div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div id="main">
+    <!-- TOPBAR -->
+    <div id="topbar">
+      <button class="btn-icon btn" onclick="toggleSidebar()" title="Toggle sidebar">☰</button>
+      <span class="topbar-title" id="page-title">Dashboard</span>
+      <div class="topbar-search">
+        <span class="icon">🔍</span>
+        <input type="search" placeholder="Search tasks, projects..." id="global-search" oninput="globalSearch(this.value)">
+      </div>
+      <button class="btn btn-primary" onclick="showQuickAdd()">+ New Task</button>
+      <button class="btn btn-icon" onclick="toggleDark()" title="Dark mode">🌙</button>
+      <div class="avatar" id="user-avatar" title="Me">ME</div>
+    </div>
+
+    <!-- CONTENT -->
+    <div id="content">
+      <div id="view-dashboard">
+        <div class="stats-grid" id="dash-stats"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="card">
+            <div class="font-bold mb-12">Overdue Tasks</div>
+            <div id="dash-overdue"></div>
+          </div>
+          <div class="card">
+            <div class="font-bold mb-12">Due This Week</div>
+            <div id="dash-soon"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="view-list" class="hidden">
+        <div class="flex items-center justify-between mb-16">
+          <div class="flex gap-8">
+            <select id="list-filter-status" onchange="renderList()"><option value="">All Status</option><option>inbox</option><option>todo</option><option>doing</option><option>blocked</option><option>done</option></select>
+            <select id="list-filter-priority" onchange="renderList()"><option value="">All Priority</option><option>P0</option><option>P1</option><option>P2</option><option>P3</option></select>
+            <select id="list-filter-owner" onchange="renderList()"><option value="">All Owners</option></select>
+          </div>
+          <button class="btn btn-primary" onclick="showTaskModal()">+ Task</button>
+        </div>
+        <div class="panel">
+          <div id="task-list-body"></div>
+        </div>
+      </div>
+
+      <div id="view-board" class="hidden">
+        <div class="flex items-center justify-between mb-16">
+          <div></div>
+          <button class="btn btn-primary" onclick="showTaskModal()">+ Task</button>
+        </div>
+        <div class="board" id="board-cols"></div>
+      </div>
+
+      <div id="view-calendar" class="hidden">
+        <div class="flex items-center justify-between mb-16">
+          <div class="flex gap-8 items-center">
+            <button class="btn btn-secondary btn-sm" onclick="calPrev()">‹ Prev</button>
+            <span class="font-bold" id="cal-month-label"></span>
+            <button class="btn btn-secondary btn-sm" onclick="calNext()">Next ›</button>
+          </div>
+          <button class="btn btn-primary" onclick="showTaskModal()">+ Task</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);text-align:center;margin-bottom:2px">
+          <div class="text-xs text-muted font-bold" style="padding:4px" >Sun</div>
+          <div class="text-xs text-muted font-bold" style="padding:4px">Mon</div>
+          <div class="text-xs text-muted font-bold" style="padding:4px">Tue</div>
+          <div class="text-xs text-muted font-bold" style="padding:4px">Wed</div>
+          <div class="text-xs text-muted font-bold" style="padding:4px">Thu</div>
+          <div class="text-xs text-muted font-bold" style="padding:4px">Fri</div>
+          <div class="text-xs text-muted font-bold" style="padding:4px">Sat</div>
+        </div>
+        <div class="cal-grid" id="cal-grid"></div>
+      </div>
+
+      <div id="view-timeline" class="hidden">
+        <div class="card">
+          <div class="font-bold mb-12">Timeline / Gantt</div>
+          <div class="gantt-wrap" id="gantt-body"></div>
+        </div>
+      </div>
+
+      <div id="view-workload" class="hidden">
+        <div class="card">
+          <div class="font-bold mb-12">Team Workload</div>
+          <div id="workload-body"></div>
+        </div>
+      </div>
+
+      <div id="view-eisenhower" class="hidden">
+        <div class="eisenhower">
+          <div class="quadrant q-do"><div class="quadrant-header" style="color:var(--danger)">🔴 Do First — Urgent + Important</div><div id="q-p0"></div></div>
+          <div class="quadrant q-schedule"><div class="quadrant-header" style="color:var(--ok)">🟢 Schedule — Important, Not Urgent</div><div id="q-p1"></div></div>
+          <div class="quadrant q-delegate"><div class="quadrant-header" style="color:#e37400">🟡 Delegate — Urgent, Not Important</div><div id="q-p2"></div></div>
+          <div class="quadrant q-drop"><div class="quadrant-header" style="color:var(--text3)">⚪ Drop / Defer — Neither</div><div id="q-p3"></div></div>
+        </div>
+      </div>
+
+      <div id="view-portfolio" class="hidden">
+        <div class="stats-grid" id="portfolio-stats"></div>
+        <div id="portfolio-projects"></div>
+      </div>
+
+      <div id="view-mytasks" class="hidden">
+        <div class="panel">
+          <div class="panel-header">My Tasks</div>
+          <div id="my-tasks-body"></div>
+        </div>
+      </div>
+
+      <div id="view-inbox" class="hidden">
+        <div class="panel">
+          <div class="panel-header">Notifications
+            <button class="btn btn-secondary btn-sm" style="margin-left:auto" onclick="markAllRead()">Mark all read</button>
+          </div>
+          <div id="notif-body"></div>
+        </div>
+      </div>
+
+      <div id="view-projects" class="hidden">
+        <div class="flex items-center justify-between mb-16">
+          <span class="font-bold" style="font-size:16px">Projects</span>
+          <button class="btn btn-primary" onclick="showProjectModal()">+ Project</button>
+        </div>
+        <div id="projects-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px"></div>
+      </div>
+
+      <!-- MEETING NOTES -->
+      <div id="view-meetings" class="hidden">
+        <div style="display:grid;grid-template-columns:280px 1fr;gap:16px;height:calc(100vh - 120px)">
+          <div>
+            <div class="flex items-center justify-between mb-8">
+              <span class="font-bold">History</span>
+              <button class="btn btn-primary btn-sm" onclick="newMeeting()">+ New</button>
+            </div>
+            <input type="search" placeholder="Search notes..." style="margin-bottom:8px" oninput="filterMeetings(this.value)">
+            <div class="meeting-history" id="meeting-history-list"></div>
+          </div>
+          <div id="meeting-detail">
+            <div class="card" style="height:100%">
+              <div class="empty-state"><div class="icon">📝</div><p>Select a meeting or create a new one</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MEDIA -->
+      <div id="view-media" class="hidden">
+        <div style="display:flex;gap:10px;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:10px">
+          <button class="btn btn-secondary active-tab" onclick="mediaTab('shoots',this)">📅 Shoots</button>
+          <button class="btn btn-secondary" onclick="mediaTab('videos',this)">🎬 Videos</button>
+          <button class="btn btn-secondary" onclick="mediaTab('posts',this)">📲 Posts</button>
+        </div>
+        <div id="media-shoots">
+          <div class="flex items-center justify-between mb-12">
+            <span class="font-bold">Shoot Sessions</span>
+            <button class="btn btn-primary" onclick="showShootModal()">+ New Shoot</button>
+          </div>
+          <div id="shoots-list"></div>
+        </div>
+        <div id="media-videos" class="hidden">
+          <div class="flex items-center justify-between mb-12">
+            <span class="font-bold">Video Deliverables</span>
+            <button class="btn btn-primary" onclick="showVideoModal()">+ New Video</button>
+          </div>
+          <div id="videos-list"></div>
+        </div>
+        <div id="media-posts" class="hidden">
+          <div class="font-bold mb-12">Platform Posts</div>
+          <div id="posts-list"></div>
+        </div>
+      </div>
+
+      <!-- MISSIONS -->
+      <div id="view-missions" class="hidden">
+        <div class="flex items-center justify-between mb-16">
+          <span class="font-bold" style="font-size:16px">Mission Requests</span>
+          <button class="btn btn-primary" onclick="showMissionModal()">+ New Mission</button>
+        </div>
+        <div id="missions-list"></div>
+      </div>
+
+      <!-- CDO -->
+      <div id="view-cdo" class="hidden">
+        <div class="font-bold mb-12" style="font-size:16px">Change Day Off</div>
+        <div class="cdo-balance" id="cdo-balance"></div>
+        <div class="flex items-center justify-between mb-12">
+          <span class="font-bold">CDO Ledger</span>
+          <button class="btn btn-primary" onclick="showCDOModal()">+ Redeem CDO</button>
+        </div>
+        <div id="cdo-list"></div>
+      </div>
+
+      <!-- LEAVE -->
+      <div id="view-leave" class="hidden">
+        <div class="flex items-center justify-between mb-16">
+          <span class="font-bold" style="font-size:16px">Leave Requests</span>
+          <button class="btn btn-primary" onclick="showLeaveModal()">+ Request Leave</button>
+        </div>
+        <div id="leave-list"></div>
+      </div>
+
+      <!-- TEAM -->
+      <div id="view-team" class="hidden">
+        <div class="flex items-center justify-between mb-16">
+          <span class="font-bold" style="font-size:16px">Team Members</span>
+          <button class="btn btn-primary" onclick="showMemberModal()">+ Add Member</button>
+        </div>
+        <div id="team-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px"></div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div id="view-settings" class="hidden">
+        <div class="card" style="max-width:480px">
+          <div class="font-bold mb-16">Settings</div>
+          <div class="form-row">
+            <label>API Endpoint (Apps Script Web App URL)</label>
+            <input type="url" id="api-url" placeholder="https://script.google.com/macros/s/.../exec" onchange="saveSettings()">
+          </div>
+          <div class="form-row">
+            <label>Your Name (shown as ME)</label>
+            <input type="text" id="my-name" placeholder="Your name" onchange="saveSettings()">
+          </div>
+          <div class="form-row">
+            <label>Your Department</label>
+            <input type="text" id="my-dept" placeholder="Department" onchange="saveSettings()">
+          </div>
+          <div class="form-row">
+            <label>CDO Expiry (days)</label>
+            <input type="number" id="cdo-expiry" value="90" onchange="saveSettings()">
+          </div>
+          <button class="btn btn-primary" onclick="runInit()">⚡ Initialize Sheet (run once)</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV (mobile) -->
+<div id="bottom-nav">
+  <div class="bnav-items">
+    <div class="bnav-item active" onclick="nav('dashboard')"><span class="icon">📊</span>Home</div>
+    <div class="bnav-item" onclick="nav('list')"><span class="icon">✅</span>Tasks</div>
+    <div class="bnav-item" onclick="nav('board')"><span class="icon">🗂</span>Board</div>
+    <div class="bnav-item" onclick="nav('meetings')"><span class="icon">📝</span>Notes</div>
+    <div class="bnav-item" onclick="nav('missions')"><span class="icon">🚀</span>HR</div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- ==================== MODALS ==================== -->
+<!-- Task Modal -->
+<div class="modal-overlay hidden" id="task-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span id="task-modal-title">New Task</span>
+      <button class="btn btn-icon" style="margin-left:auto" onclick="closeModal('task-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="task-id">
+      <div class="form-row"><label>Title *</label><input id="t-title" placeholder="Task title"></div>
+      <div class="form-row"><label>Details</label><textarea id="t-details" placeholder="Context, acceptance criteria..."></textarea></div>
+      <div class="form-grid">
+        <div class="form-row"><label>Owner</label><select id="t-owner"><option value="ME">ME</option></select></div>
+        <div class="form-row"><label>Priority</label>
+          <select id="t-priority"><option>P0</option><option selected>P1</option><option>P2</option><option>P3</option></select>
+        </div>
+        <div class="form-row"><label>Due Date</label><input type="date" id="t-due"></div>
+        <div class="form-row"><label>Status</label>
+          <select id="t-status"><option>inbox</option><option>todo</option><option>doing</option><option>blocked</option><option>done</option></select>
+        </div>
+        <div class="form-row"><label>Department</label><input id="t-dept" placeholder="Department"></div>
+        <div class="form-row"><label>Repeat</label>
+          <select id="t-repeat"><option value="">None</option><option>daily</option><option>weekly</option><option>biweekly</option><option>monthly</option></select>
+        </div>
+      </div>
+      <div class="form-row"><label>Tags (comma separated)</label><input id="t-tags" placeholder="design, urgent"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('task-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTask()">Save Task</button>
+    </div>
+  </div>
+</div>
+
+<!-- Meeting Modal -->
+<div class="modal-overlay hidden" id="meeting-modal">
+  <div class="modal" style="max-width:800px">
+    <div class="modal-header">
+      <span>New Meeting Notes</span>
+      <button class="btn btn-icon" style="margin-left:auto" onclick="closeModal('meeting-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-row"><label>Meeting Title *</label><input id="m-title" placeholder="e.g. Q2 Marketing Sync"></div>
+        <div class="form-row"><label>Date</label><input type="date" id="m-date"></div>
+        <div class="form-row"><label>Department</label><input id="m-dept" placeholder="Department"></div>
+        <div class="form-row"><label>Attendees (comma separated)</label><input id="m-attendees" placeholder="Sara, Ben, ME"></div>
+      </div>
+      <div class="form-row">
+        <label>Paste Raw Notes</label>
+        <textarea id="m-notes" style="min-height:140px" placeholder="Paste your meeting notes here — any format. We'll detect tasks and events automatically."></textarea>
+      </div>
+      <button class="btn btn-secondary" onclick="parseNotes()" style="margin-bottom:12px">🔍 Detect Tasks & Events</button>
+      <div id="extracted-items"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('meeting-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveMeeting()">Save Meeting + Confirm Items</button>
+    </div>
+  </div>
+</div>
+
+<!-- Mission Modal -->
+<div class="modal-overlay hidden" id="mission-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span>New Mission Request</span>
+      <button class="btn btn-icon" style="margin-left:auto" onclick="closeModal('mission-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-row"><label>Employee</label><select id="ms-employee"></select></div>
+        <div class="form-row"><label>Date</label><input type="date" id="ms-date"></div>
+        <div class="form-row"><label>Day Type</label>
+          <select id="ms-day-type"><option>Weekend</option><option>Public Holiday</option></select>
+        </div>
+        <div class="form-row">
+          <label>Duration</label>
+          <div class="half-day-toggle">
+            <button id="ms-dur-full" class="active" onclick="setDuration('full')">Full Day</button>
+            <button id="ms-dur-half" onclick="setDuration('half')">Half Day</button>
+          </div>
+        </div>
+        <div class="form-row"><label>Start Time</label><input type="time" id="ms-start" value="08:00"></div>
+        <div class="form-row"><label>End Time</label><input type="time" id="ms-end" value="17:00"></div>
+      </div>
+      <div class="form-row"><label>Project / Task</label><input id="ms-project" placeholder="What project are you working on?"></div>
+      <div class="form-row"><label>Details / Justification</label><textarea id="ms-details" placeholder="What will you be doing? Why is it needed?"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('mission-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveMission()">Submit Mission</button>
+    </div>
+  </div>
+</div>
+
+<!-- Leave Modal -->
+<div class="modal-overlay hidden" id="leave-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span>Request Leave</span>
+      <button class="btn btn-icon" style="margin-left:auto" onclick="closeModal('leave-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-row"><label>Employee</label><select id="lv-employee"></select></div>
+        <div class="form-row"><label>Leave Type</label>
+          <select id="lv-type"><option>Annual</option><option>Sick</option><option>Emergency</option><option>Unpaid</option></select>
+        </div>
+        <div class="form-row">
+          <label>Duration</label>
+          <div class="half-day-toggle">
+            <button id="lv-dur-full" class="active" onclick="setLeaveDuration('full')">Full Day</button>
+            <button id="lv-dur-half" onclick="setLeaveDuration('half')">Half Day</button>
+          </div>
+        </div>
+        <div class="form-row" id="lv-period-row" style="display:none">
+          <label>Half-day Period</label>
+          <div class="half-day-toggle">
+            <button id="lv-am" class="active" onclick="setLeavePeriod('AM')">Morning (AM)</button>
+            <button id="lv-pm" onclick="setLeavePeriod('PM')">Afternoon (PM)</button>
+          </div>
+        </div>
+        <div class="form-row"><label>From Date</label><input type="date" id="lv-from"></div>
+        <div class="form-row"><label>To Date</label><input type="date" id="lv-to"></div>
+      </div>
+      <div class="form-row"><label>Reason</label><textarea id="lv-reason" placeholder="Optional reason..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('leave-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveLeave()">Submit Leave Request</button>
+    </div>
+  </div>
+</div>
+
+<!-- Shoot Modal -->
+<div class="modal-overlay hidden" id="shoot-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span>New Shoot Session</span>
+      <button class="btn btn-icon" style="margin-left:auto" onclick="closeModal('shoot-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row"><label>Title *</label><input id="sh-title" placeholder="e.g. Campaign Outdoor Shoot"></div>
+      <div class="form-grid">
+        <div class="form-row"><label>Date</label><input type="date" id="sh-date"></div>
+        <div class="form-row"><label>Location</label><input id="sh-location" placeholder="Location"></div>
+        <div class="form-row"><label>Start Time</label><input type="time" id="sh-start" value="08:00"></div>
+        <div class="form-row"><label>End Time</label><input type="time" id="sh-end" value="17:00"></div>
+        <div class="form-row"><label>Crew (comma separated)</label><input id="sh-crew" placeholder="Sara, Ali, Hana"></div>
+        <div class="form-row"><label>Equipment</label><input id="sh-equip" placeholder="Sony A7IV, DJI Mini 4"></div>
+      </div>
+      <div class="form-row"><label>Notes / Shot List</label><textarea id="sh-notes" placeholder="What scenes / shots are planned?"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('shoot-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveShoot()">Save Shoot</button>
+    </div>
+  </div>
+</div>
+
+<!-- Project Modal -->
+<div class="modal-overlay hidden" id="project-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span>New Project</span>
+      <button class="btn btn-icon" style="margin-left:auto" onclick="closeModal('project-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row"><label>Project Name *</label><input id="pr-title" placeholder="Project name"></div>
+      <div class="form-row"><label>Description</label><textarea id="pr-desc" placeholder="What is this project about?"></textarea></div>
+      <div class="form-grid">
+        <div class="form-row"><label>Owner</label><select id="pr-owner"></select></div>
+        <div class="form-row"><label>Status</label>
+          <select id="pr-status"><option>on-track</option><option>at-risk</option><option>off-track</option></select>
+        </div>
+        <div class="form-row"><label>Start Date</label><input type="date" id="pr-start"></div>
+        <div class="form-row"><label>End Date</label><input type="date" id="pr-end"></div>
+        <div class="form-row"><label>Department</label><input id="pr-dept" placeholder="Department"></div>
+        <div class="form-row"><label>Color</label><input type="color" id="pr-color" value="#1a73e8"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('project-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveProject()">Save Project</button>
+    </div>
+  </div>
+</div>
+
+<!-- CDO Redemption Modal -->
+<div class="modal-overlay hidden" id="cdo-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span>Redeem Change Day Off</span>
+      <button class="btn btn-icon" style="margin-left:auto" onclick="closeModal('cdo-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row"><label>Employee</label><select id="cdo-employee"></select></div>
+      <div class="form-row">
+        <label>Duration</label>
+        <div class="half-day-toggle">
+          <button id="cdo-dur-full" class="active" onclick="setCDODuration('full')">Full Day</button>
+          <button id="cdo-dur-half" onclick="setCDODuration('half')">Half Day</button>
+        </div>
+      </div>
+      <div class="form-row"><label>Date Off</label><input type="date" id="cdo-date"></div>
+      <div class="form-row"><label>Notes</label><textarea id="cdo-notes" placeholder="Optional notes..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('cdo-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCDORedemption()">Submit</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== JAVASCRIPT ==================== -->
+<script>
+// ===================== STATE =====================
+const S = {
+  apiUrl: localStorage.getItem('aeros_api_url') || 'https://script.google.com/macros/s/AKfycbx-twUE6SK_8QZ2f5hQwgvwOVCpLN53UH31Hwt8HqWMP4LLf1dLmpfeY6fDi7v5Z7C44A/exec',
+  myName: localStorage.getItem('aeros_my_name') || 'ME',
+  myDept: localStorage.getItem('aeros_my_dept') || '',
+  tasks: [], projects: [], team: [], meetings: [], missions: [],
+  leaves: [], shoots: [], videos: [], notifications: [],
+  cdoBalances: [], cdoRedemptions: [],
+  currentView: 'dashboard',
+  calYear: new Date().getFullYear(),
+  calMonth: new Date().getMonth(),
+  msDuration: 'full', lvDuration: 'full', lvPeriod: 'AM', cdoDuration: 'full',
+  parsedItems: [],
+};
+
+// ===================== API =====================
+async function api(action, params={}, body=null) {
+  if (!S.apiUrl) { toast('Set your API URL in Settings first', 'warn'); return null; }
+  const url = new URL(S.apiUrl);
+  url.searchParams.set('action', action);
+  Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
+  const opts = { method: body ? 'POST' : 'GET' };
+  if (body) opts.body = JSON.stringify(body);
+  try {
+    const r = await fetch(url.toString(), opts);
+    return await r.json();
+  } catch(e) { toast('API error: ' + e.message, 'error'); return null; }
+}
+
+// ===================== NAVIGATION =====================
+function nav(view) {
+  document.querySelectorAll('[id^=view-]').forEach(el => el.classList.add('hidden'));
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.bnav-item').forEach(el => el.classList.remove('active'));
+  const el = document.getElementById('view-' + view);
+  if (el) el.classList.remove('hidden');
+  document.querySelectorAll('.nav-item').forEach(el => {
+    if (el.getAttribute('onclick') === `nav('${view}')`) el.classList.add('active');
+  });
+  document.querySelectorAll('.bnav-item').forEach(el => {
+    if (el.getAttribute('onclick') === `nav('${view}')`) el.classList.add('active');
+  });
+  S.currentView = view;
+  const titles = { dashboard:'Dashboard',list:'Tasks',board:'Board',calendar:'Calendar',
+    timeline:'Timeline',workload:'Workload',eisenhower:'Eisenhower',portfolio:'Portfolio',
+    mytasks:'My Tasks',inbox:'Inbox',projects:'Projects',meetings:'Meeting Notes',
+    media:'Media Production',missions:'Missions',cdo:'Change Day Off',leave:'Leave',
+    team:'Team',settings:'Settings' };
+  document.getElementById('page-title').textContent = titles[view] || view;
+  renderView(view);
+}
+
+async function renderView(view) {
+  await loadData();
+  if (view === 'dashboard')   renderDashboard();
+  if (view === 'list')        renderList();
+  if (view === 'board')       renderBoard();
+  if (view === 'calendar')    renderCalendar();
+  if (view === 'timeline')    renderTimeline();
+  if (view === 'workload')    renderWorkload();
+  if (view === 'eisenhower')  renderEisenhower();
+  if (view === 'portfolio')   renderPortfolio();
+  if (view === 'mytasks')     renderMyTasks();
+  if (view === 'inbox')       renderInbox();
+  if (view === 'projects')    renderProjects();
+  if (view === 'meetings')    renderMeetings();
+  if (view === 'media')       renderMedia();
+  if (view === 'missions')    renderMissions();
+  if (view === 'cdo')         renderCDO();
+  if (view === 'leave')       renderLeave();
+  if (view === 'team')        renderTeam();
+  if (view === 'settings')    renderSettings();
+}
+
+async function loadData() {
+  if (!S.apiUrl) return;
+  const [tasks, projects, team, meetings, missions, leaves, shoots, videos, notifs, cdoBal, cdoRed] = await Promise.all([
+    api('getTasks'), api('getProjects'), api('getTeam'), api('getMeetings'),
+    api('getMissions'), api('getLeaveRequests'), api('getShoots'), api('getVideos'),
+    api('getNotifs', { user: S.myName }), api('getCDOBalance', { employee: S.myName }),
+    api('getCDORedemptions', { employee: S.myName }),
+  ]);
+  if (tasks)    S.tasks    = tasks;
+  if (projects) S.projects = projects;
+  if (team)     S.team     = team;
+  if (meetings) S.meetings = meetings;
+  if (missions) S.missions = missions;
+  if (leaves)   S.leaves   = leaves;
+  if (shoots)   S.shoots   = shoots;
+  if (videos)   S.videos   = videos;
+  if (notifs)   S.notifications = notifs;
+  if (cdoBal)   S.cdoBalances = cdoBal;
+  if (cdoRed)   S.cdoRedemptions = cdoRed;
+  populateOwnerSelects();
+}
+
+// ===================== DASHBOARD =====================
+function renderDashboard() {
+  const t = S.tasks;
+  const today = todayStr();
+  const overdue  = t.filter(x => x.due && x.due < today && x.status !== 'done');
+  const soon     = t.filter(x => x.due && x.due >= today && x.due <= addDays(today,7) && x.status !== 'done');
+  const p0s      = t.filter(x => x.priority === 'P0' && x.status !== 'done');
+  const doneThis = t.filter(x => x.status === 'done' && x.updated && x.updated >= addDays(today,-7));
+  document.getElementById('dash-stats').innerHTML = [
+    statCard(overdue.length,'Overdue',overdue.length > 0 ? 'danger' : ''),
+    statCard(soon.length,'Due This Week',soon.length > 3 ? 'warn' : ''),
+    statCard(p0s.length,'Open P0s',p0s.length > 0 ? 'danger' : ''),
+    statCard(doneThis.length,'Done (7 days)',''),
+    statCard(t.filter(x=>x.status!=='done').length,'Open Tasks',''),
+    statCard(S.projects.length,'Projects',''),
+  ].join('');
+  document.getElementById('dash-overdue').innerHTML = overdue.length
+    ? overdue.map(taskRowHtml).join('') : '<div class="empty-state"><p>No overdue tasks 🎉</p></div>';
+  document.getElementById('dash-soon').innerHTML = soon.length
+    ? soon.map(taskRowHtml).join('') : '<div class="empty-state"><p>Nothing due soon</p></div>';
+}
+
+function statCard(num, label, cls='') {
+  return `<div class="stat-card"><div class="stat-num ${cls ? 'stat-num ' + cls : ''}">${num}</div><div class="stat-label">${label}</div></div>`;
+}
+
+// ===================== LIST VIEW =====================
+function renderList() {
+  const status   = document.getElementById('list-filter-status')?.value || '';
+  const priority = document.getElementById('list-filter-priority')?.value || '';
+  const owner    = document.getElementById('list-filter-owner')?.value || '';
+  let tasks = S.tasks;
+  if (status)   tasks = tasks.filter(t => t.status === status);
+  if (priority) tasks = tasks.filter(t => t.priority === priority);
+  if (owner)    tasks = tasks.filter(t => t.owner === owner);
+  document.getElementById('task-list-body').innerHTML = tasks.length
+    ? tasks.map(taskRowHtml).join('')
+    : '<div class="empty-state"><div class="icon">✅</div><p>No tasks found</p></div>';
+}
+
+function taskRowHtml(t) {
+  const done = t.status === 'done';
+  return `<div class="task-row" onclick="editTask('${t.id}')">
+    <div class="task-check ${done ? 'done' : ''}" onclick="event.stopPropagation();toggleDone('${t.id}')">${done ? '✓' : ''}</div>
+    <div class="task-title ${done ? 'done' : ''}">${esc(t.title)}</div>
+    <div class="task-meta">
+      ${t.priority ? `<span class="badge badge-${t.priority.toLowerCase()}">${t.priority}</span>` : ''}
+      ${t.due ? `<span class="text-sm text-muted">${t.due}</span>` : ''}
+      ${t.owner ? `<div class="avatar" style="width:24px;height:24px;font-size:10px">${(t.owner||'?')[0]}</div>` : ''}
+    </div>
+  </div>`;
+}
+
+// ===================== BOARD VIEW =====================
+function renderBoard() {
+  const cols = ['inbox','todo','doing','blocked','done'];
+  const labels = { inbox:'Inbox', todo:'To Do', doing:'Doing', blocked:'Blocked', done:'Done' };
+  const colors = { inbox:'#9aa0a6', todo:'#1967d2', doing:'#e37400', blocked:'#c5221f', done:'#137333' };
+  document.getElementById('board-cols').innerHTML = cols.map(col => {
+    const tasks = S.tasks.filter(t => t.status === col);
+    const cards = tasks.map(t => `
+      <div class="board-card" onclick="editTask('${t.id}')">
+        <div class="board-card-title">${esc(t.title)}</div>
+        <div class="board-card-meta">
+          ${t.priority ? `<span class="badge badge-${t.priority.toLowerCase()}">${t.priority}</span>` : ''}
+          ${t.due ? `<span class="text-xs text-muted">${t.due}</span>` : ''}
+          ${t.owner ? `<div class="avatar" style="width:22px;height:22px;font-size:10px">${t.owner[0]}</div>` : ''}
+        </div>
+      </div>`).join('');
+    return `<div class="board-col">
+      <div class="board-col-header">
+        <span style="color:${colors[col]}">${labels[col]}</span>
+        <span class="badge" style="background:var(--surface2)">${tasks.length}</span>
+      </div>
+      ${cards || '<div class="text-sm text-muted" style="padding:8px">No tasks</div>'}
+    </div>`;
+  }).join('');
+}
+
+// ===================== CALENDAR VIEW =====================
+function renderCalendar() {
+  const y = S.calYear, m = S.calMonth;
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('cal-month-label').textContent = `${monthNames[m]} ${y}`;
+  const first = new Date(y, m, 1).getDay();
+  const days  = new Date(y, m+1, 0).getDate();
+  const today = todayStr();
+  let html = '';
+  for (let i = 0; i < first; i++) html += '<div class="cal-cell other-month"></div>';
+  for (let d = 1; d <= days; d++) {
+    const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday = dateStr === today;
+    const dayTasks  = S.tasks.filter(t => t.due === dateStr);
+    const dayLeaves = S.leaves.filter(l => l.from_date <= dateStr && l.to_date >= dateStr && l.status === 'approved');
+    const dayShoots = S.shoots.filter(s => s.date === dateStr);
+    const dayMiss   = S.missions.filter(ms => ms.date === dateStr && ms.status === 'approved');
+    html += `<div class="cal-cell ${isToday ? 'today' : ''}">
+      <div class="cal-day-num ${isToday ? 'text-brand' : ''}" style="${isToday ? 'color:var(--brand)' : ''}">${d}</div>
+      ${dayTasks.map(t => `<div class="cal-event ${t.status==='done'?'done-event':''}" title="${esc(t.title)}">${esc(t.title)}</div>`).join('')}
+      ${dayLeaves.map(l => `<div class="cal-event leave-event" title="${l.employee} on leave">${l.employee} 🌿</div>`).join('')}
+      ${dayShoots.map(s => `<div class="cal-event shoot-event" title="${esc(s.title)}">${esc(s.title)}</div>`).join('')}
+      ${dayMiss.map(ms => `<div class="cal-event mission-event" title="${ms.employee} mission">${ms.employee} 🚀</div>`).join('')}
+    </div>`;
+  }
+  document.getElementById('cal-grid').innerHTML = html;
+}
+
+function calPrev() { S.calMonth--; if(S.calMonth<0){S.calMonth=11;S.calYear--;} renderCalendar(); }
+function calNext() { S.calMonth++; if(S.calMonth>11){S.calMonth=0;S.calYear++;} renderCalendar(); }
+
+// ===================== TIMELINE =====================
+function renderTimeline() {
+  const tasks = S.tasks.filter(t => t.due && t.status !== 'done').slice(0, 20);
+  if (!tasks.length) { document.getElementById('gantt-body').innerHTML = '<div class="empty-state"><p>No tasks with due dates</p></div>'; return; }
+  const dates = tasks.map(t => t.due).sort();
+  const minDate = new Date(dates[0]);
+  const maxDate = new Date(dates[dates.length-1]);
+  const range = Math.max((maxDate - minDate) / 86400000, 1);
+  const rows = tasks.map(t => {
+    const start = new Date(t.due); start.setDate(start.getDate()-1);
+    const offset = Math.max(0, (start - minDate) / 86400000 / range * 100);
+    const width  = Math.max(4, 1/range * 100);
+    return `<div class="gantt-row">
+      <div class="gantt-label" title="${esc(t.title)}">${esc(t.title)}</div>
+      <div class="gantt-track" style="min-width:400px">
+        <div class="gantt-bar" style="left:${offset}%;width:${width}%;background:${priorityColor(t.priority)}">${t.priority||''}</div>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('gantt-body').innerHTML = rows;
+}
+
+// ===================== WORKLOAD =====================
+function renderWorkload() {
+  const counts = {};
+  S.tasks.filter(t => t.status !== 'done').forEach(t => { counts[t.owner||'Unassigned'] = (counts[t.owner||'Unassigned']||0)+1; });
+  const max = Math.max(...Object.values(counts), 1);
+  document.getElementById('workload-body').innerHTML = Object.entries(counts)
+    .sort((a,b) => b[1]-a[1])
+    .map(([name, count]) => `
+      <div class="workload-row">
+        <div class="workload-name">${esc(name)}</div>
+        <div class="workload-bar-wrap">
+          <div class="workload-bar ${count > 8 ? 'overload' : ''}" style="width:${count/max*100}%"></div>
+        </div>
+        <div class="workload-count">${count} task${count!==1?'s':''}</div>
+      </div>`).join('') || '<div class="empty-state"><p>No active tasks</p></div>';
+}
+
+// ===================== EISENHOWER =====================
+function renderEisenhower() {
+  const active = S.tasks.filter(t => t.status !== 'done');
+  const groups = { p0: active.filter(t=>t.priority==='P0'), p1: active.filter(t=>t.priority==='P1'), p2: active.filter(t=>t.priority==='P2'), p3: active.filter(t=>t.priority==='P3') };
+  ['p0','p1','p2','p3'].forEach(k => {
+    document.getElementById('q-'+k).innerHTML = groups[k].map(taskRowHtml).join('') || '<div class="text-sm text-muted" style="padding:8px">None</div>';
+  });
+}
+
+// ===================== PORTFOLIO =====================
+function renderPortfolio() {
+  document.getElementById('portfolio-projects').innerHTML = S.projects.map(p => {
+    const pTasks = S.tasks.filter(t => t.department === p.department || t.owner === p.owner);
+    const done = pTasks.filter(t => t.status === 'done').length;
+    const pct  = pTasks.length ? Math.round(done/pTasks.length*100) : 0;
+    const statusColors = {'on-track':var_ok, 'at-risk':var_warn, 'off-track':var_danger};
+    return `<div class="card mb-12">
+      <div class="flex items-center gap-8 mb-8">
+        <div style="width:12px;height:12px;border-radius:50%;background:${p.color||'#1a73e8'};flex-shrink:0"></div>
+        <span class="font-bold">${esc(p.title)}</span>
+        <span class="badge ap-${p.status==='on-track'?'approved':p.status==='at-risk'?'pending':'rejected'}" style="margin-left:auto">${p.status||'—'}</span>
+      </div>
+      <div class="text-sm text-muted mb-8">${esc(p.description||'')}</div>
+      <div style="background:var(--surface2);border-radius:99px;height:6px;margin-bottom:4px">
+        <div style="width:${pct}%;height:100%;border-radius:99px;background:var(--brand)"></div>
+      </div>
+      <div class="text-xs text-muted">${pct}% complete — ${done}/${pTasks.length} tasks</div>
+    </div>`;
+  }).join('') || '<div class="empty-state"><div class="icon">📁</div><p>No projects yet</p></div>';
+}
+
+// ===================== MY TASKS =====================
+function renderMyTasks() {
+  const mine = S.tasks.filter(t => t.owner === S.myName || t.owner === 'ME');
+  document.getElementById('my-tasks-body').innerHTML = mine.length
+    ? mine.map(taskRowHtml).join('') : '<div class="empty-state"><div class="icon">🎉</div><p>No tasks assigned to you</p></div>';
+}
+
+// ===================== INBOX =====================
+function renderInbox() {
+  document.getElementById('notif-body').innerHTML = S.notifications.length
+    ? S.notifications.map(n => `
+        <div class="task-row ${n.read==='true'?'':'font-bold'}" style="opacity:${n.read==='true'?.6:1}">
+          <div style="flex:1">
+            <div>${esc(n.title)}</div>
+            <div class="text-sm text-muted">${esc(n.body||'')}</div>
+          </div>
+          <div class="text-xs text-muted">${n.created||''}</div>
+          ${n.read!=='true'?`<button class="btn btn-sm btn-secondary" onclick="markRead('${n.id}')">Mark read</button>`:''}
+        </div>`).join('')
+    : '<div class="empty-state"><div class="icon">🔔</div><p>No notifications</p></div>';
+}
+
+async function markRead(id) { await api('markRead', {id}); loadData().then(renderInbox); }
+async function markAllRead() {
+  await Promise.all(S.notifications.filter(n=>n.read!=='true').map(n => api('markRead',{id:n.id})));
+  loadData().then(renderInbox);
+}
+
+// ===================== PROJECTS =====================
+function renderProjects() {
+  document.getElementById('projects-grid').innerHTML = S.projects.map(p => `
+    <div class="card" style="border-top:3px solid ${p.color||'var(--brand)'}">
+      <div class="flex items-center gap-8 mb-8">
+        <span class="font-bold">${esc(p.title)}</span>
+        <span class="approval-pill ap-${p.status==='on-track'?'approved':p.status==='at-risk'?'pending':'rejected'}" style="margin-left:auto">${p.status||'—'}</span>
+      </div>
+      <div class="text-sm text-muted mb-8">${esc(p.description||'')}</div>
+      <div class="text-xs text-muted">Owner: ${esc(p.owner||'—')} · ${p.department||''}</div>
+    </div>`).join('') || '<div class="empty-state"><div class="icon">📁</div><p>No projects yet. Create one!</p></div>';
+}
+
+// ===================== MEETING NOTES =====================
+function renderMeetings() {
+  document.getElementById('meeting-history-list').innerHTML = S.meetings.length
+    ? S.meetings.map(m => `
+        <div class="meeting-hist-item" onclick="openMeeting('${m.id}')">
+          <span class="meeting-date">${m.date||''}</span>
+          <span class="meeting-title">${esc(m.title||'Untitled')}</span>
+          ${m.pinned==='true'?'📌':''}
+        </div>`).join('')
+    : '<div class="text-sm text-muted" style="padding:12px">No meetings yet</div>';
+}
+
+function newMeeting() {
+  document.getElementById('m-date').value = todayStr();
+  document.getElementById('m-title').value = '';
+  document.getElementById('m-notes').value = '';
+  document.getElementById('m-attendees').value = '';
+  document.getElementById('m-dept').value = S.myDept;
+  document.getElementById('extracted-items').innerHTML = '';
+  S.parsedItems = [];
+  openModal('meeting-modal');
+}
+
+async function parseNotes() {
+  const notes = document.getElementById('m-notes').value;
+  if (!notes.trim()) { toast('Paste some notes first'); return; }
+  const result = await api('parseMeetingNotes', {}, { raw_notes: notes });
+  if (!result || !result.items) { toast('Parse failed'); return; }
+  S.parsedItems = result.items;
+  renderExtractedItems();
+}
+
+function renderExtractedItems() {
+  document.getElementById('extracted-items').innerHTML = S.parsedItems.length
+    ? '<div class="font-bold mb-8">Extracted Items — edit & confirm below</div>' + S.parsedItems.map((item,i) => `
+      <div class="extracted-item">
+        <div class="ext-header">
+          <span class="badge ${item.item_type==='task'?'badge-p1':'badge-p3'}">${item.item_type.toUpperCase()}</span>
+          <span style="flex:1;font-weight:600;font-size:13px;margin-left:8px">${esc(item.title)}</span>
+          <label style="display:flex;align-items:center;gap:4px;margin:0;cursor:pointer">
+            <input type="checkbox" checked onchange="S.parsedItems[${i}].confirmed=this.checked"> Confirm
+          </label>
+        </div>
+        <div class="ext-body">
+          <div class="ext-field"><label>Owner</label>
+            <input value="${esc(item.owner||'')}" oninput="S.parsedItems[${i}].owner=this.value">
+          </div>
+          <div class="ext-field"><label>Due Date</label>
+            <input type="date" value="${item.due||''}" oninput="S.parsedItems[${i}].due=this.value">
+          </div>
+          <div class="ext-field"><label>Priority</label>
+            <select onchange="S.parsedItems[${i}].priority=this.value">
+              <option>P0</option><option selected>P1</option><option>P2</option><option>P3</option>
+            </select>
+          </div>
+          <div class="ext-field"><label>Confidence</label>
+            <div class="conf-bar"><div class="conf-fill" style="width:${item.confidence}%"></div></div>
+            <div class="text-xs text-muted">${item.confidence}%</div>
+          </div>
+        </div>
+      </div>`).join('')
+    : '<div class="text-sm text-muted">No items detected yet</div>';
+}
+
+async function saveMeeting() {
+  const title = document.getElementById('m-title').value;
+  if (!title) { toast('Meeting title required'); return; }
+  const meeting = await api('createMeeting', {}, {
+    title, date: document.getElementById('m-date').value,
+    department: document.getElementById('m-dept').value,
+    attendees: document.getElementById('m-attendees').value,
+    raw_notes: document.getElementById('m-notes').value,
+  });
+  if (meeting && S.parsedItems.length) {
+    await api('saveMeetingItems', {}, { meeting_id: meeting.id, items: S.parsedItems, department: meeting.department });
+  }
+  closeModal('meeting-modal');
+  toast('Meeting saved!');
+  loadData().then(renderMeetings);
+}
+
+async function openMeeting(id) {
+  const meeting = S.meetings.find(m => m.id === id);
+  if (!meeting) return;
+  const items = await api('getMeetingItems', { meeting_id: id }) || [];
+  document.getElementById('meeting-detail').innerHTML = `
+    <div class="card" style="height:100%;overflow-y:auto">
+      <div class="flex items-center gap-8 mb-12">
+        <div>
+          <div class="font-bold" style="font-size:16px">${esc(meeting.title)}</div>
+          <div class="text-sm text-muted">${meeting.date} · ${meeting.department||''} · ${meeting.attendees||''}</div>
+        </div>
+        <button class="btn btn-secondary btn-sm" style="margin-left:auto" onclick="newMeeting()">+ New Meeting</button>
+      </div>
+      <div class="card" style="background:var(--surface2);margin-bottom:16px">
+        <pre style="white-space:pre-wrap;font-size:12px;font-family:inherit;color:var(--text2)">${esc(meeting.raw_notes||'')}</pre>
+      </div>
+      <div class="font-bold mb-8">Extracted Items (${items.length})</div>
+      ${items.map(item => `
+        <div class="task-row">
+          <span class="badge ${item.item_type==='task'?'badge-p1':'badge-p3'}">${item.item_type}</span>
+          <span style="flex:1;margin-left:8px">${esc(item.title)}</span>
+          <span class="text-sm text-muted">${item.owner||''}</span>
+          <span class="text-sm text-muted">${item.due||''}</span>
+          ${item.linked_id?`<span class="badge badge-p3">${item.linked_id}</span>`:''}
+        </div>`).join('') || '<div class="text-sm text-muted">No items extracted</div>'}
+    </div>`;
+}
+
+function filterMeetings(q) {
+  document.querySelectorAll('.meeting-hist-item').forEach(el => {
+    el.style.display = el.textContent.toLowerCase().includes(q.toLowerCase()) ? '' : 'none';
+  });
+}
+
+// ===================== MEDIA =====================
+function renderMedia() { renderShoots(); }
+
+function mediaTab(tab, btn) {
+  ['shoots','videos','posts'].forEach(t => document.getElementById('media-'+t).classList.add('hidden'));
+  document.getElementById('media-'+tab).classList.remove('hidden');
+  document.querySelectorAll('#view-media .btn').forEach(b => b.classList.remove('active-tab'));
+  btn.classList.add('active-tab');
+  if (tab === 'shoots') renderShoots();
+  if (tab === 'videos') renderVideos();
+  if (tab === 'posts')  renderPosts();
+}
+
+function renderShoots() {
+  document.getElementById('shoots-list').innerHTML = S.shoots.length
+    ? S.shoots.map(s => `
+        <div class="shoot-card">
+          <div class="shoot-header">
+            <div style="flex:1">
+              <div class="font-bold">${esc(s.title)}</div>
+              <div class="text-sm text-muted">${s.date||''} · ${s.location||''} · ${s.crew||''}</div>
+            </div>
+            <span class="shoot-status shoot-${s.status==='done'?'done':s.status==='needs-reshoot'?'reshoot':'planned'}">${s.status||'planned'}</span>
+            ${s.status!=='done'?`<button class="btn btn-sm btn-primary" onclick="markShootDone('${s.id}')">✓ Mark Done</button>`:''}
+          </div>
+          <div class="text-sm text-muted mb-8">${esc(s.notes||'')}</div>
+          <button class="btn btn-secondary btn-sm" onclick="showClipLogger('${s.id}','${esc(s.title)}')">🎞 Log Clips</button>
+        </div>`).join('')
+    : '<div class="empty-state"><div class="icon">📹</div><p>No shoots scheduled</p></div>';
+}
+
+function renderVideos() {
+  const statColors = { brief:'var(--text3)', 'footage-in':'#e37400', editing:'#1967d2', 'internal-review':'#7b1fa2', approved:'#137333', scheduled:'#1967d2', posted:'#202124' };
+  document.getElementById('videos-list').innerHTML = S.videos.length
+    ? S.videos.map(v => `
+        <div class="shoot-card">
+          <div class="shoot-header">
+            <div style="flex:1">
+              <div class="font-bold">${esc(v.title)}</div>
+              <div class="text-sm text-muted">Editor: ${v.editor||'—'} · Due: ${v.due||'—'}</div>
+            </div>
+            <span class="shoot-status" style="background:var(--surface2);color:${statColors[v.status]||'var(--text)'}">${v.status||'brief'}</span>
+          </div>
+          ${v.drive_folder?`<a href="${v.drive_folder}" target="_blank" class="btn btn-secondary btn-sm" style="margin-bottom:6px">📁 Open Drive Folder</a>`:''}
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            ${['fb','ig','tt','yt','li'].map(p => `<span class="plat plat-${p}" style="cursor:pointer" onclick="schedulePost('${v.id}','${p}')">${p.toUpperCase()}</span>`).join('')}
+          </div>
+        </div>`).join('')
+    : '<div class="empty-state"><div class="icon">🎬</div><p>No videos yet</p></div>';
+}
+
+function renderPosts() {
+  const allPosts = S.videos.map(v => ({ ...v, _type:'video' }));
+  document.getElementById('posts-list').innerHTML = allPosts.length
+    ? `<table class="data-table"><thead><tr><th>Video</th><th>Platform</th><th>Date</th><th>Status</th></tr></thead><tbody>
+        ${allPosts.map(v => `<tr><td>${esc(v.title)}</td><td>—</td><td>—</td><td>—</td></tr>`).join('')}
+      </tbody></table>`
+    : '<div class="empty-state"><div class="icon">📲</div><p>No posts scheduled</p></div>';
+}
+
+async function markShootDone(id) {
+  await api('markShootDone', { id });
+  toast('Shoot marked as done!');
+  loadData().then(renderShoots);
+}
+
+function showClipLogger(shootId, shootTitle) {
+  const clips = [
+    { type:'B-Roll', label:'B-Roll' }, { type:'Interview', label:'Interview' },
+    { type:'Aerial', label:'Aerial' }, { type:'Product', label:'Product' }, { type:'Motion', label:'Motion' }
+  ];
+  const html = `
+    <div class="modal-overlay" id="clip-modal" onclick="if(event.target===this)closeModal('clip-modal')">
+      <div class="modal">
+        <div class="modal-header">🎞 Log Clips — ${esc(shootTitle)}<button class="btn btn-icon" style="margin-left:auto" onclick="closeModal('clip-modal')">✕</button></div>
+        <div class="modal-body">
+          <div id="clip-rows">
+            ${clipRowHtml(clips)}
+          </div>
+          <button class="btn btn-secondary btn-sm mt-8" onclick="addClipRow()">+ Add Clip</button>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal('clip-modal')">Cancel</button>
+          <button class="btn btn-primary" onclick="saveClips('${shootId}')">Save Clips</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function clipRowHtml(types) {
+  return `<div class="clip-row" id="clip-row-0" style="display:grid;grid-template-columns:2fr 1fr 1fr 80px 60px;gap:8px;align-items:center;margin-bottom:8px">
+    <input placeholder="Clip name" class="clip-name">
+    <select class="clip-type-sel">${types.map(t=>`<option>${t.type}</option>`).join('')}</select>
+    <input placeholder="0:00" class="clip-dur">
+    <select class="clip-keep"><option value="true">Keep ✓</option><option value="false">Discard ✗</option></select>
+    <button class="btn btn-danger btn-sm" onclick="this.closest('[id^=clip-row]') ? this.parentElement.remove() : null">✕</button>
+  </div>`;
+}
+
+function addClipRow() {
+  const types = ['B-Roll','Interview','Aerial','Product','Motion'];
+  const div = document.createElement('div');
+  div.style.cssText = 'display:grid;grid-template-columns:2fr 1fr 1fr 80px 60px;gap:8px;align-items:center;margin-bottom:8px';
+  div.innerHTML = `<input placeholder="Clip name" class="clip-name">
+    <select class="clip-type-sel">${types.map(t=>`<option>${t}</option>`).join('')}</select>
+    <input placeholder="0:00" class="clip-dur">
+    <select class="clip-keep"><option value="true">Keep ✓</option><option value="false">Discard ✗</option></select>
+    <button class="btn btn-danger btn-sm" onclick="this.parentElement.remove()">✕</button>`;
+  document.getElementById('clip-rows').appendChild(div);
+}
+
+async function saveClips(shootId) {
+  const rows = document.getElementById('clip-rows').children;
+  const saves = [];
+  for (const row of rows) {
+    const name = row.querySelector('.clip-name')?.value;
+    if (!name) continue;
+    saves.push(api('createClip', {}, {
+      shoot_id: shootId,
+      name, clip_type: row.querySelector('.clip-type-sel')?.value,
+      duration: row.querySelector('.clip-dur')?.value,
+      keep: row.querySelector('.clip-keep')?.value || 'true'
+    }));
+  }
+  await Promise.all(saves);
+  closeModal('clip-modal');
+  toast(`${saves.length} clips logged!`);
+}
+
+// ===================== MISSIONS =====================
+function renderMissions() {
+  document.getElementById('missions-list').innerHTML = S.missions.length
+    ? `<table class="data-table"><thead><tr><th>Employee</th><th>Date</th><th>Type</th><th>Duration</th><th>Project</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+        ${S.missions.map(m => `<tr>
+          <td>${esc(m.employee)}</td><td>${m.date}</td>
+          <td><span class="tag">${m.day_type||'Weekend'}</span></td>
+          <td>${m.duration==='half'?'Half Day':'Full Day'}</td>
+          <td>${esc(m.project||'—')}</td>
+          <td><span class="approval-pill ap-${m.status==='approved'?'approved':m.status==='rejected'?'rejected':'pending'}">${m.status||'pending'}</span></td>
+          <td class="actions">
+            ${m.status==='pending'?`
+              <button class="btn btn-sm" style="background:#e6f4ea;color:#137333" onclick="approveMission('${m.id}','approved')">✓ Approve</button>
+              <button class="btn btn-sm btn-danger" onclick="approveMission('${m.id}','rejected')">✕ Reject</button>
+            `:'—'}
+          </td>
+        </tr>`).join('')}
+      </tbody></table>`
+    : '<div class="empty-state"><div class="icon">🚀</div><p>No missions submitted</p></div>';
+}
+
+async function approveMission(id, decision) {
+  await api('approveMission', {}, { mission_id: id, decision });
+  toast(decision === 'approved' ? 'Mission approved — CDO credited!' : 'Mission rejected');
+  loadData().then(renderMissions);
+}
+
+// ===================== CDO =====================
+function renderCDO() {
+  const bal = S.cdoBalances[0] || { earned:0, used:0, expired:0 };
+  const avail = Math.max(0, parseFloat(bal.earned||0) - parseFloat(bal.used||0) - parseFloat(bal.expired||0));
+  document.getElementById('cdo-balance').innerHTML = `
+    <div class="cdo-bal-item"><div class="cdo-bal-num" style="color:var(--ok)">${bal.earned||0}</div><div class="cdo-bal-label">Earned</div></div>
+    <div class="cdo-bal-item"><div class="cdo-bal-num" style="color:var(--brand)">${bal.used||0}</div><div class="cdo-bal-label">Used</div></div>
+    <div class="cdo-bal-item"><div class="cdo-bal-num" style="color:var(--danger)">${bal.expired||0}</div><div class="cdo-bal-label">Expired</div></div>
+    <div class="cdo-bal-item"><div class="cdo-bal-num" style="color:#e37400">${avail}</div><div class="cdo-bal-label">Available</div></div>`;
+  document.getElementById('cdo-list').innerHTML = S.cdoRedemptions.length
+    ? `<table class="data-table"><thead><tr><th>Date Off</th><th>Duration</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+        ${S.cdoRedemptions.map(r => `<tr>
+          <td>${r.date_off}</td>
+          <td>${r.duration==='half'?'Half Day':'Full Day'}</td>
+          <td><span class="approval-pill ap-${r.status==='approved'?'approved':r.status==='rejected'?'rejected':'pending'}">${r.status||'pending'}</span></td>
+          <td>${r.status==='pending'?`<button class="btn btn-sm" style="background:#e6f4ea;color:#137333" onclick="approveCDO('${r.id}')">✓ Approve</button>`:'—'}</td>
+        </tr>`).join('')}
+      </tbody></table>`
+    : '<div class="empty-state"><p>No CDO redemptions yet</p></div>';
+}
+
+async function approveCDO(id) {
+  await api('approveCDO', {}, { id, decision:'approved', manager: S.myName });
+  toast('CDO approved!');
+  loadData().then(renderCDO);
+}
+
+// ===================== LEAVE =====================
+function renderLeave() {
+  document.getElementById('leave-list').innerHTML = S.leaves.length
+    ? `<table class="data-table"><thead><tr><th>Employee</th><th>Type</th><th>Dates</th><th>Days</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+        ${S.leaves.map(l => `<tr>
+          <td>${esc(l.employee)}</td>
+          <td><span class="tag">${l.leave_type}</span></td>
+          <td>${l.from_date} → ${l.to_date}</td>
+          <td>${l.days} ${l.duration==='half'?'('+l.half_period+')':''}</td>
+          <td><span class="approval-pill ap-${l.status==='approved'?'approved':l.status==='rejected'?'rejected':'pending'}">${l.status||'pending'}</span></td>
+          <td>${l.status==='pending'?`
+            <button class="btn btn-sm" style="background:#e6f4ea;color:#137333" onclick="approveLeave('${l.id}','approved')">✓</button>
+            <button class="btn btn-sm btn-danger" onclick="approveLeave('${l.id}','rejected')">✕</button>
+          `:'—'}</td>
+        </tr>`).join('')}
+      </tbody></table>`
+    : '<div class="empty-state"><div class="icon">🌿</div><p>No leave requests</p></div>';
+}
+
+async function approveLeave(id, decision) {
+  await api('approveLeave', {}, { id, decision });
+  toast(decision === 'approved' ? 'Leave approved!' : 'Leave rejected');
+  loadData().then(renderLeave);
+}
+
+// ===================== TEAM =====================
+function renderTeam() {
+  document.getElementById('team-grid').innerHTML = S.team.length
+    ? S.team.map(m => `
+        <div class="card" style="text-align:center">
+          <div class="avatar" style="width:48px;height:48px;font-size:18px;margin:0 auto 10px">${(m.name||'?')[0]}</div>
+          <div class="font-bold">${esc(m.name)}</div>
+          <div class="text-sm text-muted">${m.role||'Member'}</div>
+          <div class="text-xs text-muted">${m.department||''}</div>
+          <div class="text-xs text-muted">${m.email||''}</div>
+        </div>`).join('')
+    : '<div class="empty-state"><div class="icon">👥</div><p>No team members yet</p></div>';
+}
+
+// ===================== SETTINGS =====================
+function renderSettings() {
+  document.getElementById('api-url').value = S.apiUrl;
+  document.getElementById('my-name').value = S.myName;
+  document.getElementById('my-dept').value = S.myDept;
+}
+
+function saveSettings() {
+  S.apiUrl  = document.getElementById('api-url').value;
+  S.myName  = document.getElementById('my-name').value;
+  S.myDept  = document.getElementById('my-dept').value;
+  localStorage.setItem('aeros_api_url', S.apiUrl);
+  localStorage.setItem('aeros_my_name', S.myName);
+  localStorage.setItem('aeros_my_dept', S.myDept);
+  toast('Settings saved');
+}
+
+async function runInit() {
+  const res = await api('init');
+  toast(res?.message || 'Done!');
+}
+
+// ===================== TASK CRUD =====================
+function showQuickAdd() { showTaskModal(); }
+
+function showTaskModal(id) {
+  document.getElementById('task-id').value = id || '';
+  document.getElementById('task-modal-title').textContent = id ? 'Edit Task' : 'New Task';
+  if (id) {
+    const t = S.tasks.find(x => x.id === id);
+    if (t) {
+      document.getElementById('t-title').value   = t.title || '';
+      document.getElementById('t-details').value = t.details || '';
+      document.getElementById('t-owner').value   = t.owner || 'ME';
+      document.getElementById('t-priority').value= t.priority || 'P1';
+      document.getElementById('t-due').value     = t.due || '';
+      document.getElementById('t-status').value  = t.status || 'todo';
+      document.getElementById('t-dept').value    = t.department || '';
+      document.getElementById('t-repeat').value  = t.repeat || '';
+    }
+  } else {
+    document.getElementById('t-title').value = '';
+    document.getElementById('t-details').value = '';
+    document.getElementById('t-due').value = '';
+    document.getElementById('t-dept').value = S.myDept;
+  }
+  openModal('task-modal');
+}
+
+function editTask(id) { showTaskModal(id); }
+
+async function saveTask() {
+  const title = document.getElementById('t-title').value;
+  if (!title) { toast('Title required'); return; }
+  const id = document.getElementById('task-id').value;
+  const data = {
+    title, details: document.getElementById('t-details').value,
+    owner: document.getElementById('t-owner').value,
+    priority: document.getElementById('t-priority').value,
+    due: document.getElementById('t-due').value,
+    status: document.getElementById('t-status').value,
+    department: document.getElementById('t-dept').value,
+    repeat: document.getElementById('t-repeat').value,
+    source: 'ad-hoc',
+  };
+  if (id) { data.id = id; await api('updateTask', {}, data); }
+  else await api('createTask', {}, data);
+  closeModal('task-modal');
+  toast(id ? 'Task updated!' : 'Task created!');
+  loadData().then(() => renderView(S.currentView));
+}
+
+async function toggleDone(id) {
+  const t = S.tasks.find(x => x.id === id);
+  if (!t) return;
+  const newStatus = t.status === 'done' ? 'todo' : 'done';
+  await api('updateTask', {}, { id, status: newStatus });
+  loadData().then(() => renderView(S.currentView));
+}
+
+// ===================== PROJECT CRUD =====================
+function showProjectModal() { openModal('project-modal'); }
+
+async function saveProject() {
+  const title = document.getElementById('pr-title').value;
+  if (!title) { toast('Project name required'); return; }
+  await api('createProject', {}, {
+    title, description: document.getElementById('pr-desc').value,
+    owner: document.getElementById('pr-owner').value || S.myName,
+    status: document.getElementById('pr-status').value,
+    start: document.getElementById('pr-start').value,
+    end:   document.getElementById('pr-end').value,
+    department: document.getElementById('pr-dept').value || S.myDept,
+    color: document.getElementById('pr-color').value,
+  });
+  closeModal('project-modal');
+  toast('Project created!');
+  loadData().then(renderProjects);
+}
+
+// ===================== MISSION / LEAVE / CDO CRUD =====================
+function showMissionModal() {
+  populateSelect('ms-employee');
+  document.getElementById('ms-date').value = todayStr();
+  openModal('mission-modal');
+}
+
+async function saveMission() {
+  const employee = document.getElementById('ms-employee').value;
+  if (!employee) { toast('Select employee'); return; }
+  await api('createMission', {}, {
+    employee, date: document.getElementById('ms-date').value,
+    day_type: document.getElementById('ms-day-type').value,
+    duration: S.msDuration,
+    start_time: document.getElementById('ms-start').value,
+    end_time: document.getElementById('ms-end').value,
+    project: document.getElementById('ms-project').value,
+    details: document.getElementById('ms-details').value,
+    status: 'pending',
+  });
+  closeModal('mission-modal');
+  toast('Mission submitted!');
+  loadData().then(renderMissions);
+}
+
+function setDuration(d)     { S.msDuration = d; toggle2('ms-dur-full','ms-dur-half', d==='full'); }
+function setLeaveDuration(d){ S.lvDuration = d; toggle2('lv-dur-full','lv-dur-half', d==='full');
+  document.getElementById('lv-period-row').style.display = d==='half'?'':'none'; }
+function setLeavePeriod(p)  { S.lvPeriod = p; toggle2('lv-am','lv-pm', p==='AM'); }
+function setCDODuration(d)  { S.cdoDuration = d; toggle2('cdo-dur-full','cdo-dur-half', d==='full'); }
+function toggle2(a,b,aActive) {
+  document.getElementById(a).classList[aActive?'add':'remove']('active');
+  document.getElementById(b).classList[aActive?'remove':'add']('active');
+}
+
+function showLeaveModal() {
+  populateSelect('lv-employee');
+  document.getElementById('lv-from').value = todayStr();
+  document.getElementById('lv-to').value   = todayStr();
+  openModal('leave-modal');
+}
+
+async function saveLeave() {
+  const employee = document.getElementById('lv-employee').value;
+  if (!employee) { toast('Select employee'); return; }
+  const from = document.getElementById('lv-from').value;
+  const to   = document.getElementById('lv-to').value;
+  const days = S.lvDuration === 'half' ? 0.5 : Math.max(1, daysBetween(from,to));
+  await api('createLeave', {}, {
+    employee, leave_type: document.getElementById('lv-type').value,
+    duration: S.lvDuration, half_period: S.lvPeriod,
+    from_date: from, to_date: to, days,
+    reason: document.getElementById('lv-reason').value,
+    status: 'pending',
+    department: S.myDept,
+  });
+  closeModal('leave-modal');
+  toast('Leave request submitted!');
+  loadData().then(renderLeave);
+}
+
+function showCDOModal() {
+  populateSelect('cdo-employee');
+  document.getElementById('cdo-date').value = todayStr();
+  openModal('cdo-modal');
+}
+
+async function saveCDORedemption() {
+  const employee = document.getElementById('cdo-employee').value;
+  if (!employee) { toast('Select employee'); return; }
+  await api('createCDORedemption', {}, {
+    employee, duration: S.cdoDuration,
+    date_off: document.getElementById('cdo-date').value,
+    notes: document.getElementById('cdo-notes').value,
+    status: 'pending',
+  });
+  closeModal('cdo-modal');
+  toast('CDO redemption submitted!');
+  loadData().then(renderCDO);
+}
+
+// ===================== SHOOT CRUD =====================
+function showShootModal() { openModal('shoot-modal'); document.getElementById('sh-date').value = todayStr(); }
+
+async function saveShoot() {
+  const title = document.getElementById('sh-title').value;
+  if (!title) { toast('Title required'); return; }
+  await api('createShoot', {}, {
+    title, date: document.getElementById('sh-date').value,
+    location: document.getElementById('sh-location').value,
+    start_time: document.getElementById('sh-start').value,
+    end_time: document.getElementById('sh-end').value,
+    crew: document.getElementById('sh-crew').value,
+    equipment: document.getElementById('sh-equip').value,
+    notes: document.getElementById('sh-notes').value,
+    status: 'planned',
+  });
+  closeModal('shoot-modal');
+  toast('Shoot scheduled!');
+  loadData().then(renderShoots);
+}
+
+function showVideoModal() {
+  toast('Video creation: use the + New Video button and link to shoot sessions');
+}
+
+// ===================== TEAM MEMBER CRUD =====================
+function showMemberModal() {
+  const html = `<div class="modal-overlay" id="member-modal">
+    <div class="modal">
+      <div class="modal-header">Add Team Member<button class="btn btn-icon" style="margin-left:auto" onclick="closeModal('member-modal')">✕</button></div>
+      <div class="modal-body">
+        <div class="form-row"><label>Name *</label><input id="tm-name" placeholder="Full name"></div>
+        <div class="form-row"><label>Email</label><input type="email" id="tm-email" placeholder="email@company.com"></div>
+        <div class="form-grid">
+          <div class="form-row"><label>Role</label><select id="tm-role"><option>Admin</option><option selected>Member</option><option>Guest</option></select></div>
+          <div class="form-row"><label>Department</label><input id="tm-dept" placeholder="Department"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('member-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveMember()">Add Member</button>
+      </div>
+    </div>
+  </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+async function saveMember() {
+  const name = document.getElementById('tm-name').value;
+  if (!name) { toast('Name required'); return; }
+  await api('createMember', {}, {
+    name, email: document.getElementById('tm-email').value,
+    role: document.getElementById('tm-role').value,
+    department: document.getElementById('tm-dept').value,
+    active: 'true',
+  });
+  closeModal('member-modal');
+  toast('Member added!');
+  loadData().then(renderTeam);
+}
+
+// ===================== SEARCH =====================
+function globalSearch(q) {
+  if (!q) return;
+  nav('list');
+  setTimeout(() => {
+    const filtered = S.tasks.filter(t =>
+      t.title?.toLowerCase().includes(q.toLowerCase()) ||
+      t.details?.toLowerCase().includes(q.toLowerCase())
+    );
+    document.getElementById('task-list-body').innerHTML = filtered.map(taskRowHtml).join('');
+  }, 100);
+}
+
+// ===================== HELPERS =====================
+function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+function closeModal(id) {
+  const el = document.getElementById(id);
+  if (el) { el.classList.add('hidden'); if (!el.id.match(/^(task|meeting|mission|leave|shoot|project|cdo)-modal$/)) el.remove(); }
+}
+
+function toast(msg, type='ok') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.background = type === 'error' ? 'var(--danger)' : type === 'warn' ? '#e37400' : '#333';
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+function populateOwnerSelects() {
+  const names = [S.myName, ...S.team.map(m => m.name)].filter(Boolean);
+  ['t-owner','pr-owner'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    const cur = sel.value;
+    sel.innerHTML = names.map(n => `<option>${esc(n)}</option>`).join('');
+    if (cur) sel.value = cur;
+  });
+  const ownerFilter = document.getElementById('list-filter-owner');
+  if (ownerFilter) ownerFilter.innerHTML = '<option value="">All Owners</option>' + names.map(n=>`<option>${esc(n)}</option>`).join('');
+}
+
+function populateSelect(id) {
+  const sel = document.getElementById(id);
+  if (!sel) return;
+  const names = [S.myName, ...S.team.map(m => m.name)].filter(Boolean);
+  sel.innerHTML = names.map(n => `<option>${esc(n)}</option>`).join('');
+}
+
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function todayStr() { return new Date().toISOString().split('T')[0]; }
+function addDays(d, n) { const dt = new Date(d); dt.setDate(dt.getDate()+n); return dt.toISOString().split('T')[0]; }
+function daysBetween(a, b) { return Math.round((new Date(b)-new Date(a))/86400000)+1; }
+
+function priorityColor(p) {
+  return { P0:'#c5221f', P1:'#e37400', P2:'#1967d2', P3:'#137333' }[p] || 'var(--brand)';
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('collapsed');
+}
+
+function toggleDark() {
+  document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'dark' ? '' : 'dark';
+}
+
+const var_ok = '#137333', var_warn = '#e37400', var_danger = '#c5221f';
+
+// ===================== INIT =====================
+window.addEventListener('DOMContentLoaded', () => {
+  // Load settings
+  const url = localStorage.getItem('aeros_api_url');
+  if (url) S.apiUrl = url;
+  if (!S.apiUrl) {
+    nav('settings');
+    toast('Welcome! Set your API URL in Settings to get started.', 'warn');
+  } else {
+    nav('dashboard');
+  }
+});
+</script>
+</body>
+</html>
