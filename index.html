@@ -980,29 +980,41 @@ function renderViewNow(view) {
   if (view === 'settings')    renderSettings();
 }
 
+function applyData(d) {
+  if (!d) return;
+  if (d.tasks)          S.tasks          = d.tasks;
+  if (d.projects)       S.projects       = d.projects;
+  if (d.team)           S.team           = d.team;
+  if (d.meetings)       S.meetings       = d.meetings;
+  if (d.missions)       S.missions       = d.missions;
+  if (d.leaves)         S.leaves         = d.leaves;
+  if (d.shoots)         S.shoots         = d.shoots;
+  if (d.videos)         S.videos         = d.videos;
+  if (d.notifs)         S.notifications  = d.notifs;
+  if (d.cdoBalances)    S.cdoBalances    = d.cdoBalances;
+  if (d.cdoRedemptions) S.cdoRedemptions = d.cdoRedemptions;
+  populateOwnerSelects();
+}
+
 async function loadData(force = false) {
   if (!S.apiUrl) return;
   const now = Date.now();
-  if (!force && now - S._lastLoaded < 30000) return; // use cache if < 30s old
+  if (!force && now - S._lastLoaded < 30000) return;
+
+  // Show cached data instantly from localStorage
+  if (!force) {
+    try {
+      const cached = localStorage.getItem('aeros_data_cache');
+      if (cached) { applyData(JSON.parse(cached)); renderViewNow(S.currentView); }
+    } catch(_) {}
+  }
+
+  // Single round-trip to fetch everything
   S._lastLoaded = now;
-  const [tasks, projects, team, meetings, missions, leaves, shoots, videos, notifs, cdoBal, cdoRed] = await Promise.all([
-    api('getTasks'), api('getProjects'), api('getTeam'), api('getMeetings'),
-    api('getMissions'), api('getLeaveRequests'), api('getShoots'), api('getVideos'),
-    api('getNotifs', { user: S.myName }), api('getCDOBalance', { employee: S.myName }),
-    api('getCDORedemptions', { employee: S.myName }),
-  ]);
-  if (tasks)    S.tasks    = tasks;
-  if (projects) S.projects = projects;
-  if (team)     S.team     = team;
-  if (meetings) S.meetings = meetings;
-  if (missions) S.missions = missions;
-  if (leaves)   S.leaves   = leaves;
-  if (shoots)   S.shoots   = shoots;
-  if (videos)   S.videos   = videos;
-  if (notifs)   S.notifications = notifs;
-  if (cdoBal)   S.cdoBalances = cdoBal;
-  if (cdoRed)   S.cdoRedemptions = cdoRed;
-  populateOwnerSelects();
+  const d = await api('getAll', { user: S.myName });
+  if (!d) return;
+  applyData(d);
+  try { localStorage.setItem('aeros_data_cache', JSON.stringify(d)); } catch(_) {}
 }
 
 // ===================== DASHBOARD =====================

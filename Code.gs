@@ -221,12 +221,32 @@ function route(method, action, p, body) {
     case 'uploadFile':        return uploadFile(body);
     case 'deleteFile':        return deleteDriveFile(p.fileId);
 
+    // ── Batch fetch (all data in one round-trip) ──
+    case 'getAll':            return getAllData(ss, p);
+
     // ── Init ──
     case 'initSheet':         return initSheet();
     case 'ping':              return { ok: true, ts: new Date().toISOString() };
 
     default: throw new Error('Unknown action: ' + action);
   }
+}
+
+function getAllData(ss, p) {
+  const user = p.user || '';
+  return {
+    tasks:          getRows(ss, 'Tasks'),
+    projects:       getRows(ss, 'Projects'),
+    team:           getRows(ss, 'Team'),
+    meetings:       getRows(ss, 'MeetingNotes'),
+    missions:       getRows(ss, 'Missions'),
+    leaves:         getRows(ss, 'LeaveRequests'),
+    shoots:         getRows(ss, 'ShootSessions'),
+    videos:         getRows(ss, 'Videos'),
+    notifs:         user ? getRows(ss, 'Notifications', { userId: user }) : [],
+    cdoBalances:    getRows(ss, 'CDOBalances'),
+    cdoRedemptions: getRows(ss, 'CDORedemptions'),
+  };
 }
 
 // ===================== SHEET SCHEMA =====================
