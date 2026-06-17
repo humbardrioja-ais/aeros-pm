@@ -910,6 +910,7 @@ const S = {
   calMonth: new Date().getMonth(),
   msDuration: 'full', lvDuration: 'full', lvPeriod: 'AM', cdoDuration: 'full',
   parsedItems: [],
+  _lastLoaded: 0,
 };
 
 // ===================== API =====================
@@ -953,7 +954,12 @@ function nav(view) {
 }
 
 async function renderView(view) {
-  await loadData();
+  renderViewNow(view);          // render immediately with cached data
+  await loadData();             // fetch in background; re-render when done
+  renderViewNow(view);
+}
+
+function renderViewNow(view) {
   if (view === 'dashboard')   renderDashboard();
   if (view === 'list')        renderList();
   if (view === 'board')       renderBoard();
@@ -974,8 +980,11 @@ async function renderView(view) {
   if (view === 'settings')    renderSettings();
 }
 
-async function loadData() {
+async function loadData(force = false) {
   if (!S.apiUrl) return;
+  const now = Date.now();
+  if (!force && now - S._lastLoaded < 30000) return; // use cache if < 30s old
+  S._lastLoaded = now;
   const [tasks, projects, team, meetings, missions, leaves, shoots, videos, notifs, cdoBal, cdoRed] = await Promise.all([
     api('getTasks'), api('getProjects'), api('getTeam'), api('getMeetings'),
     api('getMissions'), api('getLeaveRequests'), api('getShoots'), api('getVideos'),
@@ -1620,19 +1629,30 @@ async function saveTask() {
     repeat: document.getElementById('t-repeat').value,
     source: 'ad-hoc',
   };
-  if (id) { data.id = id; await api('updateTask', {}, data); }
-  else await api('createTask', {}, data);
+  // optimistic update
+  if (id) {
+    const idx = S.tasks.findIndex(x => x.id === id);
+    if (idx >= 0) Object.assign(S.tasks[idx], data);
+    data.id = id;
+  } else {
+    const tempId = 'T-tmp-' + Date.now();
+    S.tasks.unshift({ ...data, id: tempId, created: todayStr() });
+  }
   closeModal('task-modal');
   toast(id ? 'Task updated!' : 'Task created!');
-  loadData().then(() => renderView(S.currentView));
+  renderViewNow(S.currentView);
+  // sync in background
+  const saved = id ? await api('updateTask', {}, data) : await api('createTask', {}, data);
+  if (saved && !id) { S._lastLoaded = 0; loadData(true).then(() => renderViewNow(S.currentView)); }
 }
 
-async function toggleDone(id) {
+function toggleDone(id) {
   const t = S.tasks.find(x => x.id === id);
   if (!t) return;
   const newStatus = t.status === 'done' ? 'todo' : 'done';
-  await api('updateTask', {}, { id, status: newStatus });
-  loadData().then(() => renderView(S.currentView));
+  t.status = newStatus; // optimistic
+  renderViewNow(S.currentView);
+  api('updateTask', {}, { id, status: newStatus });
 }
 
 // ===================== PROJECT CRUD =====================
@@ -1641,7 +1661,7 @@ function showProjectModal() { openModal('project-modal'); }
 async function saveProject() {
   const title = document.getElementById('pr-title').value;
   if (!title) { toast('Project name required'); return; }
-  await api('createProject', {}, {
+  const data = {
     title, description: document.getElementById('pr-desc').value,
     owner: document.getElementById('pr-owner').value || S.myName,
     status: document.getElementById('pr-status').value,
@@ -1649,10 +1669,13 @@ async function saveProject() {
     end:   document.getElementById('pr-end').value,
     department: document.getElementById('pr-dept').value || S.myDept,
     color: document.getElementById('pr-color').value,
-  });
+  };
+  S.projects.unshift({ ...data, id: 'P-tmp-' + Date.now() });
   closeModal('project-modal');
   toast('Project created!');
-  loadData().then(renderProjects);
+  renderProjects();
+  await api('createProject', {}, data);
+  S._lastLoaded = 0; loadData(true).then(renderProjects);
 }
 
 // ===================== MISSION / LEAVE / CDO CRUD =====================
@@ -1665,7 +1688,7 @@ function showMissionModal() {
 async function saveMission() {
   const employee = document.getElementById('ms-employee').value;
   if (!employee) { toast('Select employee'); return; }
-  await api('createMission', {}, {
+  const data = {
     employee, date: document.getElementById('ms-date').value,
     day_type: document.getElementById('ms-day-type').value,
     duration: S.msDuration,
@@ -1674,10 +1697,13 @@ async function saveMission() {
     project: document.getElementById('ms-project').value,
     details: document.getElementById('ms-details').value,
     status: 'pending',
-  });
+  };
+  S.missions.unshift({ ...data, id: 'M-tmp-' + Date.now() });
   closeModal('mission-modal');
   toast('Mission submitted!');
-  loadData().then(renderMissions);
+  renderMissions();
+  await api('createMission', {}, data);
+  S._lastLoaded = 0; loadData(true).then(renderMissions);
 }
 
 function setDuration(d)     { S.msDuration = d; toggle2('ms-dur-full','ms-dur-half', d==='full'); }
@@ -1703,17 +1729,20 @@ async function saveLeave() {
   const from = document.getElementById('lv-from').value;
   const to   = document.getElementById('lv-to').value;
   const days = S.lvDuration === 'half' ? 0.5 : Math.max(1, daysBetween(from,to));
-  await api('createLeave', {}, {
+  const data = {
     employee, leave_type: document.getElementById('lv-type').value,
     duration: S.lvDuration, half_period: S.lvPeriod,
     from_date: from, to_date: to, days,
     reason: document.getElementById('lv-reason').value,
     status: 'pending',
     department: S.myDept,
-  });
+  };
+  S.leaves.unshift({ ...data, id: 'L-tmp-' + Date.now() });
   closeModal('leave-modal');
   toast('Leave request submitted!');
-  loadData().then(renderLeave);
+  renderLeave();
+  await api('createLeave', {}, data);
+  S._lastLoaded = 0; loadData(true).then(renderLeave);
 }
 
 function showCDOModal() {
@@ -1725,15 +1754,18 @@ function showCDOModal() {
 async function saveCDORedemption() {
   const employee = document.getElementById('cdo-employee').value;
   if (!employee) { toast('Select employee'); return; }
-  await api('createCDORedemption', {}, {
+  const data = {
     employee, duration: S.cdoDuration,
     date_off: document.getElementById('cdo-date').value,
     notes: document.getElementById('cdo-notes').value,
     status: 'pending',
-  });
+  };
+  S.cdoRedemptions.unshift({ ...data, id: 'C-tmp-' + Date.now() });
   closeModal('cdo-modal');
   toast('CDO redemption submitted!');
-  loadData().then(renderCDO);
+  renderCDO();
+  await api('createCDORedemption', {}, data);
+  S._lastLoaded = 0; loadData(true).then(renderCDO);
 }
 
 // ===================== SHOOT CRUD =====================
@@ -1742,7 +1774,7 @@ function showShootModal() { openModal('shoot-modal'); document.getElementById('s
 async function saveShoot() {
   const title = document.getElementById('sh-title').value;
   if (!title) { toast('Title required'); return; }
-  await api('createShoot', {}, {
+  const data = {
     title, date: document.getElementById('sh-date').value,
     location: document.getElementById('sh-location').value,
     start_time: document.getElementById('sh-start').value,
@@ -1751,10 +1783,13 @@ async function saveShoot() {
     equipment: document.getElementById('sh-equip').value,
     notes: document.getElementById('sh-notes').value,
     status: 'planned',
-  });
+  };
+  S.shoots.unshift({ ...data, id: 'SH-tmp-' + Date.now() });
   closeModal('shoot-modal');
   toast('Shoot scheduled!');
-  loadData().then(renderShoots);
+  renderShoots();
+  await api('createShoot', {}, data);
+  S._lastLoaded = 0; loadData(true).then(renderShoots);
 }
 
 function showVideoModal() {
@@ -1786,15 +1821,18 @@ function showMemberModal() {
 async function saveMember() {
   const name = document.getElementById('tm-name').value;
   if (!name) { toast('Name required'); return; }
-  await api('createMember', {}, {
+  const data = {
     name, email: document.getElementById('tm-email').value,
     role: document.getElementById('tm-role').value,
     department: document.getElementById('tm-dept').value,
     active: 'true',
-  });
+  };
+  S.team.push({ ...data, id: 'TM-tmp-' + Date.now() });
   closeModal('member-modal');
   toast('Member added!');
-  loadData().then(renderTeam);
+  renderTeam();
+  await api('createMember', {}, data);
+  S._lastLoaded = 0; loadData(true).then(renderTeam);
 }
 
 // ===================== SEARCH =====================
@@ -1921,12 +1959,11 @@ function tpTab(tab, el) {
   );
 }
 
-async function savePanelField(field, value) {
+function savePanelField(field, value) {
   if (!TP.taskId) return;
-  const update = { id: TP.taskId, [field]: value };
-  await api('updateTask', {}, update);
-  TP.task[field] = value;
+  TP.task[field] = value; // optimistic
   logActivityLocal(field, value);
+  api('updateTask', {}, { id: TP.taskId, [field]: value }); // fire and forget
 }
 
 function logActivityLocal(field, value) {
@@ -1967,22 +2004,26 @@ async function addSubtask() {
   const title = input.value.trim();
   if (!title) return;
   const assignee = document.getElementById('tp-subtask-assignee').value;
-  const sub = await api('createSubtask', {}, { taskId: TP.taskId, title, assignee, done: false });
-  if (sub) { TP.subtasks.push(sub); renderSubtasks(); input.value = ''; }
+  const tempId = 'sub-tmp-' + Date.now();
+  TP.subtasks.push({ id: tempId, title, assignee, done: false });
+  renderSubtasks();
+  input.value = '';
   logActivityLocal('subtask', `Added subtask "${title}"`);
+  const sub = await api('createSubtask', {}, { taskId: TP.taskId, title, assignee, done: false });
+  if (sub) { const i = TP.subtasks.findIndex(x => x.id === tempId); if (i >= 0) TP.subtasks[i] = sub; }
 }
 
-async function toggleSubtask(id, done) {
-  await api('updateSubtask', {}, { id, done: String(done) });
+function toggleSubtask(id, done) {
   const s = TP.subtasks.find(x => x.id === id);
   if (s) s.done = String(done);
   renderSubtasks();
+  api('updateSubtask', {}, { id, done: String(done) });
 }
 
-async function deleteSubtask(id) {
-  await api('deleteSubtask', { id });
+function deleteSubtask(id) {
   TP.subtasks = TP.subtasks.filter(s => s.id !== id);
   renderSubtasks();
+  api('deleteSubtask', { id });
 }
 
 // ── Comments ──
@@ -2011,9 +2052,13 @@ async function addComment() {
   const input = document.getElementById('tp-comment-input');
   const body  = input.value.trim();
   if (!body) return;
-  const c = await api('createComment', {}, { taskId: TP.taskId, author: S.myName, body });
-  if (c) { TP.comments.push(c); renderComments(); input.value = ''; }
+  const tempComment = { id: 'c-tmp-' + Date.now(), author: S.myName, body, created: new Date().toISOString() };
+  TP.comments.push(tempComment);
+  renderComments();
+  input.value = '';
   logActivityLocal('comment', `${S.myName} commented`);
+  const c = await api('createComment', {}, { taskId: TP.taskId, author: S.myName, body });
+  if (c) { const i = TP.comments.findIndex(x => x.id === tempComment.id); if (i >= 0) TP.comments[i] = c; }
 }
 
 // ── Activity ──
@@ -2037,18 +2082,18 @@ function renderActivity() {
 }
 
 // ── Notes on task ──
-async function addTaskNote() {
+function addTaskNote() {
   const input = document.getElementById('tp-note-input');
   const note  = input.value.trim();
   if (!note) return;
   const dated = `${todayStr()}: ${note}`;
   const existing = TP.task.notes ? String(TP.task.notes) : '';
   const updated  = existing ? existing + '|' + dated : dated;
-  await api('updateTask', {}, { id: TP.taskId, notes: updated });
   TP.task.notes = updated;
   input.value = '';
   populatePanelFields();
   logActivityLocal('note', note);
+  api('updateTask', {}, { id: TP.taskId, notes: updated });
 }
 
 function fmtTime(iso) {
