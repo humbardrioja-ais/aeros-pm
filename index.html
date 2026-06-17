@@ -918,8 +918,11 @@ async function api(action, params={}, body=null) {
   const url = new URL(S.apiUrl);
   url.searchParams.set('action', action);
   Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
-  const opts = { method: body ? 'POST' : 'GET' };
-  if (body) opts.body = JSON.stringify(body);
+  const opts = { method: body ? 'POST' : 'GET', redirect: 'follow' };
+  if (body) {
+    opts.body = JSON.stringify(body);
+    opts.headers = { 'Content-Type': 'text/plain' }; // avoids CORS preflight with Apps Script
+  }
   try {
     const r = await fetch(url.toString(), opts);
     return await r.json();
