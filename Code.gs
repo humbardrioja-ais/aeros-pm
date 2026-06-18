@@ -56,6 +56,20 @@ function route(method, action, p, body) {
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
 
   switch(action) {
+    // ── Frontend-compatible aliases ──
+    case 'createMeeting':       return createRow(ss, 'MeetingNotes', body);
+    case 'getMeetings':         return getRows(ss, 'MeetingNotes');
+    case 'createLeave':         return createRow(ss, 'LeaveRequests', body);
+    case 'createCDORedemption': return createRow(ss, 'CDORedemptions', body);
+    case 'createShoot':         return createRow(ss, 'ShootSessions', body);
+    case 'getShoots':           return getRows(ss, 'ShootSessions');
+    case 'createClip':          return createRow(ss, 'FootageClips', body);
+    case 'markShootDone':       return updateRow(ss, 'ShootSessions', { id: p.id, status: 'done', updated: new Date().toISOString() });
+    case 'getNotifs':           return getRows(ss, 'Notifications', p.user ? { userId: p.user } : null);
+    case 'markRead':            return updateRow(ss, 'Notifications', { id: p.id, read: 'true', updated: new Date().toISOString() });
+    case 'getCDOBalance':       return getRows(ss, 'CDOBalances');
+    case 'init':                return initSheet();
+
     // ── Tasks ──
     case 'getTasks':       return getRows(ss, 'Tasks');
     case 'createTask':     return createRow(ss, 'Tasks', body);
@@ -206,7 +220,7 @@ function route(method, action, p, body) {
     case 'updateMeetingNote': return updateRow(ss, 'MeetingNotes', body);
     case 'deleteMeetingNote': return deleteRow(ss, 'MeetingNotes', p.id);
     case 'getMeetingAttendees': return getRows(ss, 'MeetingAttendees', p.meetingId ? {meetingId: p.meetingId} : null);
-    case 'getMeetingItems':   return getRows(ss, 'MeetingItems', p.meetingId ? {meetingId: p.meetingId} : null);
+    case 'getMeetingItems':   { const mid = p.meetingId || p.meeting_id; return getRows(ss, 'MeetingItems', mid ? {meetingId: mid} : null); }
     case 'saveMeetingItems':  return saveMeetingItems(ss, body);
     case 'parseMeetingNotes': return parseMeetingNotes(ss, body);
 
@@ -378,17 +392,17 @@ function logAudit(ss, actor, action, entity, entityId, before, after) {
 // ===================== SPECIALIZED HANDLERS =====================
 
 function approveMission(ss, body) {
-  // Update mission status
-  updateRow(ss, 'Missions', { id: body.missionId, status: 'approved', updated: new Date().toISOString() });
-
-  // Log approval
+  const missionId = body.missionId || body.mission_id;
+  const decision  = body.decision || 'approved';
+  const approverId = body.approverId || body.approver || '';
+  if (decision === 'rejected') return rejectMission(ss, { missionId, approverId, notes: body.notes });
+  updateRow(ss, 'Missions', { id: missionId, status: 'approved', updated: new Date().toISOString() });
   createRow(ss, 'MissionApprovals', {
-    missionId: body.missionId, approverId: body.approverId,
-    decision: 'approved', notes: body.notes || ''
+    missionId, approverId, decision: 'approved', notes: body.notes || ''
   });
 
   // Credit CDO balance
-  const missions = getRows(ss, 'Missions', { id: body.missionId });
+  const missions = getRows(ss, 'Missions', { id: missionId });
   if (missions.length) {
     const m = missions[0];
     const rules = getRows(ss, 'CDORules', { type: m.type });
@@ -421,16 +435,18 @@ function approveMission(ss, body) {
 }
 
 function rejectMission(ss, body) {
-  updateRow(ss, 'Missions', { id: body.missionId, status: 'rejected', updated: new Date().toISOString() });
+  const missionId = body.missionId || body.mission_id;
+  updateRow(ss, 'Missions', { id: missionId, status: 'rejected', updated: new Date().toISOString() });
   createRow(ss, 'MissionApprovals', {
-    missionId: body.missionId, approverId: body.approverId,
-    decision: 'rejected', notes: body.notes || ''
+    missionId, approverId: body.approverId || '', decision: 'rejected', notes: body.notes || ''
   });
   return { ok: true };
 }
 
 function approveCDO(ss, body) {
-  updateRow(ss, 'CDORedemptions', { id: body.id, status: 'approved', approvedBy: body.approvedBy, updated: new Date().toISOString() });
+  const approvedBy = body.approvedBy || body.manager || '';
+  if (body.decision === 'rejected') return rejectCDO(ss, { id: body.id, approvedBy });
+  updateRow(ss, 'CDORedemptions', { id: body.id, status: 'approved', approvedBy, updated: new Date().toISOString() });
   const redemptions = getRows(ss, 'CDORedemptions', { id: body.id });
   if (redemptions.length) {
     const r = redemptions[0];
@@ -451,12 +467,14 @@ function approveCDO(ss, body) {
 }
 
 function rejectCDO(ss, body) {
-  updateRow(ss, 'CDORedemptions', { id: body.id, status: 'rejected', approvedBy: body.approvedBy, updated: new Date().toISOString() });
+  updateRow(ss, 'CDORedemptions', { id: body.id, status: 'rejected', approvedBy: body.approvedBy || body.manager || '', updated: new Date().toISOString() });
   return { ok: true };
 }
 
 function approveLeave(ss, body) {
-  updateRow(ss, 'LeaveRequests', { id: body.id, status: 'approved', approvedBy: body.approvedBy, updated: new Date().toISOString() });
+  const approvedBy = body.approvedBy || body.manager || '';
+  if (body.decision === 'rejected') return rejectLeave(ss, { id: body.id, approvedBy });
+  updateRow(ss, 'LeaveRequests', { id: body.id, status: 'approved', approvedBy, updated: new Date().toISOString() });
   const requests = getRows(ss, 'LeaveRequests', { id: body.id });
   if (requests.length) {
     const req = requests[0];
@@ -482,7 +500,7 @@ function approveLeave(ss, body) {
 }
 
 function rejectLeave(ss, body) {
-  updateRow(ss, 'LeaveRequests', { id: body.id, status: 'rejected', approvedBy: body.approvedBy, updated: new Date().toISOString() });
+  updateRow(ss, 'LeaveRequests', { id: body.id, status: 'rejected', approvedBy: body.approvedBy || body.manager || '', updated: new Date().toISOString() });
   return { ok: true };
 }
 
@@ -540,11 +558,11 @@ function submitForm(ss, body) {
 }
 
 function saveMeetingItems(ss, body) {
-  // body.meetingId, body.items: [{type, title, assignee, department, dueDate}]
+  const meetingId = body.meetingId || body.meeting_id;
   const items = body.items || [];
   const created = [];
   for (const item of items) {
-    const row = createRow(ss, 'MeetingItems', { ...item, meetingId: body.meetingId });
+    const row = createRow(ss, 'MeetingItems', { ...item, meetingId });
     if (item.type === 'task') {
       const task = createRow(ss, 'Tasks', {
         title: item.title, owner: item.assignee, department: item.department,
@@ -558,7 +576,7 @@ function saveMeetingItems(ss, body) {
 }
 
 function parseMeetingNotes(ss, body) {
-  const text = body.text || '';
+  const text = body.text || body.raw_notes || '';
   const team = getRows(ss, 'Team');
   const teamNames = team.map(m => m.name.toLowerCase());
   const deptMap = {};

@@ -955,8 +955,9 @@ function nav(view) {
 
 async function renderView(view) {
   renderViewNow(view);          // render immediately with cached data
-  await loadData();             // fetch in background; re-render when done
-  renderViewNow(view);
+  const before = S._lastLoaded;
+  await loadData();
+  if (S._lastLoaded !== before) renderViewNow(view); // only re-render if fresh data arrived
 }
 
 function renderViewNow(view) {
@@ -1305,24 +1306,28 @@ function renderExtractedItems() {
 async function saveMeeting() {
   const title = document.getElementById('m-title').value;
   if (!title) { toast('Meeting title required'); return; }
-  const meeting = await api('createMeeting', {}, {
+  const data = {
     title, date: document.getElementById('m-date').value,
     department: document.getElementById('m-dept').value,
     attendees: document.getElementById('m-attendees').value,
     raw_notes: document.getElementById('m-notes').value,
-  });
-  if (meeting && S.parsedItems.length) {
-    await api('saveMeetingItems', {}, { meeting_id: meeting.id, items: S.parsedItems, department: meeting.department });
-  }
+  };
+  const tempId = 'MTG-tmp-' + Date.now();
+  S.meetings.unshift({ ...data, id: tempId });
   closeModal('meeting-modal');
   toast('Meeting saved!');
-  loadData().then(renderMeetings);
+  renderMeetings();
+  const meeting = await api('createMeeting', {}, data);
+  if (meeting && S.parsedItems.length) {
+    api('saveMeetingItems', {}, { meetingId: meeting.id, items: S.parsedItems.filter(i => i.confirmed !== false), department: data.department });
+  }
+  S._lastLoaded = 0; loadData(true).then(renderMeetings);
 }
 
 async function openMeeting(id) {
   const meeting = S.meetings.find(m => m.id === id);
   if (!meeting) return;
-  const items = await api('getMeetingItems', { meeting_id: id }) || [];
+  const items = await api('getMeetingItems', { meetingId: id }) || [];
   document.getElementById('meeting-detail').innerHTML = `
     <div class="card" style="height:100%;overflow-y:auto">
       <div class="flex items-center gap-8 mb-12">
@@ -1504,10 +1509,14 @@ function renderMissions() {
     : '<div class="empty-state"><div class="icon">🚀</div><p>No missions submitted</p></div>';
 }
 
-async function approveMission(id, decision) {
-  await api('approveMission', {}, { mission_id: id, decision });
+function approveMission(id, decision) {
+  const m = S.missions.find(x => x.id === id);
+  if (m) m.status = decision;
+  renderMissions();
+  const action = decision === 'approved' ? 'approveMission' : 'rejectMission';
+  api(action, {}, { missionId: id, approverId: S.myName });
   toast(decision === 'approved' ? 'Mission approved — CDO credited!' : 'Mission rejected');
-  loadData().then(renderMissions);
+  S._lastLoaded = 0; loadData(true).then(renderMissions);
 }
 
 // ===================== CDO =====================
@@ -1531,10 +1540,13 @@ function renderCDO() {
     : '<div class="empty-state"><p>No CDO redemptions yet</p></div>';
 }
 
-async function approveCDO(id) {
-  await api('approveCDO', {}, { id, decision:'approved', manager: S.myName });
+function approveCDO(id) {
+  const r = S.cdoRedemptions.find(x => x.id === id);
+  if (r) r.status = 'approved';
+  renderCDO();
+  api('approveCDO', {}, { id, approvedBy: S.myName });
   toast('CDO approved!');
-  loadData().then(renderCDO);
+  S._lastLoaded = 0; loadData(true).then(renderCDO);
 }
 
 // ===================== LEAVE =====================
@@ -1556,10 +1568,14 @@ function renderLeave() {
     : '<div class="empty-state"><div class="icon">🌿</div><p>No leave requests</p></div>';
 }
 
-async function approveLeave(id, decision) {
-  await api('approveLeave', {}, { id, decision });
+function approveLeave(id, decision) {
+  const l = S.leaves.find(x => x.id === id);
+  if (l) l.status = decision;
+  renderLeave();
+  const action = decision === 'approved' ? 'approveLeave' : 'rejectLeave';
+  api(action, {}, { id, approvedBy: S.myName });
   toast(decision === 'approved' ? 'Leave approved!' : 'Leave rejected');
-  loadData().then(renderLeave);
+  S._lastLoaded = 0; loadData(true).then(renderLeave);
 }
 
 // ===================== TEAM =====================
@@ -1594,7 +1610,7 @@ function saveSettings() {
 }
 
 async function runInit() {
-  const res = await api('init');
+  const res = await api('initSheet');
   toast(res?.message || 'Done!');
 }
 
@@ -1906,7 +1922,9 @@ function priorityColor(p) {
 }
 
 function toggleSidebar() {
-  document.getElementById('sidebar').classList.toggle('collapsed');
+  const sb = document.getElementById('sidebar');
+  sb.classList.toggle('collapsed');
+  localStorage.setItem('aeros_sidebar', sb.classList.contains('collapsed') ? '1' : '0');
 }
 
 function toggleDark() {
@@ -2127,6 +2145,10 @@ function schedulePost(videoId, platform) {
 
 // ===================== INIT =====================
 window.addEventListener('DOMContentLoaded', () => {
+  // Restore sidebar state
+  if (localStorage.getItem('aeros_sidebar') === '1') {
+    document.getElementById('sidebar').classList.add('collapsed');
+  }
   // Load settings
   const url = localStorage.getItem('aeros_api_url');
   if (url) S.apiUrl = url;
