@@ -16,6 +16,14 @@
   --border:#dadce0;--text:#202124;--text2:#5f6368;--text3:#80868b;
   --radius:8px;--radius-lg:12px;--shadow:0 1px 3px rgba(0,0,0,.12);
   --sidebar:240px;--topbar:56px;
+  --cal-task:hsl(220,50%,91%);--cal-task-av:hsl(220,50%,73%);--cal-task-avt:hsl(220,60%,22%);
+  --cal-blocked:hsl(0,60%,91%);--cal-blocked-av:hsl(0,60%,73%);--cal-blocked-avt:hsl(0,65%,22%);
+  --cal-event:hsl(210,20%,91%);--cal-event-av:hsl(210,20%,73%);--cal-event-avt:hsl(210,30%,22%);
+  --cal-shoot:hsl(42,68%,91%);--cal-shoot-av:hsl(42,68%,73%);--cal-shoot-avt:hsl(42,72%,22%);
+  --cal-leave:hsl(262,42%,91%);--cal-leave-av:hsl(262,42%,73%);--cal-leave-avt:hsl(262,50%,22%);
+  --cal-mission:hsl(150,45%,91%);--cal-mission-av:hsl(150,45%,73%);--cal-mission-avt:hsl(150,50%,20%);
+  --cal-pub:hsl(22,60%,91%);--cal-pub-av:hsl(22,60%,73%);--cal-pub-avt:hsl(22,65%,22%);
+  --cal-campaign:hsl(278,38%,91%);--cal-campaign-av:hsl(278,38%,73%);--cal-campaign-avt:hsl(278,45%,22%);
 }
 [data-theme=dark]{
   --bg:#1a1a1a;--surface:#2d2d2d;--surface2:#3a3a3a;
@@ -44,8 +52,9 @@ label{font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bot
 .nav-section{padding:8px 0;border-bottom:1px solid var(--border)}
 .nav-section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);padding:4px 16px;white-space:nowrap;overflow:hidden}
 .nav-item{display:flex;align-items:center;gap:10px;padding:8px 16px;border-radius:0;cursor:pointer;transition:background .15s;white-space:nowrap;overflow:hidden;font-size:13.5px}
-.nav-item:hover{background:var(--brand-light)}
-.nav-item.active{background:var(--brand-light);color:var(--brand);font-weight:600}
+.nav-item:hover{background:var(--surface2)}
+.nav-item{border-left:2px solid transparent}
+.nav-item.active{border-left:2px solid var(--brand);color:var(--brand);font-weight:600;background:var(--brand-light)}
 .nav-item .icon{flex-shrink:0;width:20px;display:flex;align-items:center;justify-content:center}
 .nav-item .icon svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .nav-item .label{overflow:hidden;text-overflow:ellipsis}
@@ -506,13 +515,17 @@ select.sd-val{appearance:auto;cursor:pointer}
       <div class="nav-item" onclick="nav('calendar')"><span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span><span class="label">Calendar</span></div>
       <div class="nav-item" onclick="nav('workload')"><span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span><span class="label">Workload</span></div>
       <div class="nav-item" onclick="nav('eisenhower')"><span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg></span><span class="label">Eisenhower</span></div>
-      <div class="nav-item" onclick="nav('portfolio')"><span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></span><span class="label">Portfolio</span></div>
     </div>
     <div class="nav-section">
       <div class="nav-section-label">Work</div>
       <div class="nav-item" onclick="nav('projects')"><span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span><span class="label">Projects</span></div>
+      <div class="nav-item" onclick="nav('campaigns')"><span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg></span><span class="label">Campaigns</span></div>
+      <div class="nav-item" onclick="nav('designs')"><span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="19" cy="17" r="2"/><circle cx="6" cy="17" r="2"/><path d="M14.5 8.5L19 15"/><path d="M12.5 8L6 15"/><path d="M11 6.5H5a2 2 0 0 0-2 2V20"/></svg></span><span class="label">Designs</span></div>
+      <div class="nav-item" onclick="nav('publishing')"><span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></span><span class="label">Publishing</span></div>
+      <div class="nav-item" onclick="nav('social')"><span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span><span class="label">Social Hub</span></div>
       <div class="nav-item" onclick="nav('meetings')"><span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span><span class="label">Meeting Notes</span></div>
       <div class="nav-item" onclick="nav('media')"><span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></span><span class="label">Media</span></div>
+      <div class="nav-item" onclick="nav('monthly-planning')"><span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="14" x2="8" y2="14"/><line x1="12" y1="14" x2="12" y2="14"/><line x1="16" y1="14" x2="16" y2="14"/></svg></span><span class="label">Monthly Planning</span></div>
     </div>
     <div class="nav-section">
       <div class="nav-section-label">HR</div>
@@ -523,6 +536,7 @@ select.sd-val{appearance:auto;cursor:pointer}
     <div class="nav-section">
       <div class="nav-section-label">Settings</div>
       <div class="nav-item" onclick="nav('team')"><span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><span class="label">Team</span></div>
+      <div class="nav-item" onclick="nav('rules')"><span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span><span class="label">Rules & Guidelines</span></div>
       <div class="nav-item" onclick="nav('settings')"><span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span><span class="label">Settings</span></div>
     </div>
   </nav>
@@ -545,6 +559,7 @@ select.sd-val{appearance:auto;cursor:pointer}
     <!-- CONTENT -->
     <div id="content">
       <div id="view-dashboard">
+        <div id="dash-blocked-alert"></div>
         <div class="stats-grid" id="dash-stats"></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
           <div class="card">
@@ -871,6 +886,56 @@ select.sd-val{appearance:auto;cursor:pointer}
           </div>
           <button class="btn btn-primary" onclick="runInit()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Initialize Sheet (run once)</button>
         </div>
+      </div>
+      <div id="view-campaigns" class="hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <div style="font-size:18px;font-weight:700">Campaigns</div>
+          <button class="btn btn-primary" onclick="showCampaignModal()" id="btn-new-campaign">+ Campaign</button>
+        </div>
+        <div id="campaigns-list"></div>
+      </div>
+      <div id="view-designs" class="hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <div style="font-size:18px;font-weight:700">Designs</div>
+          <button class="btn btn-primary" onclick="showDesignModal()">+ Design</button>
+        </div>
+        <div id="designs-board" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px"></div>
+      </div>
+      <div id="view-publishing" class="hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <div style="font-size:18px;font-weight:700">Publishing</div>
+          <button class="btn btn-primary" onclick="showPublishingModal()">+ Post</button>
+        </div>
+        <div id="publishing-list"></div>
+      </div>
+      <div id="view-social" class="hidden">
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px">
+          <div style="font-size:18px;font-weight:700">Social Hub</div>
+        </div>
+        <div style="display:flex;gap:16px;height:calc(100vh - 140px)">
+          <div id="social-pages-list" style="width:180px;flex-shrink:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:8px;overflow-y:auto"></div>
+          <div id="social-page-content" style="flex:1;overflow-y:auto"></div>
+        </div>
+      </div>
+      <div id="view-monthly-planning" class="hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <div style="font-size:18px;font-weight:700">Monthly Planning</div>
+          <button class="btn btn-primary" onclick="showMonthlyPlanModal()">+ New Plan</button>
+        </div>
+        <div id="monthly-plans-list"></div>
+      </div>
+      <div id="view-rules" class="hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <div style="font-size:18px;font-weight:700">Rules & Guidelines</div>
+          <button class="btn btn-primary" id="btn-new-rule" onclick="showRuleModal()">+ Add</button>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap" id="rules-filters">
+          <button class="btn btn-secondary btn-sm rules-filter-btn active" data-filter="all" onclick="rulesFilter('all')">All</button>
+          <button class="btn btn-secondary btn-sm rules-filter-btn" data-filter="rule" onclick="rulesFilter('rule')">Rules</button>
+          <button class="btn btn-secondary btn-sm rules-filter-btn" data-filter="guideline" onclick="rulesFilter('guideline')">Guidelines</button>
+        </div>
+        <input type="search" id="rules-search" placeholder="Search rules and guidelines..." oninput="renderRules()" style="max-width:360px;margin-bottom:16px">
+        <div id="rules-list"></div>
       </div>
     </div>
   </div>
@@ -1388,7 +1453,9 @@ function nav(view) {
     timeline:'Timeline',workload:'Workload',eisenhower:'Eisenhower',portfolio:'Portfolio',
     mytasks:'My Tasks',inbox:'Inbox',projects:'Projects',meetings:'Meeting Notes',
     media:'Media Production',missions:'Missions',cdo:'Change Day Off',leave:'Leave',
-    team:'Team',settings:'Settings' };
+    team:'Team',settings:'Settings',
+    campaigns:'Campaigns',designs:'Designs',publishing:'Publishing',
+    social:'Social Hub','monthly-planning':'Monthly Planning',rules:'Rules & Guidelines' };
   document.getElementById('page-title').textContent = titles[view] || view;
   renderView(view);
 }
@@ -1417,8 +1484,14 @@ function renderViewNow(view) {
   if (view === 'missions')    renderMissions();
   if (view === 'cdo')         renderCDO();
   if (view === 'leave')       renderLeave();
-  if (view === 'team')        renderTeam();
-  if (view === 'settings')    renderSettings();
+  if (view === 'team')             renderTeam();
+  if (view === 'settings')         renderSettings();
+  if (view === 'campaigns')        renderCampaigns();
+  if (view === 'designs')          renderDesigns();
+  if (view === 'publishing')       renderPublishing();
+  if (view === 'social')           renderSocial();
+  if (view === 'monthly-planning') renderMonthlyPlanning();
+  if (view === 'rules')            renderRules();
 }
 
 function applyData(d) {
@@ -1462,6 +1535,7 @@ async function loadData(force = false) {
 
 // ===================== DASHBOARD =====================
 function renderDashboard() {
+  renderDashboardBlockedAlert();
   const t = S.tasks;
   const today = todayStr();
   const overdue  = t.filter(x => x.due && x.due < today && x.status !== 'done');
@@ -3194,8 +3268,39 @@ function globalSearch(q) {
 // ===================== HELPERS =====================
 function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
 function closeModal(id) {
-  const el = document.getElementById(id);
-  if (el) { el.classList.add('hidden'); if (!el.id.match(/^(event|feed-event|task|meeting|mission|leave|shoot|project|cdo)-modal$/)) el.remove(); }
+  if (id) {
+    const el = document.getElementById(id);
+    if (el) { el.classList.add('hidden'); if (!el.id.match(/^(event|feed-event|task|meeting|mission|leave|shoot|project|cdo)-modal$/)) el.remove(); }
+  } else {
+    const el = document.getElementById('generic-modal');
+    if (el) el.remove();
+  }
+}
+
+function showModal(html) {
+  const existing = document.getElementById('generic-modal');
+  if (existing) existing.remove();
+  const overlay = document.createElement('div');
+  overlay.id = 'generic-modal';
+  overlay.className = 'modal-overlay';
+  overlay.onclick = e => { if (e.target === overlay) closeModal(); };
+  const box = document.createElement('div');
+  box.className = 'modal';
+  box.innerHTML = html;
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+}
+
+function nowIso() { return new Date().toISOString().slice(0,16); }
+
+function calShowMore(ds) {
+  const tasks = (S.tasks||[]).filter(t => t.due === ds);
+  const events = (S.events||[]).filter(e => e.date === ds);
+  const shoots = (S.shoots||[]).filter(s => s.date === ds);
+  const all = [...tasks.map(t=>`<div onclick="closeModal();openTaskPanel('${t.id}')" style="padding:8px;border-bottom:1px solid var(--border);cursor:pointer"><span class="badge badge-${(t.priority||'p3').toLowerCase()}">${t.priority}</span> ${esc(t.title)}</div>`),
+    ...events.map(e=>`<div style="padding:8px;border-bottom:1px solid var(--border)">${esc(e.title)}</div>`),
+    ...shoots.map(s=>`<div style="padding:8px;border-bottom:1px solid var(--border)">${esc(s.title||'Shoot')}</div>`)];
+  showModal(`<div class="modal-header">All items — ${ds}</div><div class="modal-body" style="padding:0">${all.join('')}</div><div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal()">Close</button></div>`);
 }
 
 function toast(msg, type='ok') {
@@ -3633,6 +3738,765 @@ window.addEventListener('DOMContentLoaded', () => {
     nav(lastView && lastView !== 'settings' ? lastView : 'dashboard');
   }
 });
-</script>
+
+/* ===================== CALENDAR COLOR SYSTEM ===================== */
+function loadCalendarColors() {
+  const stored = localStorage.getItem('aeros_cal_colors');
+  const defaults = {
+    task:'#7baaf7',blocked:'#f28b82',event:'#aecbfa',
+    shoot:'#fdd663',leave:'#b39ddb',mission:'#81c995',
+    pub:'#ff8a65',campaign:'#ce93d8',ical:{}
+  };
+  S.calColors = stored ? Object.assign({},defaults,JSON.parse(stored)) : defaults;
+  applyCalColorVars();
+}
+function hexToHslParts(hex){
+  let r=parseInt(hex.slice(1,3),16)/255,g=parseInt(hex.slice(3,5),16)/255,b=parseInt(hex.slice(5,7),16)/255;
+  let max=Math.max(r,g,b),min=Math.min(r,g,b),h,s,l=(max+min)/2;
+  if(max===min){h=s=0}else{let d=max-min;s=l>.5?d/(2-max-min):d/(max+min);switch(max){case r:h=(g-b)/d+(g<b?6:0);break;case g:h=(b-r)/d+2;break;case b:h=(r-g)/d+4;break}h/=6;}
+  return[Math.round(h*360),Math.round(s*100),Math.round(l*100)];
+}
+function applyCalColorVars(){
+  const root=document.documentElement;
+  const layers=['task','blocked','event','shoot','leave','mission','pub','campaign'];
+  layers.forEach(k=>{
+    if(!S.calColors[k]) return;
+    const[h,s]=hexToHslParts(S.calColors[k]);
+    root.style.setProperty('--cal-'+k,`hsl(${h},${Math.min(s+5,65)}%,91%)`);
+    root.style.setProperty('--cal-'+k+'-av',`hsl(${h},${Math.min(s+10,70)}%,73%)`);
+    root.style.setProperty('--cal-'+k+'-avt',`hsl(${h},${Math.min(s+20,80)}%,22%)`);
+  });
+}
+function saveCalendarColors(){
+  if(S.myRole!=='admin'){toast('Only admin can change colors');return;}
+  localStorage.setItem('aeros_cal_colors',JSON.stringify(S.calColors));
+  applyCalColorVars();
+  renderCalendar();
+  toast('Calendar colors saved');
+}
+function livePreviewCalColor(key,hex){S.calColors[key]=hex;applyCalColorVars();renderCalendar();}
+function livePreviewIcalColor(feedId,hex){if(!S.calColors.ical)S.calColors.ical={};S.calColors.ical[feedId]=hex;renderCalendar();}
+
+/* ===================== LAYER TOGGLES ===================== */
+const CAL_LAYERS=[
+  {key:'task',label:'Tasks'},{key:'blocked',label:'Blocked'},
+  {key:'shoot',label:'Shoots'},{key:'leave',label:'Leave'},
+  {key:'mission',label:'Missions'},{key:'pub',label:'Publishing'},
+  {key:'event',label:'Events'},{key:'campaign',label:'Campaigns'},{key:'ical',label:'iCal'}
+];
+function loadLayerToggles(){S.calLayers=JSON.parse(localStorage.getItem('cal_layers')||'{}');}
+function toggleCalLayer(key){
+  S.calLayers[key]=S.calLayers[key]===false?true:false;
+  localStorage.setItem('cal_layers',JSON.stringify(S.calLayers));
+  renderCalLayerChips();renderCalendar();
+}
+function renderCalLayerChips(){
+  const w=document.getElementById('cal-layer-chips');if(!w)return;
+  w.innerHTML=CAL_LAYERS.map(({key,label})=>{
+    const on=S.calLayers[key]!==false;
+    return`<button onclick="toggleCalLayer('${key}')" style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid var(--border);background:${on?'var(--brand)':'var(--surface)'};color:${on?'#fff':'var(--text2)'};cursor:pointer">${label}</button>`;
+  }).join('');
+}
+
+/* ===================== CALENDAR PILL RENDERER ===================== */
+function calPillHtml(item,type,clickJs){
+  if(S.calLayers&&S.calLayers[type]===false) return '';
+  const isIcal=type==='ical';
+  const isDone=item.status==='done';
+  const owner=item.owner||item.employee||item.photographer||'';
+  const initials=owner.split(' ').map(w=>w[0]||'').join('').slice(0,2).toUpperCase()||'?';
+  let bg=`var(--cal-${type},hsl(210,15%,91%))`;
+  let av=`var(--cal-${type}-av,hsl(210,15%,73%))`;
+  let avt=`var(--cal-${type}-avt,hsl(210,25%,22%))`;
+  if(isIcal&&item._feedId&&S.calColors&&S.calColors.ical&&S.calColors.ical[item._feedId]){
+    const[h,s]=hexToHslParts(S.calColors.ical[item._feedId]);
+    bg=`hsl(${h},${s+5}%,91%)`;av=`hsl(${h},${s+10}%,73%)`;avt=`hsl(${h},${s+20}%,22%)`;
+  }
+  const time=item.time?`<span style="font-size:9px;color:rgba(0,0,0,.45);margin-left:auto;padding-left:4px;flex-shrink:0">${item.time.slice(0,5)}</span>`:'';
+  const checkSvg=isDone?`<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg>`:'';
+  const lockSvg=isIcal?`<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,.4)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-left:2px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`:'';
+  const prio=item.priority?`<span style="font-size:8px;font-weight:700;padding:1px 4px;border-radius:3px;background:rgba(0,0,0,.1);color:rgba(0,0,0,.55)">${item.priority}</span>`:'';
+  const drag=isIcal?'':` draggable="true" ondragstart="calDragStart(event,'${item.id}','${type}')"`;
+  const click=isIcal||!clickJs?'':` onclick="event.stopPropagation();${clickJs}"`;
+  return`<div style="display:flex;align-items:center;gap:5px;border-radius:5px;padding:2px 6px;min-height:26px;margin-bottom:2px;background:${bg};cursor:${isIcal?'default':'pointer'}"${drag}${click}>
+    <div style="width:18px;height:18px;border-radius:50%;background:${av};color:${avt};display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:800;flex-shrink:0">${initials}</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-size:10px;font-weight:600;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:3px">${checkSvg}${esc(item.title||owner)}</div>
+      <div style="font-size:9px;color:rgba(0,0,0,.5);display:flex;align-items:center;gap:3px">${esc(owner.length>0&&(item.title)?owner:'')}${prio}</div>
+    </div>
+    ${time}${lockSvg}
+  </div>`;
+}
+
+/* ===================== CALENDAR DRAG & DROP ===================== */
+let _calDrag=null;
+function calDragStart(e,id,type){_calDrag={id,type};e.dataTransfer.effectAllowed='move';}
+function calDragOver(e,ds){e.preventDefault();e.currentTarget.style.outline='2px dashed var(--brand)';}
+function calDragLeave(e){e.currentTarget.style.outline='';}
+async function calDrop(e,ds){
+  e.preventDefault();e.currentTarget.style.outline='';
+  if(!_calDrag)return;
+  const{id,type}=_calDrag;_calDrag=null;
+  if(type==='task'||type==='blocked'){
+    const t=S.tasks.find(x=>x.id===id);if(!t)return;
+    const prev=t.due;t.due=ds;renderCalendar();
+    await api('updateTask',{},{id,due:ds,updated:nowIso()});
+    showUndoToast(`Task moved to ${ds}`,async()=>{t.due=prev;await api('updateTask',{},{id,due:prev,updated:nowIso()});renderCalendar();});
+  } else if(type==='event'){
+    const ev=(S.events||[]).find(x=>x.id===id);if(!ev)return;
+    const prev=ev.date;ev.date=ds;renderCalendar();
+    await api('updateEvent',{},{id,date:ds});
+    showUndoToast(`Event moved to ${ds}`,async()=>{ev.date=prev;await api('updateEvent',{},{id,date:prev});renderCalendar();});
+  } else if(type==='shoot'){
+    const s=(S.shoots||[]).find(x=>x.id===id);if(!s)return;
+    s.date=ds;renderCalendar();await api('updateShoot',{},{id,date:ds});
+  }
+}
+let _undoTimer=null;
+function showUndoToast(msg,undoFn){
+  const t=document.getElementById('toast');if(!t)return;
+  t.innerHTML=`${esc(msg)} <button onclick="(${undoFn.toString()})();this.closest('#toast').classList.remove('show')" style="margin-left:8px;color:#93c5fd;font-weight:700;background:none;border:none;cursor:pointer;font-size:13px">Undo</button>`;
+  t.classList.add('show');
+  if(_undoTimer)clearTimeout(_undoTimer);
+  _undoTimer=setTimeout(()=>t.classList.remove('show'),6000);
+}
+
+/* ===================== CALENDAR COLOR LEGEND ===================== */
+function renderColorLegend(){
+  const w=document.getElementById('cal-color-legend');if(!w)return;
+  const isAdmin=S.myRole==='admin';
+  const layers=[
+    {key:'task',label:'Tasks'},{key:'blocked',label:'Blocked'},
+    {key:'event',label:'Events'},{key:'shoot',label:'Shoots'},
+    {key:'leave',label:'Leave'},{key:'mission',label:'Missions'},
+    {key:'pub',label:'Publishing'},{key:'campaign',label:'Campaigns'}
+  ];
+  w.innerHTML=`<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">Color Legend${isAdmin?' <span style="font-size:9px;background:#111;color:#fff;padding:1px 5px;border-radius:3px">Admin</span>':''}</div>
+  ${layers.map(({key,label})=>{
+    const hex=S.calColors&&S.calColors[key]||'#ccc';
+    return`<div style="display:flex;align-items:center;gap:8px;padding:3px 0;border-bottom:.5px solid var(--border)">
+      <div style="width:22px;height:14px;border-radius:3px;background:${hex};border:.5px solid rgba(0,0,0,.1);position:relative;overflow:hidden;flex-shrink:0">${isAdmin?`<input type="color" value="${hex}" oninput="livePreviewCalColor('${key}',this.value)" style="position:absolute;inset:-4px;width:calc(100%+8px);height:calc(100%+8px);opacity:0;cursor:pointer">`:''}</div>
+      <span style="font-size:11px">${label}</span>
+    </div>`;
+  }).join('')}
+  ${isAdmin?`<button onclick="saveCalendarColors()" style="width:100%;margin-top:8px;padding:6px;background:#111;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">Save &amp; apply</button>`:'<div style="font-size:10px;color:var(--text3);text-align:center;padding:4px 0">Set by admin</div>'}
+  <div style="margin-top:10px;border-top:.5px solid var(--border);padding-top:8px">
+    <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;margin-bottom:5px">iCal feeds</div>
+    ${(S.feeds||[]).map(f=>{
+      const hex=(S.calColors&&S.calColors.ical&&S.calColors.ical[f.id])||f.color||'#d4edda';
+      return`<div style="display:flex;align-items:center;gap:8px;padding:3px 0">
+        <div style="width:22px;height:14px;border-radius:3px;background:${hex};border:.5px solid rgba(0,0,0,.1);position:relative;overflow:hidden;flex-shrink:0">${isAdmin?`<input type="color" value="${hex}" oninput="livePreviewIcalColor('${f.id}',this.value)" style="position:absolute;inset:-4px;width:calc(100%+8px);height:calc(100%+8px);opacity:0;cursor:pointer">`:''}</div>
+        <span style="font-size:11px;flex:1">${esc(f.name)}</span>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+/* ===================== CALENDAR REBUILD ===================== */
+function renderCalendar(){
+  loadCalendarColors();loadLayerToggles();
+  const w=document.getElementById('cal-months-wrap');
+  if(!w){renderCalendarLegacy();return;}
+  w.innerHTML='';
+  S._calRendered=new Set();
+  const today=new Date();
+  const y=S.calYear||today.getFullYear();
+  const m=S.calMonth!==undefined?S.calMonth:today.getMonth();
+  _appendMonthBlock(y,m);
+  const nm=m===11?0:m+1,ny=m===11?y+1:y;
+  _appendMonthBlock(ny,nm);
+  const sentinel=document.createElement('div');
+  sentinel.id='cal-scroll-sentinel';sentinel.style.height='40px';
+  w.appendChild(sentinel);
+  if(S._calObs)S._calObs.disconnect();
+  S._calObs=new IntersectionObserver(entries=>{if(entries[0].isIntersecting)_loadNextCalMonth();},{rootMargin:'300px'});
+  S._calObs.observe(sentinel);
+  setTimeout(()=>{
+    const el=document.getElementById(`cm-${y}-${String(m+1).padStart(2,'0')}`);
+    if(el)el.scrollIntoView({behavior:'instant',block:'start'});
+  },50);
+  renderCalLayerChips();renderColorLegend();
+  renderCalSidebar(y,m,todayStr());
+  autoLoadFeeds();
+}
+
+function _appendMonthBlock(y,m){
+  const key=`${y}-${m}`;
+  if(S._calRendered.has(key))return;
+  S._calRendered.add(key);
+  const w=document.getElementById('cal-months-wrap');
+  const sentinel=document.getElementById('cal-scroll-sentinel');
+  const block=_buildMonthBlock(y,m);
+  w.insertBefore(block,sentinel||null);
+}
+
+function _loadNextCalMonth(){
+  const keys=[...S._calRendered].sort();
+  if(!keys.length)return;
+  const last=keys[keys.length-1];
+  let[y,m]=last.split('-').map(Number);
+  m++;if(m>11){m=0;y++;}
+  _appendMonthBlock(y,m);
+}
+
+const _MON=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const _DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+function _buildMonthBlock(y,m){
+  const today=todayStr();
+  const wrap=document.createElement('div');
+  wrap.id=`cm-${y}-${String(m+1).padStart(2,'0')}`;
+  wrap.style.marginBottom='32px';
+  // sticky header
+  const hdr=document.createElement('div');
+  hdr.style.cssText='position:sticky;top:0;z-index:9;background:var(--bg);padding:10px 0 4px;font-size:17px;font-weight:700;border-bottom:1px solid var(--border);margin-bottom:2px';
+  hdr.textContent=`${_MON[m]} ${y}`;
+  wrap.appendChild(hdr);
+  // day headers
+  const dh=document.createElement('div');
+  dh.style.cssText='display:grid;grid-template-columns:repeat(7,minmax(0,1fr));background:var(--bg);position:sticky;top:42px;z-index:8';
+  dh.innerHTML=_DAYS.map(d=>`<div style="font-size:10px;font-weight:700;color:var(--text3);text-align:center;padding:3px 0">${d}</div>`).join('');
+  wrap.appendChild(dh);
+  // grid
+  const grid=document.createElement('div');
+  grid.style.cssText='display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:1px;background:var(--border);border:1px solid var(--border)';
+  const firstDay=new Date(y,m,1).getDay();
+  const daysInMonth=new Date(y,m+1,0).getDate();
+  const prevDays=new Date(y,m,0).getDate();
+  for(let i=0;i<firstDay;i++){
+    const c=document.createElement('div');
+    c.style.cssText='background:var(--surface2);padding:4px;min-height:90px';
+    c.innerHTML=`<div style="font-size:11px;color:var(--text3);margin-bottom:2px">${prevDays-firstDay+i+1}</div>`;
+    grid.appendChild(c);
+  }
+  for(let d=1;d<=daysInMonth;d++){
+    const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday=ds===today;
+    const c=document.createElement('div');
+    c.style.cssText=`background:var(--surface);padding:4px;min-height:90px;cursor:pointer${isToday?';outline:2px solid var(--brand);outline-offset:-2px':''}`;
+    c.setAttribute('ondragover',`calDragOver(event,'${ds}')`);
+    c.setAttribute('ondragleave','calDragLeave(event)');
+    c.setAttribute('ondrop',`calDrop(event,'${ds}')`);
+    c.setAttribute('onclick',`calDayClick('${ds}')`);
+    c.innerHTML=_buildDayCell(ds,d,isToday);
+    grid.appendChild(c);
+  }
+  const total=firstDay+daysInMonth;
+  const trail=total%7===0?0:7-(total%7);
+  for(let i=1;i<=trail;i++){
+    const c=document.createElement('div');
+    c.style.cssText='background:var(--surface2);padding:4px;min-height:90px';
+    c.innerHTML=`<div style="font-size:11px;color:var(--text3);margin-bottom:2px">${i}</div>`;
+    grid.appendChild(c);
+  }
+  wrap.appendChild(grid);
+  return wrap;
+}
+
+function _buildDayCell(ds,d,isToday){
+  const numHtml=isToday
+    ?`<div style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--brand);color:#fff;font-size:11px;font-weight:700;margin-bottom:2px">${d}</div>`
+    :`<div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:2px">${d}</div>`;
+
+  const tasks=(S.tasks||[]).filter(t=>t.due===ds&&t.status!=='done');
+  const done=(S.tasks||[]).filter(t=>t.due===ds&&t.status==='done');
+  const leaves=(S.leaves||[]).filter(l=>l.from_date<=ds&&l.to_date>=ds&&l.status==='approved');
+  const shoots=(S.shoots||[]).filter(s=>s.date===ds);
+  const missions=(S.missions||[]).filter(ms=>ms.date===ds&&ms.status==='approved');
+  const events=(S.events||[]).filter(e=>e.date===ds||(e.date<=ds&&e.end_date&&e.end_date>=ds));
+  const feedEvts=(S.feedEvents||[]).filter(e=>{
+    const fd=(S.feeds||[]).find(f=>f.id===e._feedId&&String(f.enabled)!=='false');
+    return fd&&(e.date===ds||(e.date<=ds&&e.end_date&&e.end_date>=ds));
+  });
+  const blocked=tasks.filter(t=>t.status==='blocked');
+  const active=tasks.filter(t=>t.status!=='blocked');
+
+  const allItems=[
+    ...blocked.map(t=>({item:t,type:'blocked',fn:`openTaskPanel('${t.id}')`})),
+    ...shoots.map(s=>({item:{...s,title:s.title||'Shoot',owner:s.photographer||''},type:'shoot',fn:`openTaskPanel('${s.id}')`})),
+    ...missions.map(ms=>({item:{...ms,title:`${ms.employee||''} — mission`},type:'mission',fn:''})),
+    ...leaves.map(l=>({item:{...l,title:`${l.employee||''} — ${l.type||'leave'}`},type:'leave',fn:''})),
+    ...events.map(e=>({item:e,type:'event',fn:`showEventModal&&showEventModal('${e.id}')`})),
+    ...active.map(t=>({item:t,type:'task',fn:`openTaskPanel('${t.id}')`})),
+    ...done.map(t=>({item:t,type:'task',fn:`openTaskPanel('${t.id}')`})),
+    ...feedEvts.map(e=>({item:e,type:'ical',fn:''}))
+  ];
+
+  const MAX=3;
+  let pills=allItems.slice(0,MAX).map(({item,type,fn})=>calPillHtml(item,type,fn)).join('');
+  const more=allItems.length-MAX;
+  if(more>0) pills+=`<div onclick="event.stopPropagation();calShowMore('${ds}')" style="font-size:9px;color:var(--text3);text-align:center;padding:1px 0;cursor:pointer">+${more} more</div>`;
+
+  return numHtml+pills+`<div class="cal-add-hint" style="font-size:9px;color:var(--text3);opacity:0;transition:opacity .15s" onmouseenter="this.style.opacity=1" onmouseleave="this.style.opacity=0">+ add</div>`;
+}
+
+function calDayClick(ds){showQuickAdd&&showQuickAdd(ds);}
+
+/* ===================== CALENDAR SIDEBAR UPDATE ===================== */
+function renderCalSidebarFull(y,m,today){
+  renderCalSidebar(y,m,today);
+  renderColorLegend();
+}
+
+/* ===================== CAMPAIGNS ===================== */
+S.campaigns=S.campaigns||[];
+function renderCampaigns(){
+  const isAdmin=S.myRole==='admin';
+  const btn=document.getElementById('btn-new-campaign');
+  if(btn){btn.style.display=isAdmin?'':'none';}
+  const w=document.getElementById('campaigns-list');if(!w)return;
+  if(!S.campaigns||!S.campaigns.length){
+    w.innerHTML='<div style="color:var(--text3);padding:32px;text-align:center">No campaigns yet. Create one to get started.</div>';return;
+  }
+  w.innerHTML=`<table class="data-table"><thead><tr><th>Title</th><th>Status</th><th>Start</th><th>End</th><th>Projects</th><th>Milestones</th>${isAdmin?'<th></th>':''}</tr></thead><tbody>
+  ${S.campaigns.map(c=>`<tr onclick="openCampaignPanel('${c.id}')" style="cursor:pointer">
+    <td style="font-weight:600">${esc(c.title)}</td>
+    <td><span class="badge" style="background:${c.status==='Active'?'var(--ok)':c.status==='Completed'?'var(--surface2)':'var(--brand-light)'};color:${c.status==='Active'?'#fff':c.status==='Completed'?'var(--text2)':'var(--brand)'}">${c.status||'Planning'}</span></td>
+    <td>${c.start||'—'}</td><td>${c.end||'—'}</td>
+    <td>${(c.projects||[]).length}</td>
+    <td>${(c.milestones||[]).length}</td>
+    ${isAdmin?`<td><div class="actions"><button class="btn btn-sm btn-danger" onclick="event.stopPropagation();deleteCampaign('${c.id}')">Delete</button></div></td>`:''}
+  </tr>`).join('')}</tbody></table>`;
+}
+
+function showCampaignModal(id){
+  const c=id?(S.campaigns||[]).find(x=>x.id===id)||{}:{};
+  const isEdit=!!id;
+  const projects=(S.projects||[]).map(p=>`<option value="${esc(p.id)}" ${(c.projects||[]).includes(p.id)?'selected':''}>${esc(p.title)}</option>`).join('');
+  showModal(`<div class="modal-header">${isEdit?'Edit':'New'} Campaign</div>
+  <div class="modal-body">
+    <div class="form-row"><label>Title</label><input id="cm-title" value="${esc(c.title||'')}"></div>
+    <div class="form-row"><label>Status</label><select id="cm-status"><option ${c.status==='Planning'||!c.status?'selected':''}>Planning</option><option ${c.status==='Active'?'selected':''}>Active</option><option ${c.status==='Completed'?'selected':''}>Completed</option></select></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-row"><label>Start date</label><input type="date" id="cm-start" value="${c.start||''}"></div>
+      <div class="form-row"><label>End date</label><input type="date" id="cm-end" value="${c.end||''}"></div>
+    </div>
+    <div class="form-row"><label>Description</label><textarea id="cm-desc">${esc(c.description||'')}</textarea></div>
+    <div class="form-row"><label>Linked projects</label><select id="cm-projects" multiple style="height:90px">${projects}</select></div>
+    <div class="form-row"><label>Milestones (one per line, format: YYYY-MM-DD Title)</label><textarea id="cm-milestones" style="min-height:80px">${(c.milestones||[]).map(ms=>`${ms.date} ${ms.title}`).join('\n')}</textarea></div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+    <button class="btn btn-primary" onclick="saveCampaign(${isEdit?`'${id}'`:null})">Save</button>
+  </div>`);
+}
+
+async function saveCampaign(id){
+  const title=document.getElementById('cm-title').value.trim();if(!title)return;
+  const projs=[...document.getElementById('cm-projects').selectedOptions].map(o=>o.value);
+  const milLines=document.getElementById('cm-milestones').value.trim().split('\n').filter(Boolean);
+  const milestones=milLines.map(l=>{const m=l.match(/^(\d{4}-\d{2}-\d{2})\s+(.+)$/);return m?{date:m[1],title:m[2]}:{date:'',title:l};});
+  const obj={title,status:document.getElementById('cm-status').value,start:document.getElementById('cm-start').value,end:document.getElementById('cm-end').value,description:document.getElementById('cm-desc').value,projects:projs,milestones};
+  if(id){
+    const c=(S.campaigns||[]).find(x=>x.id===id);if(c)Object.assign(c,obj);
+  } else {
+    if(!S.campaigns)S.campaigns=[];
+    const newId='C-'+String((S.campaigns.length+1)).padStart(3,'0');
+    S.campaigns.push({id:newId,...obj,created:todayStr()});
+  }
+  closeModal();renderCampaigns();
+  try{await api('saveCampaign',{},{...(id?{id}:{}), ...obj});}catch(e){}
+}
+
+async function deleteCampaign(id){
+  if(!confirm('Delete this campaign?'))return;
+  S.campaigns=(S.campaigns||[]).filter(x=>x.id!==id);renderCampaigns();
+  try{await api('deleteCampaign',{},{id});}catch(e){}
+}
+
+function openCampaignPanel(id){showCampaignModal(id);}
+
+/* ===================== DESIGNS ===================== */
+S.designs=S.designs||[];
+const DESIGN_STAGES=['Briefing','In Progress','For Review','Approved','Published'];
+
+function renderDesigns(){
+  const w=document.getElementById('designs-board');if(!w)return;
+  if(!S.designs||!S.designs.length){
+    w.innerHTML='<div style="color:var(--text3);padding:32px;text-align:center;grid-column:1/-1">No designs yet.</div>';return;
+  }
+  w.innerHTML=DESIGN_STAGES.map(stage=>{
+    const items=(S.designs||[]).filter(d=>d.stage===stage||(!d.stage&&stage==='Briefing'));
+    return`<div style="background:var(--surface2);border-radius:var(--radius-lg);padding:12px;min-height:120px">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">${stage}<span style="background:var(--surface);border-radius:99px;padding:1px 7px;font-size:10px">${items.length}</span></div>
+      ${items.map(d=>`<div onclick="showDesignModal('${d.id}')" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px;margin-bottom:8px;cursor:pointer">
+        <div style="font-size:12px;font-weight:600;margin-bottom:4px">${esc(d.title)}</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          ${d.type?`<span class="tag">${esc(d.type)}</span>`:''}
+          ${d.page?`<span class="tag">${esc(d.page)}</span>`:''}
+          ${d.due?`<span style="font-size:10px;color:var(--text3)">${d.due}</span>`:''}
+        </div>
+      </div>`).join('')}
+    </div>`;
+  }).join('');
+}
+
+function showDesignModal(id){
+  const d=id?(S.designs||[]).find(x=>x.id===id)||{}:{};
+  const isEdit=!!id;
+  const typeOpts=['Social Post','Story','Banner','Poster','Video Thumbnail','Email Header','Infographic'].map(t=>`<option ${d.type===t?'selected':''}>${t}</option>`).join('');
+  const stageOpts=DESIGN_STAGES.map(s=>`<option ${d.stage===s?'selected':''}>${s}</option>`).join('');
+  const teamOpts=(S.team||[]).map(m=>`<option ${d.assigned===m.name?'selected':''}>${esc(m.name)}</option>`).join('');
+  showModal(`<div class="modal-header">${isEdit?'Edit':'New'} Design</div>
+  <div class="modal-body">
+    <div class="form-row"><label>Title</label><input id="ds-title" value="${esc(d.title||'')}"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-row"><label>Type</label><select id="ds-type"><option value="">— select —</option>${typeOpts}</select></div>
+      <div class="form-row"><label>Stage</label><select id="ds-stage">${stageOpts}</select></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-row"><label>Assigned to</label><select id="ds-assigned"><option value="">—</option>${teamOpts}</select></div>
+      <div class="form-row"><label>FB Page</label><input id="ds-page" value="${esc(d.page||'')}"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-row"><label>Due date</label><input type="date" id="ds-due" value="${d.due||''}"></div>
+      <div class="form-row"><label>Publish date</label><input type="date" id="ds-publish" value="${d.publish_date||''}"></div>
+    </div>
+    <div class="form-row"><label>Notes</label><textarea id="ds-notes">${esc(d.notes||'')}</textarea></div>
+  </div>
+  <div class="modal-footer">
+    ${isEdit?`<button class="btn btn-danger btn-sm" onclick="deleteDesign('${id}')">Delete</button>`:''}
+    <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+    <button class="btn btn-primary" onclick="saveDesign(${isEdit?`'${id}'`:null})">Save</button>
+  </div>`);
+}
+
+async function saveDesign(id){
+  const title=document.getElementById('ds-title').value.trim();if(!title)return;
+  const obj={title,type:document.getElementById('ds-type').value,stage:document.getElementById('ds-stage').value,assigned:document.getElementById('ds-assigned').value,page:document.getElementById('ds-page').value,due:document.getElementById('ds-due').value,publish_date:document.getElementById('ds-publish').value,notes:document.getElementById('ds-notes').value};
+  if(id){const d=(S.designs||[]).find(x=>x.id===id);if(d)Object.assign(d,obj);}
+  else{if(!S.designs)S.designs=[];S.designs.push({id:'D-'+String(S.designs.length+1).padStart(3,'0'),...obj,created:todayStr()});}
+  closeModal();renderDesigns();
+  try{await api('saveDesign',{},{...(id?{id}:{}), ...obj});}catch(e){}
+}
+async function deleteDesign(id){
+  if(!confirm('Delete?'))return;
+  S.designs=(S.designs||[]).filter(x=>x.id!==id);closeModal();renderDesigns();
+  try{await api('deleteDesign',{},{id});}catch(e){}
+}
+
+/* ===================== PUBLISHING ===================== */
+S.publishing=S.publishing||[];
+const PUB_STATUSES=['Draft','For Approval','Approved','Scheduled','Published'];
+
+function renderPublishing(){
+  const w=document.getElementById('publishing-list');if(!w)return;
+  if(!S.publishing||!S.publishing.length){
+    w.innerHTML='<div style="color:var(--text3);padding:32px;text-align:center">No publishing entries yet.</div>';return;
+  }
+  w.innerHTML=`<table class="data-table"><thead><tr><th>Title</th><th>Platform</th><th>FB Page</th><th>Deadline</th><th>Publish date</th><th>Status</th><th>Assigned</th><th></th></tr></thead><tbody>
+  ${(S.publishing||[]).map(p=>`<tr onclick="showPublishingModal('${p.id}')" style="cursor:pointer">
+    <td style="font-weight:600">${esc(p.title)}</td>
+    <td>${esc(p.platform||'')}</td>
+    <td>${esc(p.page||'')}</td>
+    <td>${p.deadline||'—'}</td>
+    <td>${p.publish_date||'—'}</td>
+    <td><span class="badge" style="background:${p.status==='Published'?'var(--ok)':'var(--surface2)'};color:${p.status==='Published'?'#fff':'var(--text)'}">${p.status||'Draft'}</span></td>
+    <td>${esc(p.assigned||'')}</td>
+    <td><div class="actions"><button class="btn btn-sm btn-danger" onclick="event.stopPropagation();deletePublishing('${p.id}')">Del</button></div></td>
+  </tr>`).join('')}</tbody></table>`;
+}
+
+function showPublishingModal(id){
+  const p=id?(S.publishing||[]).find(x=>x.id===id)||{}:{};
+  const isEdit=!!id;
+  const plat=['Facebook','Instagram','TikTok','YouTube','LinkedIn'].map(x=>`<option ${p.platform===x?'selected':''}>${x}</option>`).join('');
+  const stat=PUB_STATUSES.map(s=>`<option ${p.status===s?'selected':''}>${s}</option>`).join('');
+  const team=(S.team||[]).map(m=>`<option ${p.assigned===m.name?'selected':''}>${esc(m.name)}</option>`).join('');
+  showModal(`<div class="modal-header">${isEdit?'Edit':'New'} Post</div>
+  <div class="modal-body">
+    <div class="form-row"><label>Title / Caption excerpt</label><input id="pb-title" value="${esc(p.title||'')}"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-row"><label>Platform</label><select id="pb-plat"><option value="">—</option>${plat}</select></div>
+      <div class="form-row"><label>FB Page</label><input id="pb-page" value="${esc(p.page||'')}"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+      <div class="form-row"><label>Status</label><select id="pb-stat">${stat}</select></div>
+      <div class="form-row"><label>Submission deadline</label><input type="date" id="pb-deadline" value="${p.deadline||''}"></div>
+      <div class="form-row"><label>Publish date</label><input type="date" id="pb-pub" value="${p.publish_date||''}"></div>
+    </div>
+    <div class="form-row"><label>Assigned to</label><select id="pb-assigned"><option value="">—</option>${team}</select></div>
+    <div class="form-row"><label>Notes</label><textarea id="pb-notes">${esc(p.notes||'')}</textarea></div>
+  </div>
+  <div class="modal-footer">
+    ${isEdit?`<button class="btn btn-danger btn-sm" onclick="deletePublishing('${id}')">Delete</button>`:''}
+    <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+    <button class="btn btn-primary" onclick="savePublishing(${isEdit?`'${id}'`:null})">Save</button>
+  </div>`);
+}
+
+async function savePublishing(id){
+  const title=document.getElementById('pb-title').value.trim();if(!title)return;
+  const obj={title,platform:document.getElementById('pb-plat').value,page:document.getElementById('pb-page').value,status:document.getElementById('pb-stat').value,deadline:document.getElementById('pb-deadline').value,publish_date:document.getElementById('pb-pub').value,assigned:document.getElementById('pb-assigned').value,notes:document.getElementById('pb-notes').value};
+  if(id){const p=(S.publishing||[]).find(x=>x.id===id);if(p)Object.assign(p,obj);}
+  else{if(!S.publishing)S.publishing=[];S.publishing.push({id:'PB-'+String(S.publishing.length+1).padStart(3,'0'),...obj,created:todayStr()});}
+  closeModal();renderPublishing();
+  try{await api('savePublishing',{},{...(id?{id}:{}), ...obj});}catch(e){}
+}
+async function deletePublishing(id){
+  if(!confirm('Delete?'))return;
+  S.publishing=(S.publishing||[]).filter(x=>x.id!==id);closeModal();renderPublishing();
+  try{await api('deletePublishing',{},{id});}catch(e){}
+}
+
+/* ===================== SOCIAL HUB ===================== */
+S.socialData=S.socialData||{};
+S._selectedPage=S._selectedPage||null;
+
+const FB_PAGES=['AIS Central','SR','TAK','Alumni'];
+
+function renderSocial(){
+  const pagesList=document.getElementById('social-pages-list');
+  const content=document.getElementById('social-page-content');
+  if(!pagesList||!content)return;
+  pagesList.innerHTML=FB_PAGES.map(pg=>`<div onclick="selectSocialPage('${pg}')" style="padding:8px 10px;border-radius:var(--radius);cursor:pointer;font-size:13px;font-weight:${S._selectedPage===pg?'600':'400'};background:${S._selectedPage===pg?'var(--brand-light)':'transparent'};color:${S._selectedPage===pg?'var(--brand)':'var(--text)'}">${esc(pg)}</div>`).join('');
+  if(!S._selectedPage){content.innerHTML='<div style="color:var(--text3);padding:32px">Select a page to view performance records.</div>';return;}
+  const records=(S.socialData[S._selectedPage]||[]).slice().sort((a,b)=>b.date_from.localeCompare(a.date_from));
+  content.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+    <div style="font-size:16px;font-weight:700">${esc(S._selectedPage)}</div>
+    <button class="btn btn-primary" onclick="showSocialRecordModal()">+ Record</button>
+  </div>
+  ${records.length?`<table class="data-table"><thead><tr><th>Period</th><th>Reach</th><th>Engagement</th><th>Followers</th><th>Posts</th><th>Notes</th><th></th></tr></thead><tbody>
+  ${records.map((r,i)=>`<tr>
+    <td>${r.date_from} → ${r.date_to}</td>
+    <td>${r.reach||'—'}</td><td>${r.engagement||'—'}</td><td>${r.followers||'—'}</td><td>${r.posts||'—'}</td>
+    <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(r.notes||'')}</td>
+    <td><button class="btn btn-sm btn-danger" onclick="deleteSocialRecord(${i})">Del</button></td>
+  </tr>`).join('')}</tbody></table>`:'<div style="color:var(--text3);padding:24px;text-align:center">No records yet for this page.</div>'}`;
+}
+
+function selectSocialPage(pg){S._selectedPage=pg;renderSocial();}
+
+function showSocialRecordModal(){
+  showModal(`<div class="modal-header">Add Social Record — ${esc(S._selectedPage)}</div>
+  <div class="modal-body">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-row"><label>Period from</label><input type="date" id="sr-from"></div>
+      <div class="form-row"><label>Period to</label><input type="date" id="sr-to"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px">
+      <div class="form-row"><label>Reach</label><input type="number" id="sr-reach"></div>
+      <div class="form-row"><label>Engagement</label><input type="number" id="sr-eng"></div>
+      <div class="form-row"><label>Followers</label><input type="number" id="sr-fol"></div>
+      <div class="form-row"><label>Posts</label><input type="number" id="sr-posts"></div>
+    </div>
+    <div class="form-row"><label>Notes</label><textarea id="sr-notes"></textarea></div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+    <button class="btn btn-primary" onclick="saveSocialRecord()">Save</button>
+  </div>`);
+}
+
+async function saveSocialRecord(){
+  const rec={date_from:document.getElementById('sr-from').value,date_to:document.getElementById('sr-to').value,reach:document.getElementById('sr-reach').value,engagement:document.getElementById('sr-eng').value,followers:document.getElementById('sr-fol').value,posts:document.getElementById('sr-posts').value,notes:document.getElementById('sr-notes').value};
+  if(!S.socialData)S.socialData={};
+  if(!S.socialData[S._selectedPage])S.socialData[S._selectedPage]=[];
+  S.socialData[S._selectedPage].push(rec);
+  closeModal();renderSocial();
+  try{await api('saveSocialRecord',{},{page:S._selectedPage,...rec});}catch(e){}
+}
+
+function deleteSocialRecord(idx){
+  if(!confirm('Delete this record?'))return;
+  (S.socialData[S._selectedPage]||[]).splice(idx,1);renderSocial();
+}
+
+/* ===================== MONTHLY PLANNING ===================== */
+S.monthlyPlans=S.monthlyPlans||[];
+
+function renderMonthlyPlanning(){
+  const w=document.getElementById('monthly-plans-list');if(!w)return;
+  const plans=S.monthlyPlans||[];
+  if(!plans.length){
+    w.innerHTML='<div style="color:var(--text3);padding:32px;text-align:center">No monthly plans yet.</div>';return;
+  }
+  w.innerHTML=`<table class="data-table"><thead><tr><th>Month</th><th>Department</th><th>Status</th><th>Submitted by</th><th>Goals</th><th></th></tr></thead><tbody>
+  ${plans.map(p=>`<tr onclick="showMonthlyPlanModal('${p.id}')" style="cursor:pointer">
+    <td style="font-weight:600">${p.month||'—'}</td>
+    <td>${esc(p.department||'')}</td>
+    <td><span class="badge" style="background:${p.status==='Reviewed'?'var(--ok)':p.status==='Submitted'?'var(--brand-light)':'var(--surface2)'};color:${p.status==='Reviewed'?'#fff':p.status==='Submitted'?'var(--brand)':'var(--text2)'}">${p.status||'Draft'}</span></td>
+    <td>${esc(p.submitted_by||'')}</td>
+    <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.goals||'')}</td>
+    <td><div class="actions"><button class="btn btn-sm btn-danger" onclick="event.stopPropagation();deleteMonthlyPlan('${p.id}')">Del</button></div></td>
+  </tr>`).join('')}</tbody></table>`;
+}
+
+function showMonthlyPlanModal(id){
+  const p=id?(S.monthlyPlans||[]).find(x=>x.id===id)||{}:{};
+  const isEdit=!!id;
+  const depts=[...new Set((S.team||[]).map(m=>m.department).filter(Boolean))];
+  const deptOpts=depts.map(d=>`<option ${p.department===d?'selected':''}>${d}</option>`).join('');
+  const statOpts=['Draft','Submitted','Reviewed'].map(s=>`<option ${p.status===s?'selected':''}>${s}</option>`).join('');
+  showModal(`<div class="modal-header">${isEdit?'Edit':'New'} Monthly Plan</div>
+  <div class="modal-body">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-row"><label>Month (YYYY-MM)</label><input id="mp-month" value="${esc(p.month||'')}"></div>
+      <div class="form-row"><label>Department</label><select id="mp-dept"><option value="">—</option>${deptOpts}</select></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-row"><label>Status</label><select id="mp-status">${statOpts}</select></div>
+      <div class="form-row"><label>Submitted by</label><input id="mp-by" value="${esc(p.submitted_by||'')}"></div>
+    </div>
+    <div class="form-row"><label>Goals</label><textarea id="mp-goals">${esc(p.goals||'')}</textarea></div>
+    <div class="form-row"><label>Key tasks (one per line)</label><textarea id="mp-tasks">${(p.key_tasks||[]).join('\n')}</textarea></div>
+  </div>
+  <div class="modal-footer">
+    ${isEdit?`<button class="btn btn-danger btn-sm" onclick="deleteMonthlyPlan('${id}')">Delete</button>`:''}
+    <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+    <button class="btn btn-primary" onclick="saveMonthlyPlan(${isEdit?`'${id}'`:null})">Save</button>
+  </div>`);
+}
+
+async function saveMonthlyPlan(id){
+  const month=document.getElementById('mp-month').value.trim();if(!month)return;
+  const obj={month,department:document.getElementById('mp-dept').value,status:document.getElementById('mp-status').value,submitted_by:document.getElementById('mp-by').value,goals:document.getElementById('mp-goals').value,key_tasks:document.getElementById('mp-tasks').value.split('\n').filter(Boolean)};
+  if(id){const p=(S.monthlyPlans||[]).find(x=>x.id===id);if(p)Object.assign(p,obj);}
+  else{if(!S.monthlyPlans)S.monthlyPlans=[];S.monthlyPlans.push({id:'MP-'+String(S.monthlyPlans.length+1).padStart(3,'0'),...obj,created:todayStr()});}
+  closeModal();renderMonthlyPlanning();
+  try{await api('saveMonthlyPlan',{},{...(id?{id}:{}), ...obj});}catch(e){}
+}
+async function deleteMonthlyPlan(id){
+  if(!confirm('Delete?'))return;
+  S.monthlyPlans=(S.monthlyPlans||[]).filter(x=>x.id!==id);closeModal();renderMonthlyPlanning();
+}
+
+/* ===================== RULES & GUIDELINES ===================== */
+S.rules=S.rules||[];
+S._rulesFilter=S._rulesFilter||'all';
+
+function rulesFilter(f){
+  S._rulesFilter=f;
+  document.querySelectorAll('.rules-filter-btn').forEach(b=>b.classList.toggle('active',b.dataset.filter===f));
+  renderRules();
+}
+
+function renderRules(){
+  const w=document.getElementById('rules-list');if(!w)return;
+  const q=(document.getElementById('rules-search')||{}).value||'';
+  const isAdmin=S.myRole==='admin';
+  const btn=document.getElementById('btn-new-rule');
+  if(btn)btn.style.display=isAdmin?'':'none';
+  let items=S.rules||[];
+  if(S._rulesFilter&&S._rulesFilter!=='all') items=items.filter(r=>r.type===S._rulesFilter);
+  if(q) items=items.filter(r=>(r.title+r.body+r.department).toLowerCase().includes(q.toLowerCase()));
+  if(!items.length){w.innerHTML='<div style="color:var(--text3);padding:32px;text-align:center">No rules or guidelines found.</div>';return;}
+  w.innerHTML=items.map(r=>`<div onclick="showRuleModal('${r.id}')" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:10px;cursor:pointer;display:flex;align-items:flex-start;gap:12px">
+    <div style="flex-shrink:0;margin-top:2px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
+    <div style="flex:1;min-width:0">
+      <div style="font-weight:600;margin-bottom:4px">${esc(r.title)}</div>
+      <div style="font-size:12px;color:var(--text2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(r.body||'')}</div>
+      <div style="display:flex;gap:6px;margin-top:6px">
+        <span class="tag">${r.type==='guideline'?'Guideline':'Rule'}</span>
+        ${r.department?`<span class="tag">${esc(r.department)}</span>`:''}
+      </div>
+    </div>
+  </div>`).join('');
+}
+
+function showRuleModal(id){
+  const r=id?(S.rules||[]).find(x=>x.id===id)||{}:{};
+  const isEdit=!!id;
+  const isAdmin=S.myRole==='admin';
+  const depts=[...new Set((S.team||[]).map(m=>m.department).filter(Boolean))];
+  if(!isAdmin&&!isEdit)return;
+  showModal(`<div class="modal-header">${isEdit?'Edit':'New'} Rule / Guideline</div>
+  <div class="modal-body">
+    <div class="form-row"><label>Title</label><input id="rl-title" value="${esc(r.title||'')}" ${!isAdmin?'readonly':''}></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-row"><label>Type</label><select id="rl-type" ${!isAdmin?'disabled':''}><option value="rule" ${r.type==='rule'?'selected':''}>Rule</option><option value="guideline" ${r.type==='guideline'||!r.type?'selected':''}>Guideline</option></select></div>
+      <div class="form-row"><label>Department</label><select id="rl-dept" ${!isAdmin?'disabled':''}><option value="">All</option>${depts.map(d=>`<option ${r.department===d?'selected':''}>${d}</option>`).join('')}</select></div>
+    </div>
+    <div class="form-row"><label>Body</label><textarea id="rl-body" style="min-height:140px" ${!isAdmin?'readonly':''}>${esc(r.body||'')}</textarea></div>
+  </div>
+  <div class="modal-footer">
+    ${isAdmin&&isEdit?`<button class="btn btn-danger btn-sm" onclick="deleteRule('${id}')">Delete</button>`:''}
+    <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+    ${isAdmin?`<button class="btn btn-primary" onclick="saveRule(${isEdit?`'${id}'`:null})">Save</button>`:''}
+  </div>`);
+}
+
+async function saveRule(id){
+  const title=document.getElementById('rl-title').value.trim();if(!title)return;
+  const obj={title,type:document.getElementById('rl-type').value,department:document.getElementById('rl-dept').value,body:document.getElementById('rl-body').value,updated:todayStr()};
+  if(id){const r=(S.rules||[]).find(x=>x.id===id);if(r)Object.assign(r,obj);}
+  else{if(!S.rules)S.rules=[];S.rules.push({id:'R-'+String(S.rules.length+1).padStart(3,'0'),...obj,created:todayStr()});}
+  closeModal();renderRules();
+  try{await api('saveRule',{},{...(id?{id}:{}), ...obj});}catch(e){}
+}
+async function deleteRule(id){
+  if(!confirm('Delete?'))return;
+  S.rules=(S.rules||[]).filter(x=>x.id!==id);closeModal();renderRules();
+}
+
+/* ===================== MY TASKS — OPERATIONAL / PERSONAL TABS ===================== */
+S._myTasksTab=S._myTasksTab||'operational';
+
+function renderMyTasks(){
+  const w=document.getElementById('view-mytasks');if(!w)return;
+  const me=S.myName||'ME';
+  const all=(S.tasks||[]).filter(t=>(t.owner===me||t.owner==='ME')&&t.status!=='done');
+  const operational=all.filter(t=>['meeting','email','chat'].includes(t.source));
+  const personal=all.filter(t=>!['meeting','email','chat'].includes(t.source));
+  const active=S._myTasksTab==='operational'?operational:personal;
+
+  w.innerHTML=`<div style="margin-bottom:16px">
+    <div style="font-size:18px;font-weight:700;margin-bottom:12px">My Tasks</div>
+    <div style="display:flex;gap:2px;background:var(--surface2);border-radius:var(--radius);padding:3px;width:fit-content;margin-bottom:16px">
+      <button onclick="switchMyTasksTab('operational')" style="padding:6px 16px;border-radius:6px;font-size:13px;font-weight:600;border:none;cursor:pointer;background:${S._myTasksTab==='operational'?'var(--surface)':'transparent'};color:${S._myTasksTab==='operational'?'var(--text)':'var(--text2)'};box-shadow:${S._myTasksTab==='operational'?'var(--shadow)':'none'}">Operational <span style="font-size:11px;color:var(--text3)">(${operational.length})</span></button>
+      <button onclick="switchMyTasksTab('personal')" style="padding:6px 16px;border-radius:6px;font-size:13px;font-weight:600;border:none;cursor:pointer;background:${S._myTasksTab==='personal'?'var(--surface)':'transparent'};color:${S._myTasksTab==='personal'?'var(--text)':'var(--text2)'};box-shadow:${S._myTasksTab==='personal'?'var(--shadow)':'none'}">Personal <span style="font-size:11px;color:var(--text3)">(${personal.length})</span></button>
+    </div>
+    ${active.length?`<div style="display:flex;flex-direction:column;gap:8px">
+    ${active.map(t=>`<div onclick="openTaskPanel('${t.id}')" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;cursor:pointer;display:flex;align-items:center;gap:12px">
+      <span class="badge badge-${t.priority?.toLowerCase()||'p3'}">${t.priority||'P3'}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:600;margin-bottom:2px">${esc(t.title)}</div>
+        <div style="font-size:12px;color:var(--text3)">${t.due?'Due '+t.due:''}</div>
+      </div>
+      <span class="badge status-${t.status}">${t.status}</span>
+    </div>`).join('')}
+    </div>`:'<div style="color:var(--text3);padding:32px;text-align:center">No tasks in this category.</div>'}
+  `;
+}
+
+function switchMyTasksTab(tab){S._myTasksTab=tab;renderMyTasks();}
+
+/* ===================== CALENDAR HTML STRUCTURE INJECT ===================== */
+(function patchCalendarHtml(){
+  const calView=document.getElementById('view-calendar');
+  if(!calView||document.getElementById('cal-months-wrap'))return;
+  const existing=calView.innerHTML;
+  // Wrap existing content and add infinite-scroll container + layer chips
+  calView.innerHTML=`
+    <div style="display:flex;gap:0;height:100%">
+      <div style="flex:1;overflow-y:auto;padding:8px 12px" id="cal-scroll-area">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+          <div id="cal-layer-chips" style="display:flex;gap:5px;flex-wrap:wrap"></div>
+        </div>
+        <div id="cal-months-wrap"></div>
+      </div>
+      <div id="cal-sidebar-wrap" style="width:240px;flex-shrink:0;border-left:1px solid var(--border);overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:12px">
+        <div id="cal-mini-wrap"></div>
+        <div id="cal-color-legend" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px"></div>
+        <div id="cal-feed-wrap"></div>
+        <div id="cal-upcoming-wrap"></div>
+      </div>
+    </div>`;
+})();
+
+/* ===================== DASHBOARD BLOCKED ALERT ===================== */
+function renderDashboardBlockedAlert(){
+  const blocked=(S.tasks||[]).filter(t=>t.status==='blocked');
+  const el=document.getElementById('dash-blocked-alert');
+  if(!el)return;
+  if(!blocked.length){el.style.display='none';return;}
+  el.style.display='';
+  el.innerHTML=`<div style="background:#fce8e6;border:1px solid #f28b82;border-radius:var(--radius-lg);padding:12px 16px;display:flex;align-items:center;gap:10px;margin-bottom:12px">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c5221f" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <span style="flex:1;font-weight:600;color:#c5221f">${blocked.length} task${blocked.length>1?'s are':' is'} blocked</span>
+    <button onclick="nav('list');setTimeout(()=>listFilterStatus('blocked'),100)" class="btn btn-sm" style="background:#c5221f;color:#fff;border:none">View blocked</button>
+  </div>`;
+}
+
 </body>
 </html>
