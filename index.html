@@ -941,6 +941,7 @@ const ICONS = {
   'video':            '<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>',
   'x':                '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
   'zap':              '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
+  'sun':              '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>',
 };
 function ic(name, s) {
   const size = s || 16;
@@ -1469,10 +1470,13 @@ function renderPosts() {
     : '<div class="empty-state"><div class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></div><p>No posts scheduled</p></div>';
 }
 
-async function markShootDone(id) {
-  await api('markShootDone', { id });
+function markShootDone(id) {
+  const s = S.shoots.find(x => x.id === id);
+  if (s) s.status = 'done';
+  renderShoots();
   toast('Shoot marked as done!');
-  loadData().then(renderShoots);
+  api('markShootDone', { id });
+  S._lastLoaded = 0; loadData(true).then(renderShoots);
 }
 
 function showClipLogger(shootId, shootTitle) {
@@ -1979,7 +1983,11 @@ function toggleSidebar() {
 }
 
 function toggleDark() {
-  document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'dark' ? '' : 'dark';
+  const isDark = document.documentElement.dataset.theme !== 'dark';
+  document.documentElement.dataset.theme = isDark ? 'dark' : '';
+  const btn = document.getElementById('dark-toggle');
+  if (btn) btn.innerHTML = ic(isDark ? 'sun' : 'moon', 16);
+  localStorage.setItem('aeros_theme', isDark ? 'dark' : '');
 }
 
 const var_ok = '#137333', var_warn = '#e37400', var_danger = '#c5221f';
@@ -2200,7 +2208,12 @@ window.addEventListener('DOMContentLoaded', () => {
   if (localStorage.getItem('aeros_sidebar') === '1') {
     document.getElementById('sidebar').classList.add('collapsed');
   }
-  // Render static nav icons
+  // Restore dark theme
+  if (localStorage.getItem('aeros_theme') === 'dark') {
+    document.documentElement.dataset.theme = 'dark';
+    const btn = document.getElementById('dark-toggle');
+    if (btn) btn.innerHTML = ic('sun', 16);
+  }
   // Load settings
   const url = localStorage.getItem('aeros_api_url');
   if (url) S.apiUrl = url;
