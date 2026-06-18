@@ -713,6 +713,14 @@ select option{background:var(--surface);color:var(--text)}
         </div>
       </div>
       <div class="form-row"><label>Tags (comma separated)</label><input id="t-tags" placeholder="design, urgent"></div>
+      <div class="form-row">
+        <label>Subtasks</label>
+        <div id="modal-subtasks" style="margin-bottom:6px"></div>
+        <div style="display:flex;gap:6px">
+          <input id="t-subtask-input" placeholder="Add a subtask…" style="flex:1" onkeydown="if(event.key==='Enter'){event.preventDefault();addModalSubtask()}">
+          <button class="btn btn-secondary btn-sm" type="button" onclick="addModalSubtask()">Add</button>
+        </div>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('task-modal')">Cancel</button>
@@ -1675,6 +1683,8 @@ function showQuickAdd() { showTaskModal(); }
 function showTaskModal(id) {
   document.getElementById('task-id').value = id || '';
   document.getElementById('task-modal-title').textContent = id ? 'Edit Task' : 'New Task';
+  S._modalSubtasks = [];
+  renderModalSubtasks();
   if (id) {
     const t = S.tasks.find(x => x.id === id);
     if (t) {
@@ -1694,6 +1704,31 @@ function showTaskModal(id) {
     document.getElementById('t-dept').value = S.myDept;
   }
   openModal('task-modal');
+}
+
+function addModalSubtask() {
+  const input = document.getElementById('t-subtask-input');
+  const title = input.value.trim();
+  if (!title) return;
+  S._modalSubtasks = S._modalSubtasks || [];
+  S._modalSubtasks.push({ title, done: false });
+  input.value = '';
+  renderModalSubtasks();
+}
+
+function removeModalSubtask(i) {
+  S._modalSubtasks.splice(i, 1);
+  renderModalSubtasks();
+}
+
+function renderModalSubtasks() {
+  const list = S._modalSubtasks || [];
+  document.getElementById('modal-subtasks').innerHTML = list.map((s, i) =>
+    `<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--border)">
+      <span style="flex:1;font-size:13px">${esc(s.title)}</span>
+      <button class="btn btn-icon" style="width:20px;height:20px" onclick="removeModalSubtask(${i})"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>`
+  ).join('');
 }
 
 function editTask(id) { openTaskPanel(id); }
@@ -1726,6 +1761,12 @@ async function saveTask() {
   renderViewNow(S.currentView);
   // sync in background
   const saved = id ? await api('updateTask', {}, data) : await api('createTask', {}, data);
+  // save modal subtasks for new tasks
+  const subtasks = S._modalSubtasks || [];
+  if (!id && saved?.id && subtasks.length) {
+    await Promise.all(subtasks.map(s => api('createSubtask', {}, { taskId: saved.id, title: s.title, done: false })));
+  }
+  S._modalSubtasks = [];
   if (saved && !id) { S._lastLoaded = 0; loadData(true).then(() => renderViewNow(S.currentView)); }
 }
 
