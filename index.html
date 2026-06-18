@@ -6,6 +6,7 @@
 <meta name="theme-color" content="#1a73e8">
 <title>AerOS-PM</title>
 <link rel="manifest" href="#" id="manifest-link">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 <style>
 /* ===================== RESET & TOKENS ===================== */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -46,14 +47,16 @@ label{font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bot
 .nav-item{display:flex;align-items:center;gap:10px;padding:8px 16px;border-radius:0;cursor:pointer;transition:background .15s;white-space:nowrap;overflow:hidden;font-size:13.5px}
 .nav-item:hover{background:var(--brand-light)}
 .nav-item.active{background:var(--brand-light);color:var(--brand);font-weight:600}
-.nav-item .icon{font-size:17px;flex-shrink:0;width:20px;text-align:center}
+.nav-item .icon{flex-shrink:0;width:20px;display:flex;align-items:center;justify-content:center}
+.nav-item .icon svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .nav-item .label{overflow:hidden;text-overflow:ellipsis}
 
 /* ===================== TOPBAR ===================== */
 .topbar-title{font-weight:700;font-size:16px;flex:1}
 .topbar-search{flex:1;max-width:400px;position:relative}
 .topbar-search input{padding-left:34px;border-radius:20px;background:var(--surface2)}
-.topbar-search .icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text3)}
+.topbar-search .icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text3);display:flex}
+.topbar-search .icon svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--radius);font-size:13px;font-weight:600;transition:all .15s;cursor:pointer}
 .btn-primary{background:var(--brand);color:#fff;border:none}.btn-primary:hover{background:var(--brand-dark)}
 .btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border)}.btn-secondary:hover{background:var(--border)}
@@ -225,7 +228,12 @@ label{font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bot
 .bnav-items{display:flex;justify-content:space-around}
 .bnav-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 8px;font-size:10px;font-weight:600;color:var(--text2);cursor:pointer}
 .bnav-item.active{color:var(--brand)}
-.bnav-item .icon{font-size:20px}
+.bnav-item .icon{display:flex;align-items:center;justify-content:center}
+.bnav-item .icon svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.empty-state .icon{display:flex;align-items:center;justify-content:center;margin:0 auto 12px;color:var(--text3)}
+.empty-state .icon svg{width:36px;height:36px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.ic{display:inline-flex;align-items:center;vertical-align:middle}
+.ic svg{stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 @media(max-width:768px){
   #sidebar{display:none}
   #bottom-nav{display:block}
@@ -312,36 +320,36 @@ select option{background:var(--surface);color:var(--text)}
     </div>
     <div class="nav-section">
       <div class="nav-section-label">Main</div>
-      <div class="nav-item active" onclick="nav('dashboard')"><span class="icon">📊</span><span class="label">Dashboard</span></div>
-      <div class="nav-item" onclick="nav('mytasks')"><span class="icon">✅</span><span class="label">My Tasks</span></div>
-      <div class="nav-item" onclick="nav('inbox')"><span class="icon">🔔</span><span class="label">Inbox</span></div>
+      <div class="nav-item active" onclick="nav('dashboard')"><span class="icon"><i data-lucide="bar-chart-2"></i></span><span class="label">Dashboard</span></div>
+      <div class="nav-item" onclick="nav('mytasks')"><span class="icon"><i data-lucide="check-square"></i></span><span class="label">My Tasks</span></div>
+      <div class="nav-item" onclick="nav('inbox')"><span class="icon"><i data-lucide="bell"></i></span><span class="label">Inbox</span></div>
     </div>
     <div class="nav-section">
       <div class="nav-section-label">Views</div>
-      <div class="nav-item" onclick="nav('list')"><span class="icon">📋</span><span class="label">List</span></div>
-      <div class="nav-item" onclick="nav('board')"><span class="icon">🗂</span><span class="label">Board</span></div>
-      <div class="nav-item" onclick="nav('timeline')"><span class="icon">📅</span><span class="label">Timeline</span></div>
-      <div class="nav-item" onclick="nav('calendar')"><span class="icon">🗓</span><span class="label">Calendar</span></div>
-      <div class="nav-item" onclick="nav('workload')"><span class="icon">⚖️</span><span class="label">Workload</span></div>
-      <div class="nav-item" onclick="nav('eisenhower')"><span class="icon">🎯</span><span class="label">Eisenhower</span></div>
-      <div class="nav-item" onclick="nav('portfolio')"><span class="icon">🗄</span><span class="label">Portfolio</span></div>
+      <div class="nav-item" onclick="nav('list')"><span class="icon"><i data-lucide="list"></i></span><span class="label">List</span></div>
+      <div class="nav-item" onclick="nav('board')"><span class="icon"><i data-lucide="layout-grid"></i></span><span class="label">Board</span></div>
+      <div class="nav-item" onclick="nav('timeline')"><span class="icon"><i data-lucide="gantt-chart"></i></span><span class="label">Timeline</span></div>
+      <div class="nav-item" onclick="nav('calendar')"><span class="icon"><i data-lucide="calendar"></i></span><span class="label">Calendar</span></div>
+      <div class="nav-item" onclick="nav('workload')"><span class="icon"><i data-lucide="activity"></i></span><span class="label">Workload</span></div>
+      <div class="nav-item" onclick="nav('eisenhower')"><span class="icon"><i data-lucide="crosshair"></i></span><span class="label">Eisenhower</span></div>
+      <div class="nav-item" onclick="nav('portfolio')"><span class="icon"><i data-lucide="briefcase"></i></span><span class="label">Portfolio</span></div>
     </div>
     <div class="nav-section">
       <div class="nav-section-label">Work</div>
-      <div class="nav-item" onclick="nav('projects')"><span class="icon">📁</span><span class="label">Projects</span></div>
-      <div class="nav-item" onclick="nav('meetings')"><span class="icon">📝</span><span class="label">Meeting Notes</span></div>
-      <div class="nav-item" onclick="nav('media')"><span class="icon">🎬</span><span class="label">Media</span></div>
+      <div class="nav-item" onclick="nav('projects')"><span class="icon"><i data-lucide="folder"></i></span><span class="label">Projects</span></div>
+      <div class="nav-item" onclick="nav('meetings')"><span class="icon"><i data-lucide="file-text"></i></span><span class="label">Meeting Notes</span></div>
+      <div class="nav-item" onclick="nav('media')"><span class="icon"><i data-lucide="video"></i></span><span class="label">Media</span></div>
     </div>
     <div class="nav-section">
       <div class="nav-section-label">HR</div>
-      <div class="nav-item" onclick="nav('missions')"><span class="icon">🚀</span><span class="label">Missions</span></div>
-      <div class="nav-item" onclick="nav('cdo')"><span class="icon">📅</span><span class="label">Change Day Off</span></div>
-      <div class="nav-item" onclick="nav('leave')"><span class="icon">🌿</span><span class="label">Leave</span></div>
+      <div class="nav-item" onclick="nav('missions')"><span class="icon"><i data-lucide="navigation"></i></span><span class="label">Missions</span></div>
+      <div class="nav-item" onclick="nav('cdo')"><span class="icon"><i data-lucide="rotate-ccw"></i></span><span class="label">Change Day Off</span></div>
+      <div class="nav-item" onclick="nav('leave')"><span class="icon"><i data-lucide="umbrella"></i></span><span class="label">Leave</span></div>
     </div>
     <div class="nav-section">
       <div class="nav-section-label">Settings</div>
-      <div class="nav-item" onclick="nav('team')"><span class="icon">👥</span><span class="label">Team</span></div>
-      <div class="nav-item" onclick="nav('settings')"><span class="icon">⚙️</span><span class="label">Settings</span></div>
+      <div class="nav-item" onclick="nav('team')"><span class="icon"><i data-lucide="users"></i></span><span class="label">Team</span></div>
+      <div class="nav-item" onclick="nav('settings')"><span class="icon"><i data-lucide="settings"></i></span><span class="label">Settings</span></div>
     </div>
   </nav>
 
@@ -349,14 +357,14 @@ select option{background:var(--surface);color:var(--text)}
   <div id="main">
     <!-- TOPBAR -->
     <div id="topbar">
-      <button class="btn-icon btn" onclick="toggleSidebar()" title="Toggle sidebar">☰</button>
+      <button class="btn-icon btn" onclick="toggleSidebar()" title="Toggle sidebar"><i data-lucide="menu"></i></button>
       <span class="topbar-title" id="page-title">Dashboard</span>
       <div class="topbar-search">
-        <span class="icon">🔍</span>
+        <span class="icon"><i data-lucide="search"></i></span>
         <input type="search" placeholder="Search tasks, projects..." id="global-search" oninput="globalSearch(this.value)">
       </div>
       <button class="btn btn-primary" onclick="showQuickAdd()">+ New Task</button>
-      <button class="btn btn-icon" onclick="toggleDark()" title="Dark mode">🌙</button>
+      <button class="btn btn-icon" onclick="toggleDark()" title="Dark mode" id="dark-toggle"><i data-lucide="moon"></i></button>
       <div class="avatar" id="user-avatar" title="Me">ME</div>
     </div>
 
@@ -435,10 +443,10 @@ select option{background:var(--surface);color:var(--text)}
 
       <div id="view-eisenhower" class="hidden">
         <div class="eisenhower">
-          <div class="quadrant q-do"><div class="quadrant-header" style="color:var(--danger)">🔴 Do First — Urgent + Important</div><div id="q-p0"></div></div>
-          <div class="quadrant q-schedule"><div class="quadrant-header" style="color:var(--ok)">🟢 Schedule — Important, Not Urgent</div><div id="q-p1"></div></div>
-          <div class="quadrant q-delegate"><div class="quadrant-header" style="color:#e37400">🟡 Delegate — Urgent, Not Important</div><div id="q-p2"></div></div>
-          <div class="quadrant q-drop"><div class="quadrant-header" style="color:var(--text3)">⚪ Drop / Defer — Neither</div><div id="q-p3"></div></div>
+          <div class="quadrant q-do"><div class="quadrant-header" style="color:var(--danger)"><i data-lucide="alert-circle" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px"></i> Do First — Urgent + Important</div><div id="q-p0"></div></div>
+          <div class="quadrant q-schedule"><div class="quadrant-header" style="color:var(--ok)"><i data-lucide="clock" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px"></i> Schedule — Important, Not Urgent</div><div id="q-p1"></div></div>
+          <div class="quadrant q-delegate"><div class="quadrant-header" style="color:#e37400"><i data-lucide="arrow-right-circle" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px"></i> Delegate — Urgent, Not Important</div><div id="q-p2"></div></div>
+          <div class="quadrant q-drop"><div class="quadrant-header" style="color:var(--text3)"><i data-lucide="minus-circle" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px"></i> Drop / Defer — Neither</div><div id="q-p3"></div></div>
         </div>
       </div>
 
@@ -484,7 +492,7 @@ select option{background:var(--surface);color:var(--text)}
           </div>
           <div id="meeting-detail">
             <div class="card" style="height:100%">
-              <div class="empty-state"><div class="icon">📝</div><p>Select a meeting or create a new one</p></div>
+              <div class="empty-state"><div class="icon"><i data-lucide="file-text"></i></div><p>Select a meeting or create a new one</p></div>
             </div>
           </div>
         </div>
@@ -493,9 +501,9 @@ select option{background:var(--surface);color:var(--text)}
       <!-- MEDIA -->
       <div id="view-media" class="hidden">
         <div style="display:flex;gap:10px;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:10px">
-          <button class="btn btn-secondary active-tab" onclick="mediaTab('shoots',this)">📅 Shoots</button>
-          <button class="btn btn-secondary" onclick="mediaTab('videos',this)">🎬 Videos</button>
-          <button class="btn btn-secondary" onclick="mediaTab('posts',this)">📲 Posts</button>
+          <button class="btn btn-secondary active-tab" onclick="mediaTab('shoots',this)"><i data-lucide="camera" style="width:13px;height:13px"></i> Shoots</button>
+          <button class="btn btn-secondary" onclick="mediaTab('videos',this)"><i data-lucide="video" style="width:13px;height:13px"></i> Videos</button>
+          <button class="btn btn-secondary" onclick="mediaTab('posts',this)"><i data-lucide="send" style="width:13px;height:13px"></i> Posts</button>
         </div>
         <div id="media-shoots">
           <div class="flex items-center justify-between mb-12">
@@ -575,7 +583,7 @@ select option{background:var(--surface);color:var(--text)}
             <label>CDO Expiry (days)</label>
             <input type="number" id="cdo-expiry" value="90" onchange="saveSettings()">
           </div>
-          <button class="btn btn-primary" onclick="runInit()">⚡ Initialize Sheet (run once)</button>
+          <button class="btn btn-primary" onclick="runInit()"><i data-lucide="zap" style="width:13px;height:13px"></i> Initialize Sheet (run once)</button>
         </div>
       </div>
     </div>
@@ -585,11 +593,11 @@ select option{background:var(--surface);color:var(--text)}
 <!-- BOTTOM NAV (mobile) -->
 <div id="bottom-nav">
   <div class="bnav-items">
-    <div class="bnav-item active" onclick="nav('dashboard')"><span class="icon">📊</span>Home</div>
-    <div class="bnav-item" onclick="nav('list')"><span class="icon">✅</span>Tasks</div>
-    <div class="bnav-item" onclick="nav('board')"><span class="icon">🗂</span>Board</div>
-    <div class="bnav-item" onclick="nav('meetings')"><span class="icon">📝</span>Notes</div>
-    <div class="bnav-item" onclick="nav('missions')"><span class="icon">🚀</span>HR</div>
+    <div class="bnav-item active" onclick="nav('dashboard')"><span class="icon"><i data-lucide="bar-chart-2"></i></span>Home</div>
+    <div class="bnav-item" onclick="nav('list')"><span class="icon"><i data-lucide="check-square"></i></span>Tasks</div>
+    <div class="bnav-item" onclick="nav('board')"><span class="icon"><i data-lucide="layout-grid"></i></span>Board</div>
+    <div class="bnav-item" onclick="nav('meetings')"><span class="icon"><i data-lucide="file-text"></i></span>Notes</div>
+    <div class="bnav-item" onclick="nav('missions')"><span class="icon"><i data-lucide="navigation"></i></span>HR</div>
   </div>
 </div>
 
@@ -614,7 +622,7 @@ select option{background:var(--surface);color:var(--text)}
         <input type="date" id="tp-due" style="border:1px solid var(--border);padding:3px 8px;font-size:11px;border-radius:99px;cursor:pointer;width:auto" onchange="savePanelField('due',this.value)">
       </div>
     </div>
-    <button class="btn btn-icon" onclick="closeTaskPanel()" style="flex-shrink:0">✕</button>
+    <button class="btn btn-icon" onclick="closeTaskPanel()" style="flex-shrink:0"><i data-lucide="x"></i></button>
   </div>
   <div class="tp-tabs">
     <div class="tp-tab active" onclick="tpTab('details',this)">Details</div>
@@ -685,7 +693,7 @@ select option{background:var(--surface);color:var(--text)}
   <div class="modal">
     <div class="modal-header">
       <span id="task-modal-title">New Task</span>
-      <button class="btn btn-icon" style="margin-left:auto" onclick="closeModal('task-modal')">✕</button>
+      <button class="btn btn-icon" style="margin-left:auto" onclick="closeModal('task-modal')"><i data-lucide="x"></i></button>
     </div>
     <div class="modal-body">
       <input type="hidden" id="task-id">
@@ -719,7 +727,7 @@ select option{background:var(--surface);color:var(--text)}
   <div class="modal" style="max-width:800px">
     <div class="modal-header">
       <span>New Meeting Notes</span>
-      <button class="btn btn-icon" style="margin-left:auto" onclick="closeModal('meeting-modal')">✕</button>
+      <button class="btn btn-icon" style="margin-left:auto" onclick="closeModal('meeting-modal')"><i data-lucide="x"></i></button>
     </div>
     <div class="modal-body">
       <div class="form-grid">
@@ -732,7 +740,7 @@ select option{background:var(--surface);color:var(--text)}
         <label>Paste Raw Notes</label>
         <textarea id="m-notes" style="min-height:140px" placeholder="Paste your meeting notes here — any format. We'll detect tasks and events automatically."></textarea>
       </div>
-      <button class="btn btn-secondary" onclick="parseNotes()" style="margin-bottom:12px">🔍 Detect Tasks & Events</button>
+      <button class="btn btn-secondary" onclick="parseNotes()" style="margin-bottom:12px"><i data-lucide="scan-search" style="width:13px;height:13px"></i> Detect Tasks & Events</button>
       <div id="extracted-items"></div>
     </div>
     <div class="modal-footer">
@@ -747,7 +755,7 @@ select option{background:var(--surface);color:var(--text)}
   <div class="modal">
     <div class="modal-header">
       <span>New Mission Request</span>
-      <button class="btn btn-icon" style="margin-left:auto" onclick="closeModal('mission-modal')">✕</button>
+      <button class="btn btn-icon" style="margin-left:auto" onclick="closeModal('mission-modal')"><i data-lucide="x"></i></button>
     </div>
     <div class="modal-body">
       <div class="form-grid">
@@ -781,7 +789,7 @@ select option{background:var(--surface);color:var(--text)}
   <div class="modal">
     <div class="modal-header">
       <span>Request Leave</span>
-      <button class="btn btn-icon" style="margin-left:auto" onclick="closeModal('leave-modal')">✕</button>
+      <button class="btn btn-icon" style="margin-left:auto" onclick="closeModal('leave-modal')"><i data-lucide="x"></i></button>
     </div>
     <div class="modal-body">
       <div class="form-grid">
@@ -820,7 +828,7 @@ select option{background:var(--surface);color:var(--text)}
   <div class="modal">
     <div class="modal-header">
       <span>New Shoot Session</span>
-      <button class="btn btn-icon" style="margin-left:auto" onclick="closeModal('shoot-modal')">✕</button>
+      <button class="btn btn-icon" style="margin-left:auto" onclick="closeModal('shoot-modal')"><i data-lucide="x"></i></button>
     </div>
     <div class="modal-body">
       <div class="form-row"><label>Title *</label><input id="sh-title" placeholder="e.g. Campaign Outdoor Shoot"></div>
@@ -846,7 +854,7 @@ select option{background:var(--surface);color:var(--text)}
   <div class="modal">
     <div class="modal-header">
       <span>New Project</span>
-      <button class="btn btn-icon" style="margin-left:auto" onclick="closeModal('project-modal')">✕</button>
+      <button class="btn btn-icon" style="margin-left:auto" onclick="closeModal('project-modal')"><i data-lucide="x"></i></button>
     </div>
     <div class="modal-body">
       <div class="form-row"><label>Project Name *</label><input id="pr-title" placeholder="Project name"></div>
@@ -874,7 +882,7 @@ select option{background:var(--surface);color:var(--text)}
   <div class="modal">
     <div class="modal-header">
       <span>Redeem Change Day Off</span>
-      <button class="btn btn-icon" style="margin-left:auto" onclick="closeModal('cdo-modal')">✕</button>
+      <button class="btn btn-icon" style="margin-left:auto" onclick="closeModal('cdo-modal')"><i data-lucide="x"></i></button>
     </div>
     <div class="modal-body">
       <div class="form-row"><label>Employee</label><select id="cdo-employee"></select></div>
@@ -979,6 +987,7 @@ function renderViewNow(view) {
   if (view === 'leave')       renderLeave();
   if (view === 'team')        renderTeam();
   if (view === 'settings')    renderSettings();
+  if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
 function applyData(d) {
@@ -1035,7 +1044,7 @@ function renderDashboard() {
     statCard(S.projects.length,'Projects',''),
   ].join('');
   document.getElementById('dash-overdue').innerHTML = overdue.length
-    ? overdue.map(taskRowHtml).join('') : '<div class="empty-state"><p>No overdue tasks 🎉</p></div>';
+    ? overdue.map(taskRowHtml).join('') : '<div class="empty-state"><p>No overdue tasks</p></div>';
   document.getElementById('dash-soon').innerHTML = soon.length
     ? soon.map(taskRowHtml).join('') : '<div class="empty-state"><p>Nothing due soon</p></div>';
 }
@@ -1055,13 +1064,13 @@ function renderList() {
   if (owner)    tasks = tasks.filter(t => t.owner === owner);
   document.getElementById('task-list-body').innerHTML = tasks.length
     ? tasks.map(taskRowHtml).join('')
-    : '<div class="empty-state"><div class="icon">✅</div><p>No tasks found</p></div>';
+    : '<div class="empty-state"><div class="icon"><i data-lucide="check-square"></i></div><p>No tasks found</p></div>';
 }
 
 function taskRowHtml(t) {
   const done = t.status === 'done';
   return `<div class="task-row" onclick="editTask('${t.id}')">
-    <div class="task-check ${done ? 'done' : ''}" onclick="event.stopPropagation();toggleDone('${t.id}')">${done ? '✓' : ''}</div>
+    <div class="task-check ${done ? 'done' : ''}" onclick="event.stopPropagation();toggleDone('${t.id}')">${done ? '<i data-lucide="check" style="width:12px;height:12px"></i>' : ''}</div>
     <div class="task-title ${done ? 'done' : ''}">${esc(t.title)}</div>
     <div class="task-meta">
       ${t.priority ? `<span class="badge badge-${t.priority.toLowerCase()}">${t.priority}</span>` : ''}
@@ -1117,9 +1126,9 @@ function renderCalendar() {
     html += `<div class="cal-cell ${isToday ? 'today' : ''}">
       <div class="cal-day-num ${isToday ? 'text-brand' : ''}" style="${isToday ? 'color:var(--brand)' : ''}">${d}</div>
       ${dayTasks.map(t => `<div class="cal-event ${t.status==='done'?'done-event':''}" title="${esc(t.title)}">${esc(t.title)}</div>`).join('')}
-      ${dayLeaves.map(l => `<div class="cal-event leave-event" title="${l.employee} on leave">${l.employee} 🌿</div>`).join('')}
+      ${dayLeaves.map(l => `<div class="cal-event leave-event" title="${l.employee} on leave">${l.employee}</div>`).join('')}
       ${dayShoots.map(s => `<div class="cal-event shoot-event" title="${esc(s.title)}">${esc(s.title)}</div>`).join('')}
-      ${dayMiss.map(ms => `<div class="cal-event mission-event" title="${ms.employee} mission">${ms.employee} 🚀</div>`).join('')}
+      ${dayMiss.map(ms => `<div class="cal-event mission-event" title="${ms.employee} mission">${ms.employee}</div>`).join('')}
     </div>`;
   }
   document.getElementById('cal-grid').innerHTML = html;
@@ -1195,14 +1204,14 @@ function renderPortfolio() {
       </div>
       <div class="text-xs text-muted">${pct}% complete — ${done}/${pTasks.length} tasks</div>
     </div>`;
-  }).join('') || '<div class="empty-state"><div class="icon">📁</div><p>No projects yet</p></div>';
+  }).join('') || '<div class="empty-state"><div class="icon"><i data-lucide="folder"></i></div><p>No projects yet</p></div>';
 }
 
 // ===================== MY TASKS =====================
 function renderMyTasks() {
   const mine = S.tasks.filter(t => t.owner === S.myName || t.owner === 'ME');
   document.getElementById('my-tasks-body').innerHTML = mine.length
-    ? mine.map(taskRowHtml).join('') : '<div class="empty-state"><div class="icon">🎉</div><p>No tasks assigned to you</p></div>';
+    ? mine.map(taskRowHtml).join('') : '<div class="empty-state"><div class="icon"><i data-lucide="check-circle"></i></div><p>No tasks assigned to you</p></div>';
 }
 
 // ===================== INBOX =====================
@@ -1217,7 +1226,7 @@ function renderInbox() {
           <div class="text-xs text-muted">${n.created||''}</div>
           ${n.read!=='true'?`<button class="btn btn-sm btn-secondary" onclick="markRead('${n.id}')">Mark read</button>`:''}
         </div>`).join('')
-    : '<div class="empty-state"><div class="icon">🔔</div><p>No notifications</p></div>';
+    : '<div class="empty-state"><div class="icon"><i data-lucide="bell"></i></div><p>No notifications</p></div>';
 }
 
 async function markRead(id) { await api('markRead', {id}); loadData().then(renderInbox); }
@@ -1236,7 +1245,7 @@ function renderProjects() {
       </div>
       <div class="text-sm text-muted mb-8">${esc(p.description||'')}</div>
       <div class="text-xs text-muted">Owner: ${esc(p.owner||'—')} · ${p.department||''}</div>
-    </div>`).join('') || '<div class="empty-state"><div class="icon">📁</div><p>No projects yet. Create one!</p></div>';
+    </div>`).join('') || '<div class="empty-state"><div class="icon"><i data-lucide="folder"></i></div><p>No projects yet. Create one!</p></div>';
 }
 
 // ===================== MEETING NOTES =====================
@@ -1246,7 +1255,7 @@ function renderMeetings() {
         <div class="meeting-hist-item" onclick="openMeeting('${m.id}')">
           <span class="meeting-date">${m.date||''}</span>
           <span class="meeting-title">${esc(m.title||'Untitled')}</span>
-          ${m.pinned==='true'?'📌':''}
+          ${m.pinned==='true'?'<i data-lucide="pin" style="width:12px;height:12px;display:inline-block"></i>':''}
         </div>`).join('')
     : '<div class="text-sm text-muted" style="padding:12px">No meetings yet</div>';
 }
@@ -1381,12 +1390,12 @@ function renderShoots() {
               <div class="text-sm text-muted">${s.date||''} · ${s.location||''} · ${s.crew||''}</div>
             </div>
             <span class="shoot-status shoot-${s.status==='done'?'done':s.status==='needs-reshoot'?'reshoot':'planned'}">${s.status||'planned'}</span>
-            ${s.status!=='done'?`<button class="btn btn-sm btn-primary" onclick="markShootDone('${s.id}')">✓ Mark Done</button>`:''}
+            ${s.status!=='done'?`<button class="btn btn-sm btn-primary" onclick="markShootDone('${s.id}')"><i data-lucide="check" style="width:12px;height:12px"></i> Mark Done</button>`:''}
           </div>
           <div class="text-sm text-muted mb-8">${esc(s.notes||'')}</div>
-          <button class="btn btn-secondary btn-sm" onclick="showClipLogger('${s.id}','${esc(s.title)}')">🎞 Log Clips</button>
+          <button class="btn btn-secondary btn-sm" onclick="showClipLogger('${s.id}','${esc(s.title)}')"><i data-lucide="film" style="width:12px;height:12px"></i> Log Clips</button>
         </div>`).join('')
-    : '<div class="empty-state"><div class="icon">📹</div><p>No shoots scheduled</p></div>';
+    : '<div class="empty-state"><div class="icon"><i data-lucide="camera"></i></div><p>No shoots scheduled</p></div>';
 }
 
 function renderVideos() {
@@ -1401,12 +1410,12 @@ function renderVideos() {
             </div>
             <span class="shoot-status" style="background:var(--surface2);color:${statColors[v.status]||'var(--text)'}">${v.status||'brief'}</span>
           </div>
-          ${v.drive_folder?`<a href="${v.drive_folder}" target="_blank" class="btn btn-secondary btn-sm" style="margin-bottom:6px">📁 Open Drive Folder</a>`:''}
+          ${v.drive_folder?`<a href="${v.drive_folder}" target="_blank" class="btn btn-secondary btn-sm" style="margin-bottom:6px"><i data-lucide="folder-open" style="width:12px;height:12px"></i> Open Drive Folder</a>`:''}
           <div style="display:flex;gap:6px;flex-wrap:wrap">
             ${['fb','ig','tt','yt','li'].map(p => `<span class="plat plat-${p}" style="cursor:pointer" onclick="schedulePost('${v.id}','${p}')">${p.toUpperCase()}</span>`).join('')}
           </div>
         </div>`).join('')
-    : '<div class="empty-state"><div class="icon">🎬</div><p>No videos yet</p></div>';
+    : '<div class="empty-state"><div class="icon"><i data-lucide="video"></i></div><p>No videos yet</p></div>';
 }
 
 function renderPosts() {
@@ -1415,7 +1424,7 @@ function renderPosts() {
     ? `<table class="data-table"><thead><tr><th>Video</th><th>Platform</th><th>Date</th><th>Status</th></tr></thead><tbody>
         ${allPosts.map(v => `<tr><td>${esc(v.title)}</td><td>—</td><td>—</td><td>—</td></tr>`).join('')}
       </tbody></table>`
-    : '<div class="empty-state"><div class="icon">📲</div><p>No posts scheduled</p></div>';
+    : '<div class="empty-state"><div class="icon"><i data-lucide="send"></i></div><p>No posts scheduled</p></div>';
 }
 
 async function markShootDone(id) {
@@ -1432,7 +1441,7 @@ function showClipLogger(shootId, shootTitle) {
   const html = `
     <div class="modal-overlay" id="clip-modal" onclick="if(event.target===this)closeModal('clip-modal')">
       <div class="modal">
-        <div class="modal-header">🎞 Log Clips — ${esc(shootTitle)}<button class="btn btn-icon" style="margin-left:auto" onclick="closeModal('clip-modal')">✕</button></div>
+        <div class="modal-header"><i data-lucide="film" style="width:14px;height:14px;vertical-align:middle;margin-right:6px"></i>Log Clips — ${esc(shootTitle)}<button class="btn btn-icon" style="margin-left:auto" onclick="closeModal('clip-modal')"><i data-lucide="x"></i></button></div>
         <div class="modal-body">
           <div id="clip-rows">
             ${clipRowHtml(clips)}
@@ -1446,6 +1455,7 @@ function showClipLogger(shootId, shootTitle) {
       </div>
     </div>`;
   document.body.insertAdjacentHTML('beforeend', html);
+  if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
 function clipRowHtml(types) {
@@ -1453,8 +1463,8 @@ function clipRowHtml(types) {
     <input placeholder="Clip name" class="clip-name">
     <select class="clip-type-sel">${types.map(t=>`<option>${t.type}</option>`).join('')}</select>
     <input placeholder="0:00" class="clip-dur">
-    <select class="clip-keep"><option value="true">Keep ✓</option><option value="false">Discard ✗</option></select>
-    <button class="btn btn-danger btn-sm" onclick="this.closest('[id^=clip-row]') ? this.parentElement.remove() : null">✕</button>
+    <select class="clip-keep"><option value="true">Keep</option><option value="false">Discard</option></select>
+    <button class="btn btn-danger btn-sm" onclick="this.closest('[id^=clip-row]') ? this.parentElement.remove() : null"><i data-lucide="x" style="width:11px;height:11px"></i></button>
   </div>`;
 }
 
@@ -1465,8 +1475,8 @@ function addClipRow() {
   div.innerHTML = `<input placeholder="Clip name" class="clip-name">
     <select class="clip-type-sel">${types.map(t=>`<option>${t}</option>`).join('')}</select>
     <input placeholder="0:00" class="clip-dur">
-    <select class="clip-keep"><option value="true">Keep ✓</option><option value="false">Discard ✗</option></select>
-    <button class="btn btn-danger btn-sm" onclick="this.parentElement.remove()">✕</button>`;
+    <select class="clip-keep"><option value="true">Keep</option><option value="false">Discard</option></select>
+    <button class="btn btn-danger btn-sm" onclick="this.parentElement.remove()"><i data-lucide="x" style="width:11px;height:11px"></i></button>`;
   document.getElementById('clip-rows').appendChild(div);
 }
 
@@ -1500,13 +1510,13 @@ function renderMissions() {
           <td><span class="approval-pill ap-${m.status==='approved'?'approved':m.status==='rejected'?'rejected':'pending'}">${m.status||'pending'}</span></td>
           <td class="actions">
             ${m.status==='pending'?`
-              <button class="btn btn-sm" style="background:#e6f4ea;color:#137333" onclick="approveMission('${m.id}','approved')">✓ Approve</button>
-              <button class="btn btn-sm btn-danger" onclick="approveMission('${m.id}','rejected')">✕ Reject</button>
+              <button class="btn btn-sm" style="background:#e6f4ea;color:#137333" onclick="approveMission('${m.id}','approved')"><i data-lucide="check" style="width:12px;height:12px"></i> Approve</button>
+              <button class="btn btn-sm btn-danger" onclick="approveMission('${m.id}','rejected')"><i data-lucide="x" style="width:12px;height:12px"></i> Reject</button>
             `:'—'}
           </td>
         </tr>`).join('')}
       </tbody></table>`
-    : '<div class="empty-state"><div class="icon">🚀</div><p>No missions submitted</p></div>';
+    : '<div class="empty-state"><div class="icon"><i data-lucide="navigation"></i></div><p>No missions submitted</p></div>';
 }
 
 function approveMission(id, decision) {
@@ -1534,7 +1544,7 @@ function renderCDO() {
           <td>${r.date_off}</td>
           <td>${r.duration==='half'?'Half Day':'Full Day'}</td>
           <td><span class="approval-pill ap-${r.status==='approved'?'approved':r.status==='rejected'?'rejected':'pending'}">${r.status||'pending'}</span></td>
-          <td>${r.status==='pending'?`<button class="btn btn-sm" style="background:#e6f4ea;color:#137333" onclick="approveCDO('${r.id}')">✓ Approve</button>`:'—'}</td>
+          <td>${r.status==='pending'?`<button class="btn btn-sm" style="background:#e6f4ea;color:#137333" onclick="approveCDO('${r.id}')"><i data-lucide="check" style="width:12px;height:12px"></i> Approve</button>`:'—'}</td>
         </tr>`).join('')}
       </tbody></table>`
     : '<div class="empty-state"><p>No CDO redemptions yet</p></div>';
@@ -1560,12 +1570,12 @@ function renderLeave() {
           <td>${l.days} ${l.duration==='half'?'('+l.half_period+')':''}</td>
           <td><span class="approval-pill ap-${l.status==='approved'?'approved':l.status==='rejected'?'rejected':'pending'}">${l.status||'pending'}</span></td>
           <td>${l.status==='pending'?`
-            <button class="btn btn-sm" style="background:#e6f4ea;color:#137333" onclick="approveLeave('${l.id}','approved')">✓</button>
-            <button class="btn btn-sm btn-danger" onclick="approveLeave('${l.id}','rejected')">✕</button>
-          `:'—'}</td>
+            <button class="btn btn-sm" style="background:#e6f4ea;color:#137333" onclick="approveLeave('${l.id}','approved')"><i data-lucide="check" style="width:12px;height:12px"></i></button>
+            <button class="btn btn-sm btn-danger" onclick="approveLeave('${l.id}','rejected')"><i data-lucide="x" style="width:12px;height:12px"></i></button>
+          `'—'}</td>
         </tr>`).join('')}
       </tbody></table>`
-    : '<div class="empty-state"><div class="icon">🌿</div><p>No leave requests</p></div>';
+    : '<div class="empty-state"><div class="icon"><i data-lucide="umbrella"></i></div><p>No leave requests</p></div>';
 }
 
 function approveLeave(id, decision) {
@@ -1589,7 +1599,7 @@ function renderTeam() {
           <div class="text-xs text-muted">${m.department||''}</div>
           <div class="text-xs text-muted">${m.email||''}</div>
         </div>`).join('')
-    : '<div class="empty-state"><div class="icon">👥</div><p>No team members yet</p></div>';
+    : '<div class="empty-state"><div class="icon"><i data-lucide="users"></i></div><p>No team members yet</p></div>';
 }
 
 // ===================== SETTINGS =====================
@@ -1828,7 +1838,7 @@ function showVideoModal() {
 function showMemberModal() {
   const html = `<div class="modal-overlay" id="member-modal">
     <div class="modal">
-      <div class="modal-header">Add Team Member<button class="btn btn-icon" style="margin-left:auto" onclick="closeModal('member-modal')">✕</button></div>
+      <div class="modal-header">Add Team Member<button class="btn btn-icon" style="margin-left:auto" onclick="closeModal('member-modal')"><i data-lucide="x"></i></button></div>
       <div class="modal-body">
         <div class="form-row"><label>Name *</label><input id="tm-name" placeholder="Full name"></div>
         <div class="form-row"><label>Email</label><input type="email" id="tm-email" placeholder="email@company.com"></div>
@@ -1844,6 +1854,7 @@ function showMemberModal() {
     </div>
   </div>`;
   document.body.insertAdjacentHTML('beforeend', html);
+  if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
 async function saveMember() {
@@ -1944,6 +1955,7 @@ async function openTaskPanel(id) {
   document.body.style.overflow = 'hidden';
   populatePanelFields();
   tpTab('details', document.querySelector('.tp-tab'));
+  if (typeof lucide !== 'undefined') lucide.createIcons();
   await Promise.all([loadSubtasks(), loadComments(), loadActivity()]);
 }
 
@@ -2019,14 +2031,15 @@ function renderSubtasks() {
     ? TP.subtasks.map(s => {
         const isDone = s.done === 'true' || s.done === true;
         return `<div class="subtask-row">
-          <div class="subtask-check ${isDone ? 'done' : ''}" onclick="toggleSubtask('${s.id}',${!isDone})">${isDone ? '✓' : ''}</div>
+          <div class="subtask-check ${isDone ? 'done' : ''}" onclick="toggleSubtask('${s.id}',${!isDone})">${isDone ? '<i data-lucide="check" style="width:11px;height:11px"></i>' : ''}</div>
           <div class="subtask-title ${isDone ? 'done' : ''}">${esc(s.title)}</div>
           <div class="subtask-assignee">${s.assignee ? `<div class="avatar" style="width:20px;height:20px;font-size:9px;display:inline-flex">${s.assignee[0]}</div>` : ''}</div>
           <div style="font-size:11px;color:var(--text3);width:70px;text-align:right">${s.due || ''}</div>
-          <button class="btn btn-icon" style="width:24px;height:24px;font-size:12px;color:var(--text3)" onclick="deleteSubtask('${s.id}')">✕</button>
+          <button class="btn btn-icon" style="width:24px;height:24px;font-size:12px;color:var(--text3)" onclick="deleteSubtask('${s.id}')"><i data-lucide="x" style="width:11px;height:11px"></i></button>
         </div>`;
       }).join('')
     : '<div class="empty-state" style="padding:24px 0"><p>No subtasks yet</p></div>';
+  if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
 async function addSubtask() {
@@ -2076,6 +2089,7 @@ function renderComments() {
           </div>
         </div>`).join('')
     : '<div class="empty-state" style="padding:20px 0"><p>No comments yet. Start the conversation!</p></div>';
+  if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
 async function addComment() {
@@ -2149,6 +2163,8 @@ window.addEventListener('DOMContentLoaded', () => {
   if (localStorage.getItem('aeros_sidebar') === '1') {
     document.getElementById('sidebar').classList.add('collapsed');
   }
+  // Render static nav icons
+  if (typeof lucide !== 'undefined') lucide.createIcons();
   // Load settings
   const url = localStorage.getItem('aeros_api_url');
   if (url) S.apiUrl = url;
