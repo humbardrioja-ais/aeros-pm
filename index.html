@@ -128,11 +128,15 @@ label{font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bot
 .cal-cell.today{border-top:2px solid var(--brand);background:var(--brand-light)}
 .cal-day-num{font-weight:700;margin-bottom:4px;font-size:13px;display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%}
 .cal-cell.today .cal-day-num{background:var(--brand);color:#fff!important}
-.cal-event{background:var(--brand-light);color:var(--brand);border-radius:4px;padding:2px 5px;font-size:11px;margin-bottom:2px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
-.cal-event.done-event{background:#e6f4ea;color:var(--ok)}
-.cal-event.leave-event{background:#fce8e6;color:var(--danger)}
-.cal-event.mission-event{background:#fef7e0;color:#e37400}
-.cal-event.shoot-event{background:#f3e8ff;color:#7b1fa2}
+.cal-event{background:var(--brand);color:#fff;border-radius:20px;padding:2px 7px 2px 2px;font-size:11px;margin-bottom:2px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;display:flex;align-items:center;gap:4px}
+.cal-event .cal-av{width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.35);flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;overflow:hidden}
+.cal-event .cal-av img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.cal-event .cal-ev-title{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cal-event.done-event{background:#34a853;color:#fff}
+.cal-event.leave-event{background:#ea4335;color:#fff}
+.cal-event.mission-event{background:#f9ab00;color:#fff}
+.cal-event.shoot-event{background:#9334e6;color:#fff}
+.cal-event.cal-event-custom{background:#1967d2;color:#fff}
 .cal-event.cal-event-custom{background:#e8f0fe;color:#1967d2}
 .cal-cell{cursor:pointer}
 .cal-cell:hover .cal-add-hint{display:block}
@@ -1233,7 +1237,7 @@ function taskRowHtml(t) {
     <div class="task-meta">
       ${t.priority ? `<span class="badge badge-${t.priority.toLowerCase()}">${t.priority}</span>` : ''}
       ${t.due ? `<span class="text-sm text-muted">${t.due}</span>` : ''}
-      ${t.owner ? `<div class="avatar" style="width:24px;height:24px;font-size:10px">${(t.owner||'?')[0]}</div>` : ''}
+      ${t.owner ? avatarHtml(t.owner, 24) : ''}
     </div>
   </div>`;
 }
@@ -1251,7 +1255,7 @@ function renderBoard() {
         <div class="board-card-meta">
           ${t.priority ? `<span class="badge badge-${t.priority.toLowerCase()}">${t.priority}</span>` : ''}
           ${t.due ? `<span class="text-xs text-muted">${t.due}</span>` : ''}
-          ${t.owner ? `<div class="avatar" style="width:22px;height:22px;font-size:10px">${t.owner[0]}</div>` : ''}
+          ${t.owner ? avatarHtml(t.owner, 22) : ''}
         </div>
       </div>`).join('');
     return `<div class="board-col">
@@ -1303,7 +1307,7 @@ function renderCalendar() {
         <div class="cal-day-num">${d}</div>
         ${dayFeedEvs.map(e => { const gi=(S.feedEvents||[]).indexOf(e); const fd=(S.feeds||[]).find(f=>f.id===e._feedId)||{}; const bgC=fd.color||e._feedColor||'#0b8043'; const txC=fd.text_color||e._feedTextColor||bgC; return `<div class="cal-event-feed" title="${esc(e.title)}" onclick="event.stopPropagation();showFeedEventDetail(${gi})" style="background:${bgC}22;color:${txC};border-left:2px solid ${bgC}">${e.time?`<span style="opacity:.7;font-size:9px">${e.time.slice(0,5)}</span> `:''}${esc(e.title)}</div>`; }).join('')}
         ${dayEvents.map(e=>`<div class="cal-event cal-event-custom" title="${esc(e.title)}" onclick="event.stopPropagation();showEventModal('${e.id}')" style="${e.color?`background:${e.color}20;color:${e.color}`:''}"> ${e.time?`<span style="opacity:.7;font-size:10px">${e.time.slice(0,5)}</span> `:''}${esc(e.title)}</div>`).join('')}
-        ${dayTasks.map(t=>`<div class="cal-event ${t.status==='done'?'done-event':''}" title="${esc(t.title)}" onclick="event.stopPropagation();openTaskPanel('${t.id}')">${esc(t.title)}</div>`).join('')}
+        ${dayTasks.map(t=>`<div class="cal-event ${t.status==='done'?'done-event':''}" title="${esc(t.owner||'')+': '+esc(t.title)}" onclick="event.stopPropagation();openTaskPanel('${t.id}')">${avatarHtml(t.owner,18)}<span class="cal-ev-title">${esc(t.title)}</span></div>`).join('')}
         ${dayLeaves.map(l=>`<div class="cal-event leave-event">${l.employee}</div>`).join('')}
         ${dayShoots.map(s=>`<div class="cal-event shoot-event">${esc(s.title)}</div>`).join('')}
         ${dayMiss.map(ms=>`<div class="cal-event mission-event">${ms.employee}</div>`).join('')}
@@ -2128,11 +2132,18 @@ function approveLeave(id, decision) {
 }
 
 // ===================== TEAM =====================
+function memberAvatarHtml(m, size=56) {
+  if (m.avatar_img)   return `<div style="width:${size}px;height:${size}px;border-radius:50%;overflow:hidden;margin:0 auto 10px;flex-shrink:0"><img src="${esc(m.avatar_img)}" style="width:100%;height:100%;object-fit:cover"></div>`;
+  if (m.avatar_emoji) return `<div style="width:${size}px;height:${size}px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:${size*0.45}px;margin:0 auto 10px">${m.avatar_emoji}</div>`;
+  return `<div class="avatar" style="width:${size}px;height:${size}px;font-size:${size*0.35}px;margin:0 auto 10px">${(m.name||'?')[0].toUpperCase()}</div>`;
+}
+
 function renderTeam() {
   document.getElementById('team-grid').innerHTML = S.team.length
     ? S.team.map(m => `
-        <div class="card" style="text-align:center">
-          <div class="avatar" style="width:48px;height:48px;font-size:18px;margin:0 auto 10px">${(m.name||'?')[0]}</div>
+        <div class="card" style="text-align:center;position:relative">
+          <button class="btn btn-icon btn-secondary" style="position:absolute;top:8px;right:8px;width:28px;height:28px;padding:0" onclick="showMemberModal('${m.id}')">✏️</button>
+          ${memberAvatarHtml(m)}
           <div class="font-bold">${esc(m.name)}</div>
           <div class="text-sm text-muted">${m.role||'Member'}</div>
           <div class="text-xs text-muted">${m.department||''}</div>
@@ -2319,41 +2330,99 @@ function showVideoModal() {
 }
 
 // ===================== TEAM MEMBER CRUD =====================
-function showMemberModal() {
-  const html = `<div class="modal-overlay" id="member-modal">
+function showMemberModal(editId) {
+  const existing = editId ? (S.team||[]).find(m=>m.id===editId) : null;
+  const html = `<div class="modal-overlay" id="member-modal" onclick="if(event.target===this)closeModal('member-modal')">
     <div class="modal">
-      <div class="modal-header">Add Team Member<button class="btn btn-icon" style="margin-left:auto" onclick="closeModal('member-modal')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+      <div class="modal-header">${existing?'Edit':'Add'} Team Member<button class="btn btn-icon" style="margin-left:auto" onclick="closeModal('member-modal')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
       <div class="modal-body">
-        <div class="form-row"><label>Name *</label><input id="tm-name" placeholder="Full name"></div>
-        <div class="form-row"><label>Email</label><input type="email" id="tm-email" placeholder="email@company.com"></div>
+        <input type="hidden" id="tm-edit-id" value="${editId||''}">
+        <!-- Avatar preview + picker -->
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
+          <div id="tm-av-preview" style="width:56px;height:56px;border-radius:50%;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;flex-shrink:0;overflow:hidden;cursor:pointer" onclick="document.getElementById('tm-img-upload').click()">
+            ${existing?.avatar_img ? `<img src="${esc(existing.avatar_img)}" style="width:100%;height:100%;object-fit:cover">` : existing?.avatar_emoji || (existing?.name||'?')[0]?.toUpperCase()||'?'}
+          </div>
+          <div style="flex:1">
+            <div style="font-size:12px;color:var(--text2);margin-bottom:6px">Avatar</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <input id="tm-emoji" placeholder="Emoji e.g. 😊" style="width:110px;padding:6px 8px;border:1px solid var(--border);border-radius:var(--radius);font-size:16px" value="${esc(existing?.avatar_emoji||'')}" oninput="updateMemberPreview()">
+              <label class="btn btn-secondary btn-sm" style="cursor:pointer;margin:0">📷 Photo<input type="file" id="tm-img-upload" accept="image/*" style="display:none" onchange="handleMemberImgUpload(this)"></label>
+              <button class="btn btn-secondary btn-sm" onclick="clearMemberAvatar()">Clear</button>
+            </div>
+            <div style="font-size:11px;color:var(--text3);margin-top:4px">Click circle to upload · or type an emoji</div>
+          </div>
+        </div>
+        <input type="hidden" id="tm-avatar-img" value="${esc(existing?.avatar_img||'')}">
+        <div class="form-row"><label>Name *</label><input id="tm-name" placeholder="Full name" value="${esc(existing?.name||'')}"></div>
+        <div class="form-row"><label>Email</label><input type="email" id="tm-email" placeholder="email@company.com" value="${esc(existing?.email||'')}"></div>
         <div class="form-grid">
-          <div class="form-row"><label>Role</label><select id="tm-role"><option>Admin</option><option selected>Member</option><option>Guest</option></select></div>
-          <div class="form-row"><label>Department</label><input id="tm-dept" placeholder="Department"></div>
+          <div class="form-row"><label>Role</label><select id="tm-role"><option ${existing?.role==='Admin'?'selected':''}>Admin</option><option ${(!existing||existing?.role==='Member')?'selected':''}>Member</option><option ${existing?.role==='Guest'?'selected':''}>Guest</option></select></div>
+          <div class="form-row"><label>Department</label><input id="tm-dept" placeholder="Department" value="${esc(existing?.department||'')}"></div>
         </div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" onclick="closeModal('member-modal')">Cancel</button>
-        <button class="btn btn-primary" onclick="saveMember()">Add Member</button>
+        <button class="btn btn-primary" onclick="saveMember()">${existing?'Save':'Add Member'}</button>
       </div>
     </div>
   </div>`;
   document.body.insertAdjacentHTML('beforeend', html);
 }
 
+function updateMemberPreview() {
+  const emoji = document.getElementById('tm-emoji')?.value;
+  const img   = document.getElementById('tm-avatar-img')?.value;
+  const name  = document.getElementById('tm-name')?.value || '?';
+  const prev  = document.getElementById('tm-av-preview');
+  if (!prev) return;
+  if (img)   { prev.innerHTML = `<img src="${esc(img)}" style="width:100%;height:100%;object-fit:cover">`; return; }
+  if (emoji) { prev.textContent = emoji; return; }
+  prev.textContent = name[0]?.toUpperCase() || '?';
+}
+
+function handleMemberImgUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('tm-avatar-img').value = e.target.result;
+    document.getElementById('tm-emoji').value = '';
+    updateMemberPreview();
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearMemberAvatar() {
+  document.getElementById('tm-avatar-img').value = '';
+  document.getElementById('tm-emoji').value = '';
+  updateMemberPreview();
+}
+
 async function saveMember() {
-  const name = document.getElementById('tm-name').value;
+  const name = document.getElementById('tm-name').value.trim();
   if (!name) { toast('Name required'); return; }
+  const editId       = document.getElementById('tm-edit-id').value;
+  const avatar_emoji = document.getElementById('tm-emoji').value.trim();
+  const avatar_img   = document.getElementById('tm-avatar-img').value;
   const data = {
     name, email: document.getElementById('tm-email').value,
     role: document.getElementById('tm-role').value,
     department: document.getElementById('tm-dept').value,
-    active: 'true',
+    avatar_emoji, avatar_img, active: 'true',
   };
-  S.team.push({ ...data, id: 'TM-tmp-' + Date.now() });
   closeModal('member-modal');
-  toast('Member added!');
-  renderTeam();
-  await api('createMember', {}, data);
+  if (editId) {
+    const idx = S.team.findIndex(m => m.id === editId);
+    if (idx >= 0) S.team[idx] = { ...S.team[idx], ...data };
+    toast('Member updated!');
+    renderTeam();
+    await api('updateMember', {}, { id: editId, ...data });
+  } else {
+    S.team.push({ ...data, id: 'TM-tmp-' + Date.now() });
+    toast('Member added!');
+    renderTeam();
+    await api('createMember', {}, data);
+  }
   S._lastLoaded = 0; loadData(true).then(renderTeam);
 }
 
@@ -2406,6 +2475,18 @@ function populateSelect(id) {
 }
 
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function getMember(name) {
+  if (!name || name === 'ME') return null;
+  return (S.team||[]).find(m => m.name === name) || null;
+}
+function avatarHtml(name, size=18) {
+  const m = getMember(name);
+  const lbl = name === 'ME' ? 'ME' : (name||'?')[0].toUpperCase();
+  if (m && m.avatar_img) return `<div class="cal-av" style="width:${size}px;height:${size}px"><img src="${esc(m.avatar_img)}" alt="${esc(name)}"></div>`;
+  if (m && m.avatar_emoji) return `<div class="cal-av" style="width:${size}px;height:${size}px;font-size:${size*0.6}px">${m.avatar_emoji}</div>`;
+  return `<div class="cal-av" style="width:${size}px;height:${size}px;font-size:${size*0.5}px">${lbl}</div>`;
+}
 
 function todayStr() { return new Date().toISOString().split('T')[0]; }
 function addDays(d, n) { const dt = new Date(d); dt.setDate(dt.getDate()+n); return dt.toISOString().split('T')[0]; }
@@ -2498,7 +2579,7 @@ function populatePanelFields() {
   });
   // My avatar
   const av = document.getElementById('tp-my-avatar');
-  if (av) av.textContent = (S.myName || '?')[0].toUpperCase();
+  if (av) { const me = getMember(S.myName); av.innerHTML = me?.avatar_img ? `<img src="${esc(me.avatar_img)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">` : me?.avatar_emoji || (S.myName||'?')[0].toUpperCase(); }
   // Notes
   const notes = Array.isArray(t.notes) ? t.notes : (t.notes ? String(t.notes).split('|') : []);
   document.getElementById('tp-notes-list').innerHTML = notes.filter(Boolean).map(n =>
@@ -2567,7 +2648,7 @@ function renderSubtasks() {
         return `<div class="subtask-row">
           <div class="subtask-check ${isDone ? 'done' : ''}" onclick="toggleSubtask('${s.id}',${!isDone})">${isDone ? '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg>' : ''}</div>
           <div class="subtask-title ${isDone ? 'done' : ''}">${esc(s.title)}</div>
-          <div class="subtask-assignee">${s.assignee ? `<div class="avatar" style="width:20px;height:20px;font-size:9px;display:inline-flex">${s.assignee[0]}</div>` : ''}</div>
+          <div class="subtask-assignee">${s.assignee ? avatarHtml(s.assignee, 20) : ''}</div>
           <div style="font-size:11px;color:var(--text3);width:70px;text-align:right">${s.due || ''}</div>
           <button class="btn btn-icon" style="width:24px;height:24px;font-size:12px;color:var(--text3)" onclick="deleteSubtask('${s.id}')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
         </div>`;
@@ -2615,7 +2696,7 @@ function renderComments() {
   document.getElementById('tp-comments-list').innerHTML = TP.comments.length
     ? TP.comments.map(c => `
         <div class="comment-item">
-          <div class="avatar" style="width:28px;height:28px;font-size:11px;flex-shrink:0">${(c.author||'?')[0]}</div>
+          ${avatarHtml(c.author, 28)}
           <div class="comment-body">
             <span class="comment-author">${esc(c.author||'Unknown')}</span>
             <span class="comment-time">${fmtTime(c.created)}</span>
