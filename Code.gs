@@ -235,6 +235,12 @@ function route(method, action, p, body) {
     case 'uploadFile':        return uploadFile(body);
     case 'deleteFile':        return deleteDriveFile(p.fileId);
 
+    // ── Calendar Events ──
+    case 'getEvents':         return getRows(ss, 'CalEvents');
+    case 'createEvent':       return createRow(ss, 'CalEvents', body);
+    case 'updateEvent':       return updateRow(ss, 'CalEvents', body);
+    case 'deleteEvent':       return deleteRow(ss, 'CalEvents', p.id);
+
     // ── Batch fetch (all data in one round-trip) ──
     case 'getAll':            return getAllData(ss, p);
 
@@ -260,6 +266,7 @@ function getAllData(ss, p) {
     notifs:         user ? getRows(ss, 'Notifications', { userId: user }) : [],
     cdoBalances:    getRows(ss, 'CDOBalances'),
     cdoRedemptions: getRows(ss, 'CDORedemptions'),
+    events:         getRows(ss, 'CalEvents'),
   };
 }
 
@@ -268,6 +275,7 @@ function getAllData(ss, p) {
 const SHEETS = {
   Tasks: ['id','title','details','owner','department','source','requestedBy','priority','due','status','repeat','attachments','created','updated','followup','notes','projectIds','sectionId','tags','customFields','parentId'],
   Subtasks: ['id','taskId','title','done','assignee','due','created','updated'],
+  CalEvents: ['id','title','date','end_date','time','end_time','description','department','color','all_day','created','updated'],
   Dependencies: ['id','taskId','dependsOnId','type','created'],
   Tags: ['id','name','color','created'],
   TaskTags: ['id','taskId','tagId','created'],

@@ -132,6 +132,10 @@ label{font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bot
 .cal-event.leave-event{background:#fce8e6;color:var(--danger)}
 .cal-event.mission-event{background:#fef7e0;color:#e37400}
 .cal-event.shoot-event{background:#f3e8ff;color:#7b1fa2}
+.cal-event.cal-event-custom{background:#e8f0fe;color:#1967d2}
+.cal-cell{cursor:pointer}
+.cal-cell:hover .cal-add-hint{display:block}
+.cal-add-hint{display:none;font-size:10px;color:var(--text3);margin-top:2px}
 
 /* Timeline / Gantt */
 .gantt-wrap{overflow-x:auto}
@@ -433,7 +437,10 @@ select.td-value{appearance:auto}
             <span class="font-bold" id="cal-month-label"></span>
             <button class="btn btn-secondary btn-sm" onclick="calNext()">Next ›</button>
           </div>
-          <button class="btn btn-primary" onclick="showTaskModal()">+ Task</button>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-secondary" onclick="showEventModal()">+ Event</button>
+            <button class="btn btn-primary" onclick="openTaskPanel('new')">+ Task</button>
+          </div>
         </div>
         <div style="display:grid;grid-template-columns:repeat(7,1fr);text-align:center;margin-bottom:2px">
           <div class="text-xs text-muted font-bold" style="padding:4px" >Sun</div>
@@ -743,6 +750,36 @@ select.td-value{appearance:auto}
 </div>
 
 <!-- ==================== MODALS ==================== -->
+<!-- Event Modal -->
+<div class="modal-overlay hidden" id="event-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span id="event-modal-title">New Event</span>
+      <button class="btn btn-icon" style="margin-left:auto" onclick="closeModal('event-modal')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="event-id">
+      <div class="form-row"><label>Title *</label><input id="ev-title" placeholder="Event name"></div>
+      <div class="form-grid">
+        <div class="form-row"><label>Start Date *</label><input type="date" id="ev-date"></div>
+        <div class="form-row"><label>End Date</label><input type="date" id="ev-end-date"></div>
+        <div class="form-row"><label>Start Time</label><input type="time" id="ev-time"></div>
+        <div class="form-row"><label>End Time</label><input type="time" id="ev-end-time"></div>
+      </div>
+      <div class="form-row"><label>Description</label><textarea id="ev-desc" placeholder="Details..."></textarea></div>
+      <div class="form-grid">
+        <div class="form-row"><label>Department</label><input id="ev-dept" placeholder="All"></div>
+        <div class="form-row"><label>Color</label><input type="color" id="ev-color" value="#1967d2" style="height:36px;padding:2px 4px"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" id="ev-delete-btn" style="margin-right:auto;display:none" onclick="deleteCalEvent()">Delete</button>
+      <button class="btn btn-secondary" onclick="closeModal('event-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCalEvent()">Save Event</button>
+    </div>
+  </div>
+</div>
+
 <!-- Meeting Modal -->
 <div class="modal-overlay hidden" id="meeting-modal">
   <div class="modal" style="max-width:800px">
@@ -978,7 +1015,7 @@ const S = {
   myName: localStorage.getItem('aeros_my_name') || 'ME',
   myDept: localStorage.getItem('aeros_my_dept') || '',
   tasks: [], projects: [], team: [], meetings: [], missions: [],
-  leaves: [], shoots: [], videos: [], notifications: [],
+  leaves: [], shoots: [], videos: [], notifications: [], events: [],
   cdoBalances: [], cdoRedemptions: [],
   currentView: 'dashboard',
   calYear: new Date().getFullYear(),
@@ -1069,6 +1106,7 @@ function applyData(d) {
   if (d.notifs)         S.notifications  = d.notifs;
   if (d.cdoBalances)    S.cdoBalances    = d.cdoBalances;
   if (d.cdoRedemptions) S.cdoRedemptions = d.cdoRedemptions;
+  if (d.events)         S.events         = d.events;
   populateOwnerSelects();
 }
 
@@ -1189,19 +1227,107 @@ function renderCalendar() {
     const dayLeaves = S.leaves.filter(l => l.from_date <= dateStr && l.to_date >= dateStr && l.status === 'approved');
     const dayShoots = S.shoots.filter(s => s.date === dateStr);
     const dayMiss   = S.missions.filter(ms => ms.date === dateStr && ms.status === 'approved');
-    html += `<div class="cal-cell ${isToday ? 'today' : ''}">
+    const dayEvents = (S.events||[]).filter(e => e.date === dateStr || (e.date <= dateStr && e.end_date >= dateStr));
+    html += `<div class="cal-cell ${isToday ? 'today' : ''}" onclick="calDayClick('${dateStr}')">
       <div class="cal-day-num ${isToday ? 'text-brand' : ''}" style="${isToday ? 'color:var(--brand)' : ''}">${d}</div>
-      ${dayTasks.map(t => `<div class="cal-event ${t.status==='done'?'done-event':''}" title="${esc(t.title)}">${esc(t.title)}</div>`).join('')}
+      ${dayEvents.map(e => `<div class="cal-event cal-event-custom" title="${esc(e.title)}" onclick="event.stopPropagation();showEventModal('${e.id}')" style="${e.color?`background:${e.color}20;color:${e.color}`:''}">
+        ${e.time?`<span style="opacity:.7;font-size:10px">${e.time.slice(0,5)}</span> `:''}${esc(e.title)}</div>`).join('')}
+      ${dayTasks.map(t => `<div class="cal-event ${t.status==='done'?'done-event':''}" title="${esc(t.title)}" onclick="event.stopPropagation();openTaskPanel('${t.id}')">${esc(t.title)}</div>`).join('')}
       ${dayLeaves.map(l => `<div class="cal-event leave-event" title="${l.employee} on leave">${l.employee}</div>`).join('')}
       ${dayShoots.map(s => `<div class="cal-event shoot-event" title="${esc(s.title)}">${esc(s.title)}</div>`).join('')}
       ${dayMiss.map(ms => `<div class="cal-event mission-event" title="${ms.employee} mission">${ms.employee}</div>`).join('')}
+      <div class="cal-add-hint">+ add</div>
     </div>`;
   }
   document.getElementById('cal-grid').innerHTML = html;
 }
 
+function calDayClick(dateStr) {
+  // clicking a day opens new task drawer with that date pre-filled
+  TP.task = { priority: 'P1', status: 'todo', source: 'ad-hoc', department: S.myDept, due: dateStr };
+  TP.taskId = null; TP.subtasks = []; TP.comments = []; TP.activity = [];
+  document.getElementById('task-panel-overlay').classList.add('open');
+  document.getElementById('task-panel').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  document.querySelector('.tp-body').scrollTop = 0;
+  populatePanelFields();
+  renderSubtasks(); renderComments(); renderActivity();
+  updateCompleteBtnState();
+  tpBottomTab('comments', document.querySelector('.tp-tab'));
+}
+
 function calPrev() { S.calMonth--; if(S.calMonth<0){S.calMonth=11;S.calYear--;} renderCalendar(); }
 function calNext() { S.calMonth++; if(S.calMonth>11){S.calMonth=0;S.calYear++;} renderCalendar(); }
+
+// ── Calendar Event CRUD ──
+function showEventModal(id) {
+  document.getElementById('event-id').value = id || '';
+  document.getElementById('event-modal-title').textContent = id ? 'Edit Event' : 'New Event';
+  document.getElementById('ev-delete-btn').style.display = id ? '' : 'none';
+  if (id) {
+    const e = S.events.find(x => x.id === id);
+    if (e) {
+      document.getElementById('ev-title').value    = e.title || '';
+      document.getElementById('ev-date').value     = e.date || '';
+      document.getElementById('ev-end-date').value = e.end_date || '';
+      document.getElementById('ev-time').value     = e.time || '';
+      document.getElementById('ev-end-time').value = e.end_time || '';
+      document.getElementById('ev-desc').value     = e.description || '';
+      document.getElementById('ev-dept').value     = e.department || '';
+      document.getElementById('ev-color').value    = e.color || '#1967d2';
+    }
+  } else {
+    document.getElementById('ev-title').value    = '';
+    document.getElementById('ev-date').value     = todayStr();
+    document.getElementById('ev-end-date').value = '';
+    document.getElementById('ev-time').value     = '';
+    document.getElementById('ev-end-time').value = '';
+    document.getElementById('ev-desc').value     = '';
+    document.getElementById('ev-dept').value     = S.myDept || '';
+    document.getElementById('ev-color').value    = '#1967d2';
+  }
+  openModal('event-modal');
+}
+
+async function saveCalEvent() {
+  const title = document.getElementById('ev-title').value.trim();
+  if (!title) { toast('Title required'); return; }
+  const id = document.getElementById('event-id').value;
+  const data = {
+    title,
+    date:        document.getElementById('ev-date').value,
+    end_date:    document.getElementById('ev-end-date').value,
+    time:        document.getElementById('ev-time').value,
+    end_time:    document.getElementById('ev-end-time').value,
+    description: document.getElementById('ev-desc').value,
+    department:  document.getElementById('ev-dept').value,
+    color:       document.getElementById('ev-color').value,
+  };
+  // optimistic
+  if (id) {
+    const idx = S.events.findIndex(x => x.id === id);
+    if (idx >= 0) S.events[idx] = { ...S.events[idx], ...data };
+    data.id = id;
+  } else {
+    S.events.push({ ...data, id: 'EV-tmp-' + Date.now() });
+  }
+  closeModal('event-modal');
+  renderCalendar();
+  toast(id ? 'Event updated!' : 'Event created!');
+  const action = id ? 'updateEvent' : 'createEvent';
+  await api(action, {}, data);
+  S._lastLoaded = 0; loadData(true).then(renderCalendar);
+}
+
+async function deleteCalEvent() {
+  const id = document.getElementById('event-id').value;
+  if (!id) return;
+  S.events = S.events.filter(x => x.id !== id);
+  closeModal('event-modal');
+  renderCalendar();
+  toast('Event deleted');
+  await api('deleteEvent', { id });
+}
 
 // ===================== TIMELINE =====================
 function renderTimeline() {
