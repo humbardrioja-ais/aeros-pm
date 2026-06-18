@@ -440,11 +440,11 @@ select.td-value{appearance:auto}
       </div>
 
       <div id="view-calendar" class="hidden">
-        <div class="flex items-center justify-between mb-16">
-          <div class="flex gap-8 items-center">
-            <button class="btn btn-secondary btn-sm" onclick="calPrev()">‹ Prev</button>
-            <span class="font-bold" id="cal-month-label"></span>
-            <button class="btn btn-secondary btn-sm" onclick="calNext()">Next ›</button>
+        <div class="flex items-center justify-between mb-16" style="position:sticky;top:-20px;z-index:10;background:var(--bg);padding:12px 0;margin:-12px 0 8px">
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-secondary btn-sm" onclick="calShift(-1)">‹ Earlier</button>
+            <button class="btn btn-secondary btn-sm" onclick="calGoToday()">Today</button>
+            <button class="btn btn-secondary btn-sm" onclick="calShift(1)">Later ›</button>
           </div>
           <div style="display:flex;gap:8px">
             <button class="btn btn-secondary btn-sm" onclick="showFeedPanel()" title="Manage calendar subscriptions">📅 Subscriptions</button>
@@ -452,16 +452,7 @@ select.td-value{appearance:auto}
             <button class="btn btn-primary" onclick="openTaskPanel('new')">+ Task</button>
           </div>
         </div>
-        <div style="display:grid;grid-template-columns:repeat(7,1fr);text-align:center;margin-bottom:2px">
-          <div class="text-xs text-muted font-bold" style="padding:4px" >Sun</div>
-          <div class="text-xs text-muted font-bold" style="padding:4px">Mon</div>
-          <div class="text-xs text-muted font-bold" style="padding:4px">Tue</div>
-          <div class="text-xs text-muted font-bold" style="padding:4px">Wed</div>
-          <div class="text-xs text-muted font-bold" style="padding:4px">Thu</div>
-          <div class="text-xs text-muted font-bold" style="padding:4px">Fri</div>
-          <div class="text-xs text-muted font-bold" style="padding:4px">Sat</div>
-        </div>
-        <div class="cal-grid" id="cal-grid"></div>
+        <div id="cal-months-wrap"></div>
       </div>
 
       <div id="view-timeline" class="hidden">
@@ -1266,46 +1257,56 @@ function renderBoard() {
 }
 
 // ===================== CALENDAR VIEW =====================
+const CAL_MONTHS_SHOWN = 4; // render this many months at once
+
 function renderCalendar() {
-  const y = S.calYear, m = S.calMonth;
   const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  document.getElementById('cal-month-label').textContent = `${monthNames[m]} ${y}`;
-  const first = new Date(y, m, 1).getDay();
-  const days  = new Date(y, m+1, 0).getDate();
   const today = todayStr();
-  let html = '';
-  for (let i = 0; i < first; i++) html += '<div class="cal-cell other-month"></div>';
-  for (let d = 1; d <= days; d++) {
-    const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const isToday = dateStr === today;
-    const dayTasks  = S.tasks.filter(t => t.due === dateStr);
-    const dayLeaves = S.leaves.filter(l => l.from_date <= dateStr && l.to_date >= dateStr && l.status === 'approved');
-    const dayShoots = S.shoots.filter(s => s.date === dateStr);
-    const dayMiss   = S.missions.filter(ms => ms.date === dateStr && ms.status === 'approved');
-    const dayEvents = (S.events||[]).filter(e => e.date === dateStr || (e.date <= dateStr && e.end_date >= dateStr));
-    const dayFeedEvs = (S.feedEvents||[]).filter(e => {
-      const enabledFeed = (S.feeds||[]).find(f => f.id === e._feedId && f.enabled !== 'false');
-      if (!enabledFeed) return false;
-      return e.date === dateStr || (e.date <= dateStr && e.end_date && e.end_date >= dateStr);
-    });
-    html += `<div class="cal-cell ${isToday ? 'today' : ''}" onclick="calDayClick('${dateStr}')">
-      <div class="cal-day-num ${isToday ? 'text-brand' : ''}" style="${isToday ? 'color:var(--brand)' : ''}">${d}</div>
-      ${dayFeedEvs.map((e,i) => { const gi = (S.feedEvents||[]).indexOf(e); return `<div class="cal-event-feed" title="${esc(e.title)}" onclick="event.stopPropagation();showFeedEventDetail(${gi})" style="background:${e._feedColor||'#0b8043'}22;color:${e._feedColor||'#0b8043'};border-left:2px solid ${e._feedColor||'#0b8043'}">
-        ${e.time?`<span style="opacity:.7;font-size:9px">${e.time.slice(0,5)}</span> `:''}${esc(e.title)}</div>`; }).join('')}
-      ${dayEvents.map(e => `<div class="cal-event cal-event-custom" title="${esc(e.title)}" onclick="event.stopPropagation();showEventModal('${e.id}')" style="${e.color?`background:${e.color}20;color:${e.color}`:''}">
-        ${e.time?`<span style="opacity:.7;font-size:10px">${e.time.slice(0,5)}</span> `:''}${esc(e.title)}</div>`).join('')}
-      ${dayTasks.map(t => `<div class="cal-event ${t.status==='done'?'done-event':''}" title="${esc(t.title)}" onclick="event.stopPropagation();openTaskPanel('${t.id}')">${esc(t.title)}</div>`).join('')}
-      ${dayLeaves.map(l => `<div class="cal-event leave-event" title="${l.employee} on leave">${l.employee}</div>`).join('')}
-      ${dayShoots.map(s => `<div class="cal-event shoot-event" title="${esc(s.title)}">${esc(s.title)}</div>`).join('')}
-      ${dayMiss.map(ms => `<div class="cal-event mission-event" title="${ms.employee} mission">${ms.employee}</div>`).join('')}
-      <div class="cal-add-hint">+ add</div>
-    </div>`;
+  const wrap = document.getElementById('cal-months-wrap');
+  if (!wrap) return;
+  const dayLabels = `<div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));text-align:center;margin-bottom:2px;position:sticky;top:32px;background:var(--bg);z-index:9">
+    ${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<div class="text-xs text-muted font-bold" style="padding:4px">${d}</div>`).join('')}
+  </div>`;
+  let out = dayLabels;
+  for (let mi = 0; mi < CAL_MONTHS_SHOWN; mi++) {
+    let y = S.calYear, m = S.calMonth + mi;
+    while (m > 11) { m -= 12; y++; }
+    const first = new Date(y, m, 1).getDay();
+    const days  = new Date(y, m+1, 0).getDate();
+    out += `<div style="margin-bottom:32px">
+      <div style="font-weight:700;font-size:15px;padding:8px 0 6px">${monthNames[m]} ${y}</div>
+      <div class="cal-grid">`;
+    for (let i = 0; i < first; i++) out += '<div class="cal-cell other-month"></div>';
+    for (let d = 1; d <= days; d++) {
+      const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const isToday = dateStr === today;
+      const dayTasks   = S.tasks.filter(t => t.due === dateStr);
+      const dayLeaves  = S.leaves.filter(l => l.from_date <= dateStr && l.to_date >= dateStr && l.status === 'approved');
+      const dayShoots  = S.shoots.filter(s => s.date === dateStr);
+      const dayMiss    = S.missions.filter(ms => ms.date === dateStr && ms.status === 'approved');
+      const dayEvents  = (S.events||[]).filter(e => e.date === dateStr || (e.date <= dateStr && e.end_date >= dateStr));
+      const dayFeedEvs = (S.feedEvents||[]).filter(e => {
+        const enabledFeed = (S.feeds||[]).find(f => f.id === e._feedId && f.enabled !== 'false');
+        if (!enabledFeed) return false;
+        return e.date === dateStr || (e.date <= dateStr && e.end_date && e.end_date >= dateStr);
+      });
+      out += `<div class="cal-cell ${isToday?'today':''}" onclick="calDayClick('${dateStr}')">
+        <div class="cal-day-num">${d}</div>
+        ${dayFeedEvs.map(e => { const gi=(S.feedEvents||[]).indexOf(e); return `<div class="cal-event-feed" title="${esc(e.title)}" onclick="event.stopPropagation();showFeedEventDetail(${gi})" style="background:${e._feedColor||'#0b8043'}22;color:${e._feedColor||'#0b8043'};border-left:2px solid ${e._feedColor||'#0b8043'}">${e.time?`<span style="opacity:.7;font-size:9px">${e.time.slice(0,5)}</span> `:''}${esc(e.title)}</div>`; }).join('')}
+        ${dayEvents.map(e=>`<div class="cal-event cal-event-custom" title="${esc(e.title)}" onclick="event.stopPropagation();showEventModal('${e.id}')" style="${e.color?`background:${e.color}20;color:${e.color}`:''}"> ${e.time?`<span style="opacity:.7;font-size:10px">${e.time.slice(0,5)}</span> `:''}${esc(e.title)}</div>`).join('')}
+        ${dayTasks.map(t=>`<div class="cal-event ${t.status==='done'?'done-event':''}" title="${esc(t.title)}" onclick="event.stopPropagation();openTaskPanel('${t.id}')">${esc(t.title)}</div>`).join('')}
+        ${dayLeaves.map(l=>`<div class="cal-event leave-event">${l.employee}</div>`).join('')}
+        ${dayShoots.map(s=>`<div class="cal-event shoot-event">${esc(s.title)}</div>`).join('')}
+        ${dayMiss.map(ms=>`<div class="cal-event mission-event">${ms.employee}</div>`).join('')}
+        <div class="cal-add-hint">+ add</div>
+      </div>`;
+    }
+    out += '</div></div>';
   }
-  document.getElementById('cal-grid').innerHTML = html;
+  wrap.innerHTML = out;
 }
 
 function calDayClick(dateStr) {
-  // clicking a day opens new task drawer with that date pre-filled
   TP.task = { priority: 'P1', status: 'todo', source: 'ad-hoc', department: S.myDept, due: dateStr };
   TP.taskId = null; TP.subtasks = []; TP.comments = []; TP.activity = [];
   document.getElementById('task-panel-overlay').classList.add('open');
@@ -1318,8 +1319,25 @@ function calDayClick(dateStr) {
   tpBottomTab('comments', document.querySelector('.tp-tab'));
 }
 
-function calPrev() { S.calMonth--; if(S.calMonth<0){S.calMonth=11;S.calYear--;} renderCalendar(); }
-function calNext() { S.calMonth++; if(S.calMonth>11){S.calMonth=0;S.calYear++;} renderCalendar(); }
+function calShift(dir) {
+  S.calMonth += dir * CAL_MONTHS_SHOWN;
+  while (S.calMonth > 11) { S.calMonth -= 12; S.calYear++; }
+  while (S.calMonth < 0)  { S.calMonth += 12; S.calYear--; }
+  renderCalendar();
+}
+
+function calGoToday() {
+  const now = new Date();
+  S.calYear = now.getFullYear(); S.calMonth = now.getMonth();
+  renderCalendar();
+  setTimeout(() => {
+    const todayCell = document.querySelector('.cal-cell.today');
+    if (todayCell) todayCell.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 50);
+}
+
+function calPrev() { calShift(-1); }
+function calNext() { calShift(1); }
 
 // ── Calendar Event CRUD ──
 function showEventModal(id) {
