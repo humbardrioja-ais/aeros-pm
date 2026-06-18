@@ -806,9 +806,10 @@ function buildEvents(cur, feedId) {
   // For all-day events, iCal DTEND is exclusive (day after last day) — subtract 1
   let endDate = end ? end.date : start.date;
   if (end && !end.time && endDate > start.date) {
-    const d = new Date(endDate + 'T00:00:00');
-    d.setDate(d.getDate() - 1);
-    endDate = Utilities.formatDate(d, 'UTC', 'yyyy-MM-dd');
+    const parts = endDate.split('-');
+    const d = new Date(Date.UTC(+parts[0], +parts[1]-1, +parts[2]));
+    d.setUTCDate(d.getUTCDate() - 1);
+    endDate = d.toISOString().slice(0, 10);
   }
   const base = {
     id:          'ical-' + feedId + '-' + uid.replace(/[^a-z0-9]/gi,''),
