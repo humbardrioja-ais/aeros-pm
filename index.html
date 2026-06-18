@@ -2133,9 +2133,9 @@ function approveLeave(id, decision) {
 
 // ===================== TEAM =====================
 function memberAvatarHtml(m, size=56) {
-  if (m.avatar_img)   return `<div style="width:${size}px;height:${size}px;border-radius:50%;overflow:hidden;margin:0 auto 10px;flex-shrink:0"><img src="${esc(m.avatar_img)}" style="width:100%;height:100%;object-fit:cover"></div>`;
-  if (m.avatar_emoji) return `<div style="width:${size}px;height:${size}px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:${size*0.45}px;margin:0 auto 10px">${m.avatar_emoji}</div>`;
-  return `<div class="avatar" style="width:${size}px;height:${size}px;font-size:${size*0.35}px;margin:0 auto 10px">${(m.name||'?')[0].toUpperCase()}</div>`;
+  const color = m.avatar_color || '#1a73e8';
+  if (m.avatar_img) return `<div style="width:${size}px;height:${size}px;border-radius:50%;overflow:hidden;margin:0 auto 10px;flex-shrink:0"><img src="${esc(m.avatar_img)}" style="width:100%;height:100%;object-fit:cover"></div>`;
+  return `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${color};color:#fff;display:flex;align-items:center;justify-content:center;font-size:${Math.round(size*0.35)}px;font-weight:700;margin:0 auto 10px">${(m.name||'?')[0].toUpperCase()}</div>`;
 }
 
 function renderTeam() {
@@ -2339,17 +2339,17 @@ function showMemberModal(editId) {
         <input type="hidden" id="tm-edit-id" value="${editId||''}">
         <!-- Avatar preview + picker -->
         <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
-          <div id="tm-av-preview" style="width:56px;height:56px;border-radius:50%;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;flex-shrink:0;overflow:hidden;cursor:pointer" onclick="document.getElementById('tm-img-upload').click()">
-            ${existing?.avatar_img ? `<img src="${esc(existing.avatar_img)}" style="width:100%;height:100%;object-fit:cover">` : existing?.avatar_emoji || (existing?.name||'?')[0]?.toUpperCase()||'?'}
+          <div id="tm-av-preview" style="width:56px;height:56px;border-radius:50%;background:${existing?.avatar_color||'#1a73e8'};color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;flex-shrink:0;overflow:hidden;cursor:pointer" onclick="document.getElementById('tm-img-upload').click()">
+            ${existing?.avatar_img ? `<img src="${esc(existing.avatar_img)}" style="width:100%;height:100%;object-fit:cover">` : (existing?.name||'?')[0]?.toUpperCase()||'?'}
           </div>
           <div style="flex:1">
             <div style="font-size:12px;color:var(--text2);margin-bottom:6px">Avatar</div>
-            <div style="display:flex;gap:6px;flex-wrap:wrap">
-              <input id="tm-emoji" placeholder="Emoji e.g. 😊" style="width:110px;padding:6px 8px;border:1px solid var(--border);border-radius:var(--radius);font-size:16px" value="${esc(existing?.avatar_emoji||'')}" oninput="updateMemberPreview()">
-              <label class="btn btn-secondary btn-sm" style="cursor:pointer;margin:0">📷 Photo<input type="file" id="tm-img-upload" accept="image/*" style="display:none" onchange="handleMemberImgUpload(this)"></label>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+              <input type="color" id="tm-color" value="${existing?.avatar_color||'#1a73e8'}" style="width:36px;height:32px;padding:2px 3px;border:1px solid var(--border);border-radius:var(--radius);cursor:pointer" title="Avatar background color" oninput="updateMemberPreview()">
+              <label class="btn btn-secondary btn-sm" style="cursor:pointer;margin:0">Upload Photo<input type="file" id="tm-img-upload" accept="image/*" style="display:none" onchange="handleMemberImgUpload(this)"></label>
               <button class="btn btn-secondary btn-sm" onclick="clearMemberAvatar()">Clear</button>
             </div>
-            <div style="font-size:11px;color:var(--text3);margin-top:4px">Click circle to upload · or type an emoji</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:4px">Color applies to initials avatar · click circle or Upload to set a photo</div>
           </div>
         </div>
         <input type="hidden" id="tm-avatar-img" value="${esc(existing?.avatar_img||'')}">
@@ -2370,13 +2370,13 @@ function showMemberModal(editId) {
 }
 
 function updateMemberPreview() {
-  const emoji = document.getElementById('tm-emoji')?.value;
   const img   = document.getElementById('tm-avatar-img')?.value;
   const name  = document.getElementById('tm-name')?.value || '?';
+  const color = document.getElementById('tm-color')?.value || '#1a73e8';
   const prev  = document.getElementById('tm-av-preview');
   if (!prev) return;
-  if (img)   { prev.innerHTML = `<img src="${esc(img)}" style="width:100%;height:100%;object-fit:cover">`; return; }
-  if (emoji) { prev.textContent = emoji; return; }
+  prev.style.background = img ? 'transparent' : color;
+  if (img)   { prev.innerHTML = `<img src="${esc(img)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`; return; }
   prev.textContent = name[0]?.toUpperCase() || '?';
 }
 
@@ -2386,7 +2386,6 @@ function handleMemberImgUpload(input) {
   const reader = new FileReader();
   reader.onload = e => {
     document.getElementById('tm-avatar-img').value = e.target.result;
-    document.getElementById('tm-emoji').value = '';
     updateMemberPreview();
   };
   reader.readAsDataURL(file);
@@ -2394,7 +2393,6 @@ function handleMemberImgUpload(input) {
 
 function clearMemberAvatar() {
   document.getElementById('tm-avatar-img').value = '';
-  document.getElementById('tm-emoji').value = '';
   updateMemberPreview();
 }
 
@@ -2402,13 +2400,13 @@ async function saveMember() {
   const name = document.getElementById('tm-name').value.trim();
   if (!name) { toast('Name required'); return; }
   const editId       = document.getElementById('tm-edit-id').value;
-  const avatar_emoji = document.getElementById('tm-emoji').value.trim();
   const avatar_img   = document.getElementById('tm-avatar-img').value;
+  const avatar_color = document.getElementById('tm-color').value || '#1a73e8';
   const data = {
     name, email: document.getElementById('tm-email').value,
     role: document.getElementById('tm-role').value,
     department: document.getElementById('tm-dept').value,
-    avatar_emoji, avatar_img, active: 'true',
+    avatar_img, avatar_color, active: 'true',
   };
   closeModal('member-modal');
   if (editId) {
@@ -2483,9 +2481,9 @@ function getMember(name) {
 function avatarHtml(name, size=18) {
   const m = getMember(name);
   const lbl = name === 'ME' ? 'ME' : (name||'?')[0].toUpperCase();
-  if (m && m.avatar_img) return `<div class="cal-av" style="width:${size}px;height:${size}px"><img src="${esc(m.avatar_img)}" alt="${esc(name)}"></div>`;
-  if (m && m.avatar_emoji) return `<div class="cal-av" style="width:${size}px;height:${size}px;font-size:${size*0.6}px">${m.avatar_emoji}</div>`;
-  return `<div class="cal-av" style="width:${size}px;height:${size}px;font-size:${size*0.5}px">${lbl}</div>`;
+  const color = m?.avatar_color || '#1a73e8';
+  if (m && m.avatar_img) return `<div class="cal-av" style="width:${size}px;height:${size}px;background:transparent"><img src="${esc(m.avatar_img)}" alt="${esc(name)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"></div>`;
+  return `<div class="cal-av" style="width:${size}px;height:${size}px;font-size:${Math.round(size*0.5)}px;background:${color}">${lbl}</div>`;
 }
 
 function todayStr() { return new Date().toISOString().split('T')[0]; }
@@ -2579,7 +2577,7 @@ function populatePanelFields() {
   });
   // My avatar
   const av = document.getElementById('tp-my-avatar');
-  if (av) { const me = getMember(S.myName); av.innerHTML = me?.avatar_img ? `<img src="${esc(me.avatar_img)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">` : me?.avatar_emoji || (S.myName||'?')[0].toUpperCase(); }
+  if (av) { const me = getMember(S.myName); const meColor = me?.avatar_color||'#1a73e8'; av.style.background = me?.avatar_img ? 'transparent' : meColor; av.innerHTML = me?.avatar_img ? `<img src="${esc(me.avatar_img)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">` : (S.myName||'?')[0].toUpperCase(); }
   // Notes
   const notes = Array.isArray(t.notes) ? t.notes : (t.notes ? String(t.notes).split('|') : []);
   document.getElementById('tp-notes-list').innerHTML = notes.filter(Boolean).map(n =>
