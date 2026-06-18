@@ -1584,12 +1584,28 @@ function parseIcalDtClient(s) {
   return null;
 }
 
+function loadFeedCache() {
+  try {
+    const cached = localStorage.getItem('aeros_feed_events');
+    if (cached) S.feedEvents = JSON.parse(cached);
+  } catch(_) {}
+}
+
+function saveFeedCache() {
+  try { localStorage.setItem('aeros_feed_events', JSON.stringify(S.feedEvents)); } catch(_) {}
+}
+
 async function autoLoadFeeds() {
   const enabled = (S.feeds||[]).filter(f => f.enabled !== 'false');
   if (!enabled.length) return;
+  // Show cached events immediately
+  loadFeedCache();
+  renderCalendar();
+  // Fetch all unloaded feeds in parallel in background
   const unloaded = enabled.filter(f => !(S.feedEvents||[]).some(e => e._feedId === f.id));
   if (!unloaded.length) return;
-  for (const feed of unloaded) await fetchFeedEvents(feed);
+  await Promise.all(unloaded.map(feed => fetchFeedEvents(feed)));
+  saveFeedCache();
   renderFeedList();
   renderCalendar();
 }
@@ -1598,7 +1614,8 @@ async function refreshAllFeeds() {
   const btn = document.getElementById('feed-refresh-btn');
   if (btn) btn.textContent = '↻ Refreshing…';
   const enabled = (S.feeds||[]).filter(f => f.enabled !== 'false');
-  for (const feed of enabled) await fetchFeedEvents(feed);
+  await Promise.all(enabled.map(feed => fetchFeedEvents(feed)));
+  saveFeedCache();
   renderFeedList();
   renderCalendar();
   if (btn) btn.textContent = '↻ Refresh';
