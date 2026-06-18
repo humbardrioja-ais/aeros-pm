@@ -315,9 +315,22 @@ function getRows(ss, sheetName, filter) {
   const data = sh.getDataRange().getValues();
   if (data.length < 2) return [];
   const headers = data[0];
-  const rows = data.slice(1).map(r => {
+  const idCol = headers.indexOf('id');
+  const createdCol = headers.indexOf('created');
+  const now = new Date().toISOString();
+  const rows = data.slice(1).map((r, rowIdx) => {
     const obj = {};
     headers.forEach((h, i) => obj[h] = r[i]);
+    // Auto-fill missing id and created for manually-added rows
+    if (idCol >= 0 && !obj.id) {
+      const newId = generateId(sheetName);
+      obj.id = newId;
+      sh.getRange(rowIdx + 2, idCol + 1).setValue(newId);
+    }
+    if (createdCol >= 0 && !obj.created) {
+      obj.created = now;
+      sh.getRange(rowIdx + 2, createdCol + 1).setValue(now);
+    }
     return obj;
   });
   if (!filter) return rows;
