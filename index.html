@@ -1503,15 +1503,28 @@ async function deleteFeed(id) {
 
 async function fetchFeedEvents(feed) {
   if (!feed || !feed.url || feed.enabled === 'false') return;
+  let icalText = null;
 
-  // Use Apps Script proxy (handles CORS and server-to-server fetch)
-  const result = await api('fetchIcal', { url: feed.url, feedId: feed.id });
-  if (!result || !result.events) {
-    toast('Could not fetch feed: ' + (result&&result.error||'check URL and make calendar public'));
+  // Try via allorigins CORS proxy (browser-side, no Apps Script needed)
+  try {
+    const proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent(feed.url);
+    const resp = await fetch(proxyUrl);
+    if (resp.ok) {
+      const json = await resp.json();
+      if (json && json.contents && json.contents.includes('BEGIN:VCALENDAR')) {
+        icalText = json.contents;
+      }
+    }
+  } catch(_) {}
+
+  if (!icalText) {
+    toast('Could not fetch feed — check the URL is a public iCal link');
     return;
   }
+
+  const events = parseIcalClient(icalText, feed.id);
   S.feedEvents = (S.feedEvents||[]).filter(e => e._feedId !== feed.id);
-  S.feedEvents.push(...result.events.map(e => ({ ...e, _feedId: feed.id, _feedColor: feed.color, _feedName: feed.name })));
+  S.feedEvents.push(...events.map(e => ({ ...e, _feedId: feed.id, _feedColor: feed.color, _feedName: feed.name })));
   feed.last_synced = new Date().toISOString();
 }
 
