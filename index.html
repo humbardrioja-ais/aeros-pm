@@ -1503,34 +1503,15 @@ async function deleteFeed(id) {
 
 async function fetchFeedEvents(feed) {
   if (!feed || !feed.url || feed.enabled === 'false') return;
-  let icalText = null;
 
-  // Try direct browser fetch first (works for Google Calendar public feeds)
-  try {
-    const resp = await fetch(feed.url, { mode: 'cors', cache: 'no-store' });
-    if (resp.ok) {
-      const text = await resp.text();
-      if (text && text.includes('BEGIN:VCALENDAR')) icalText = text;
-    }
-  } catch(_) {}
-
-  // Fall back to Apps Script proxy (works for other public iCal hosts)
-  if (!icalText) {
-    const result = await api('fetchIcal', { url: feed.url, feedId: feed.id });
-    if (!result || !result.events) {
-      toast('Could not fetch feed: ' + (result&&result.error||'check URL and make calendar public'));
-      return;
-    }
-    S.feedEvents = (S.feedEvents||[]).filter(e => e._feedId !== feed.id);
-    S.feedEvents.push(...result.events.map(e => ({ ...e, _feedId: feed.id, _feedColor: feed.color, _feedName: feed.name })));
-    feed.last_synced = new Date().toISOString();
+  // Use Apps Script proxy (handles CORS and server-to-server fetch)
+  const result = await api('fetchIcal', { url: feed.url, feedId: feed.id });
+  if (!result || !result.events) {
+    toast('Could not fetch feed: ' + (result&&result.error||'check URL and make calendar public'));
     return;
   }
-
-  // Parse ical text client-side
-  const events = parseIcalClient(icalText, feed.id);
   S.feedEvents = (S.feedEvents||[]).filter(e => e._feedId !== feed.id);
-  S.feedEvents.push(...events.map(e => ({ ...e, _feedId: feed.id, _feedColor: feed.color, _feedName: feed.name })));
+  S.feedEvents.push(...result.events.map(e => ({ ...e, _feedId: feed.id, _feedColor: feed.color, _feedName: feed.name })));
   feed.last_synced = new Date().toISOString();
 }
 
