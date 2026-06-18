@@ -128,16 +128,17 @@ label{font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bot
 .cal-cell.today{border-top:2px solid var(--brand);background:var(--brand-light)}
 .cal-day-num{font-weight:700;margin-bottom:4px;font-size:13px;display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%}
 .cal-cell.today .cal-day-num{background:var(--brand);color:#fff!important}
-.cal-event{background:var(--brand);color:#fff;border-radius:20px;padding:2px 7px 2px 2px;font-size:11px;margin-bottom:2px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;display:flex;align-items:center;gap:4px}
-.cal-event .cal-av{width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.35);flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;overflow:hidden}
+.cal-event,.cal-event-feed{height:20px;line-height:20px;border-radius:20px;padding:0 7px 0 3px;font-size:11px;margin-bottom:2px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;display:flex;align-items:center;gap:4px;box-sizing:border-box}
+.cal-event{background:var(--brand);color:#fff}
+.cal-event .cal-av{width:16px;height:16px;border-radius:50%;background:rgba(255,255,255,.3);flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;overflow:hidden}
 .cal-event .cal-av img{width:100%;height:100%;object-fit:cover;border-radius:50%}
-.cal-event .cal-ev-title{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.cal-event.done-event{background:#34a853;color:#fff}
-.cal-event.leave-event{background:#ea4335;color:#fff}
-.cal-event.mission-event{background:#f9ab00;color:#fff}
-.cal-event.shoot-event{background:#9334e6;color:#fff}
-.cal-event.cal-event-custom{background:#1967d2;color:#fff}
-.cal-event.cal-event-custom{background:#e8f0fe;color:#1967d2}
+.cal-event .cal-ev-title{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
+.cal-event.done-event{background:#34a853}
+.cal-event.leave-event{background:#ea4335}
+.cal-event.mission-event{background:#f9ab00}
+.cal-event.shoot-event{background:#9334e6}
+.cal-event.cal-event-custom{background:#1967d2}
+.cal-event-feed{font-size:11px;border-radius:20px;padding:0 7px;border-left:none!important}
 .cal-cell{cursor:pointer}
 .cal-cell:hover .cal-add-hint{display:block}
 .cal-add-hint{display:none;font-size:10px;color:var(--text3);margin-top:2px}
@@ -1305,7 +1306,7 @@ function renderCalendar() {
       });
       out += `<div class="cal-cell ${isToday?'today':''}" onclick="calDayClick('${dateStr}')">
         <div class="cal-day-num">${d}</div>
-        ${dayFeedEvs.map(e => { const gi=(S.feedEvents||[]).indexOf(e); const fd=(S.feeds||[]).find(f=>f.id===e._feedId)||{}; const bgC=fd.color||e._feedColor||'#0b8043'; const txC=fd.text_color||e._feedTextColor||bgC; return `<div class="cal-event-feed" title="${esc(e.title)}" onclick="event.stopPropagation();showFeedEventDetail(${gi})" style="background:${bgC}22;color:${txC};border-left:2px solid ${bgC}">${e.time?`<span style="opacity:.7;font-size:9px">${e.time.slice(0,5)}</span> `:''}${esc(e.title)}</div>`; }).join('')}
+        ${dayFeedEvs.map(e => { const gi=(S.feedEvents||[]).indexOf(e); const fd=(S.feeds||[]).find(f=>f.id===e._feedId)||{}; const bgC=fd.color||e._feedColor||'#0b8043'; const txC=fd.text_color||e._feedTextColor||'#fff'; return `<div class="cal-event-feed" title="${esc(e.title)}" onclick="event.stopPropagation();showFeedEventDetail(${gi})" style="background:${bgC};color:${txC}">${e.time?`<span style="opacity:.75;font-size:9px;flex-shrink:0">${e.time.slice(0,5)}</span>`:''}${esc(e.title)}</div>`; }).join('')}
         ${dayEvents.map(e=>`<div class="cal-event cal-event-custom" title="${esc(e.title)}" onclick="event.stopPropagation();showEventModal('${e.id}')" style="${e.color?`background:${e.color}20;color:${e.color}`:''}"> ${e.time?`<span style="opacity:.7;font-size:10px">${e.time.slice(0,5)}</span> `:''}${esc(e.title)}</div>`).join('')}
         ${dayTasks.map(t=>`<div class="cal-event ${t.status==='done'?'done-event':''}" title="${esc(t.owner||'')+': '+esc(t.title)}" onclick="event.stopPropagation();openTaskPanel('${t.id}')">${avatarHtml(t.owner,18)}<span class="cal-ev-title">${esc(t.title)}</span></div>`).join('')}
         ${dayLeaves.map(l=>`<div class="cal-event leave-event">${l.employee}</div>`).join('')}
