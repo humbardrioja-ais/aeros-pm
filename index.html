@@ -140,9 +140,34 @@ label{font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bot
 .cal-event.cal-event-custom{background:#1967d2}
 .cal-event-feed{background:var(--brand);color:#fff}
 .cal-event-feed .cal-time{font-size:10px;opacity:.75;flex-shrink:0}
-.cal-cell{cursor:pointer}
-.cal-cell:hover .cal-add-hint{display:block}
-.cal-add-hint{display:none;font-size:10px;color:var(--text3);margin-top:2px}
+.cal-cell{cursor:pointer;position:relative}
+.cal-cell.other-month{background:var(--surface2);opacity:.6}
+.cal-cell.today{background:#e8f0fe}
+.dark .cal-cell.today{background:#1a3a5c}
+.cal-cell:hover .cal-add-hint{opacity:1}
+.cal-add-hint{opacity:0;position:absolute;bottom:4px;right:5px;font-size:10px;color:var(--text3);transition:opacity .15s}
+.cal-hol-bar{height:22px;line-height:22px;border-radius:0;margin:0 -4px 3px;padding:0 6px;font-size:11px;font-weight:500;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;display:block}
+.cal-more{font-size:10px;color:var(--text3);padding:1px 2px;cursor:pointer}
+.cal-more:hover{color:var(--text)}
+.cal-feed-tog{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:12px;cursor:pointer}
+.cal-feed-tog-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.cal-feed-tog-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)}
+.cal-tog{width:30px;height:17px;border-radius:20px;position:relative;cursor:pointer;flex-shrink:0;transition:background .15s}
+.cal-tog::after{content:'';position:absolute;top:2px;width:13px;height:13px;background:#fff;border-radius:50%;transition:left .15s}
+.cal-tog.on{background:var(--brand)}
+.cal-tog.on::after{left:15px}
+.cal-tog.off{background:var(--border)}
+.cal-tog.off::after{left:2px}
+.cal-up-row{display:flex;gap:8px;margin-bottom:9px;align-items:flex-start}
+.cal-up-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:3px}
+.cal-up-txt{font-size:12px;line-height:1.35;color:var(--text)}
+.cal-up-meta{font-size:10px;color:var(--text3);margin-top:1px}
+.cal-up-badge{display:inline-block;font-size:9px;padding:1px 5px;border-radius:4px;font-weight:600;margin-left:4px}
+.cal-mini-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;margin-top:8px}
+.cal-mini-hdr{font-size:9px;color:var(--text3);text-align:center;font-weight:600}
+.cal-mini-day{font-size:10px;text-align:center;padding:3px 1px;border-radius:50%;cursor:pointer;line-height:1.5;color:var(--text3)}
+.cal-mini-day.has{color:var(--text);font-weight:600}
+.cal-mini-day.today-mini{background:var(--brand);color:#fff;font-weight:600}
 
 /* Timeline / Gantt */
 .gantt-wrap{overflow-x:auto}
@@ -445,19 +470,39 @@ select.td-value{appearance:auto}
       </div>
 
       <div id="view-calendar" class="hidden">
-        <div class="flex items-center justify-between mb-16" style="position:sticky;top:-20px;z-index:10;background:var(--bg);padding:12px 0;margin:-12px 0 8px">
-          <div style="display:flex;gap:8px">
-            <button class="btn btn-secondary btn-sm" onclick="calShift(-1)">‹ Earlier</button>
+        <!-- Toolbar -->
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;position:sticky;top:-20px;z-index:10;background:var(--bg);padding:12px 0;margin:-12px 0 10px">
+          <div style="display:flex;align-items:center;gap:6px;flex:1;min-width:0">
+            <button class="btn btn-secondary btn-sm" onclick="calShift(-1)" style="padding:5px 8px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+            <button class="btn btn-secondary btn-sm" onclick="calShift(1)" style="padding:5px 8px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+            <span id="cal-month-label" style="font-size:16px;font-weight:600"></span>
             <button class="btn btn-secondary btn-sm" onclick="calGoToday()">Today</button>
-            <button class="btn btn-secondary btn-sm" onclick="calShift(1)">Later ›</button>
           </div>
-          <div style="display:flex;gap:8px">
-            <button class="btn btn-secondary btn-sm" onclick="showFeedPanel()" title="Manage calendar subscriptions">📅 Subscriptions</button>
-            <button class="btn btn-secondary" onclick="showEventModal()">+ Event</button>
-            <button class="btn btn-primary" onclick="openTaskPanel('new')">+ Task</button>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-secondary btn-sm" onclick="showFeedPanel()">Subscriptions</button>
+            <button class="btn btn-secondary btn-sm" onclick="showEventModal()">+ Event</button>
+            <button class="btn btn-primary btn-sm" onclick="openTaskPanel('new')">+ Task</button>
           </div>
         </div>
-        <div id="cal-months-wrap"></div>
+        <!-- Body: grid + sidebar -->
+        <div style="display:grid;grid-template-columns:1fr 210px;gap:16px;align-items:start">
+          <div id="cal-months-wrap"></div>
+          <!-- Sidebar -->
+          <div style="position:sticky;top:60px;display:flex;flex-direction:column;gap:10px">
+            <!-- Mini calendar -->
+            <div id="cal-mini-wrap" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px"></div>
+            <!-- Feed toggles -->
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px">
+              <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">Calendars</div>
+              <div id="cal-feed-toggles"></div>
+            </div>
+            <!-- Upcoming -->
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px">
+              <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">Upcoming</div>
+              <div id="cal-upcoming"></div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div id="view-timeline" class="hidden">
@@ -1270,54 +1315,194 @@ function renderBoard() {
 }
 
 // ===================== CALENDAR VIEW =====================
-const CAL_MONTHS_SHOWN = 4; // render this many months at once
+const CAL_MONTHS_SHOWN = 1;
+const CAL_MAX_PILLS = 3;
 
 function renderCalendar() {
   const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   const today = todayStr();
   const wrap = document.getElementById('cal-months-wrap');
   if (!wrap) return;
-  const dayLabels = `<div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));text-align:center;margin-bottom:2px;position:sticky;top:32px;background:var(--bg);z-index:9">
-    ${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<div class="text-xs text-muted font-bold" style="padding:4px">${d}</div>`).join('')}
-  </div>`;
-  let out = dayLabels;
-  for (let mi = 0; mi < CAL_MONTHS_SHOWN; mi++) {
-    let y = S.calYear, m = S.calMonth + mi;
-    while (m > 11) { m -= 12; y++; }
-    const first = new Date(y, m, 1).getDay();
-    const days  = new Date(y, m+1, 0).getDate();
-    out += `<div style="margin-bottom:32px">
-      <div style="font-weight:700;font-size:15px;padding:8px 0 6px">${monthNames[m]} ${y}</div>
-      <div class="cal-grid">`;
-    for (let i = 0; i < first; i++) out += '<div class="cal-cell other-month"></div>';
-    for (let d = 1; d <= days; d++) {
-      const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      const isToday = dateStr === today;
-      const dayTasks   = S.tasks.filter(t => t.due === dateStr);
-      const dayLeaves  = S.leaves.filter(l => l.from_date <= dateStr && l.to_date >= dateStr && l.status === 'approved');
-      const dayShoots  = S.shoots.filter(s => s.date === dateStr);
-      const dayMiss    = S.missions.filter(ms => ms.date === dateStr && ms.status === 'approved');
-      const dayEvents  = (S.events||[]).filter(e => e.date === dateStr || (e.date <= dateStr && e.end_date >= dateStr));
-      const dayFeedEvs = (S.feedEvents||[]).filter(e => {
-        const enabledFeed = (S.feeds||[]).find(f => f.id === e._feedId && f.enabled !== 'false');
-        if (!enabledFeed) return false;
-        if (enabledFeed.visibility === 'admin' && S.myName !== 'ME') return false;
-        return e.date === dateStr || (e.date <= dateStr && e.end_date && e.end_date >= dateStr);
-      });
-      out += `<div class="cal-cell ${isToday?'today':''}" onclick="calDayClick('${dateStr}')">
-        <div class="cal-day-num">${d}</div>
-        ${dayFeedEvs.map(e => { const gi=(S.feedEvents||[]).indexOf(e); const fd=(S.feeds||[]).find(f=>f.id===e._feedId)||{}; const bgC=fd.color||e._feedColor||'#0b8043'; const txC=fd.text_color||e._feedTextColor||'#fff'; return `<div class="cal-event-feed" title="${esc(e.title)}" onclick="event.stopPropagation();showFeedEventDetail(${gi})" style="background:${bgC};color:${txC}">${e.time?`<span class="cal-time">${e.time.slice(0,5)}</span>`:''}<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0">${esc(e.title)}</span></div>`; }).join('')}
-        ${dayEvents.map(e=>`<div class="cal-event cal-event-custom" title="${esc(e.title)}" onclick="event.stopPropagation();showEventModal('${e.id}')" style="${e.color?`background:${e.color}20;color:${e.color}`:''}"> ${e.time?`<span style="opacity:.7;font-size:10px">${e.time.slice(0,5)}</span> `:''}${esc(e.title)}</div>`).join('')}
-        ${dayTasks.map(t=>`<div class="cal-event ${t.status==='done'?'done-event':''}" title="${esc(t.owner||'')+': '+esc(t.title)}" onclick="event.stopPropagation();openTaskPanel('${t.id}')">${avatarHtml(t.owner,18)}<span class="cal-ev-title">${esc(t.title)}</span></div>`).join('')}
-        ${dayLeaves.map(l=>`<div class="cal-event leave-event">${l.employee}</div>`).join('')}
-        ${dayShoots.map(s=>`<div class="cal-event shoot-event">${esc(s.title)}</div>`).join('')}
-        ${dayMiss.map(ms=>`<div class="cal-event mission-event">${ms.employee}</div>`).join('')}
-        <div class="cal-add-hint">+ add</div>
-      </div>`;
-    }
-    out += '</div></div>';
+  let y = S.calYear, m = S.calMonth;
+  const first = new Date(y, m, 1).getDay();
+  const days  = new Date(y, m+1, 0).getDate();
+  const prevDays = new Date(y, m, 0).getDate();
+  // update month label
+  const lbl = document.getElementById('cal-month-label');
+  if (lbl) lbl.textContent = `${monthNames[m]} ${y}`;
+  const dayHdrs = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<div class="text-xs text-muted font-bold" style="padding:4px 0;text-align:center">${d}</div>`).join('');
+  let out = `<div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));margin-bottom:2px">${dayHdrs}</div><div class="cal-grid">`;
+  // leading cells (prev month)
+  for (let i = 0; i < first; i++) {
+    const pd = prevDays - first + i + 1;
+    out += `<div class="cal-cell other-month"><div class="cal-day-num" style="color:var(--text3)">${pd}</div></div>`;
   }
+  for (let d = 1; d <= days; d++) {
+    const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday = dateStr === today;
+    // collect events
+    const dayTasks  = S.tasks.filter(t => t.due === dateStr && t.status !== 'done');
+    const dayDone   = S.tasks.filter(t => t.due === dateStr && t.status === 'done');
+    const dayLeaves = S.leaves.filter(l => l.from_date <= dateStr && l.to_date >= dateStr && l.status === 'approved');
+    const dayShoots = S.shoots.filter(s => s.date === dateStr);
+    const dayMiss   = S.missions.filter(ms => ms.date === dateStr && ms.status === 'approved');
+    const dayEvents = (S.events||[]).filter(e => e.date === dateStr || (e.date <= dateStr && e.end_date >= dateStr));
+    const dayFeedEvs = (S.feedEvents||[]).filter(e => {
+      const fd = (S.feeds||[]).find(f => f.id === e._feedId && f.enabled !== 'false');
+      if (!fd) return false;
+      if (fd.visibility === 'admin' && S.myName !== 'ME') return false;
+      return e.date === dateStr || (e.date <= dateStr && e.end_date && e.end_date >= dateStr);
+    });
+    // separate all-day/holiday feed events (no time) from timed ones
+    const holEvs   = dayFeedEvs.filter(e => !e.time);
+    const timedEvs = dayFeedEvs.filter(e => !!e.time);
+    // build pill html — holiday bars first, then timed feed, then tasks/events, cap at MAX_PILLS
+    let pills = '';
+    let count = 0;
+    // holiday bars (full-width, no pill shape)
+    holEvs.forEach(e => {
+      const fd = (S.feeds||[]).find(f => f.id === e._feedId)||{};
+      const bg = fd.color||e._feedColor||'#7c3aed';
+      const gi = (S.feedEvents||[]).indexOf(e);
+      pills += `<div class="cal-hol-bar" style="background:${bg}" title="${esc(e.title)}" onclick="event.stopPropagation();showFeedEventDetail(${gi})">${esc(e.title)}</div>`;
+    });
+    // timed feed events
+    const remaining = [...timedEvs, ...dayEvents, ...dayTasks, ...[...dayDone, ...dayLeaves, ...dayShoots, ...dayMiss]];
+    remaining.forEach((e, idx) => {
+      if (count >= CAL_MAX_PILLS) return;
+      if (e._feedId !== undefined) {
+        // feed event
+        const fd = (S.feeds||[]).find(f => f.id === e._feedId)||{};
+        const bg = fd.color||e._feedColor||'#0b8043';
+        const tx = fd.text_color||e._feedTextColor||'#fff';
+        const gi = (S.feedEvents||[]).indexOf(e);
+        pills += `<div class="cal-event-feed" style="background:${bg};color:${tx}" title="${esc(e.title)}" onclick="event.stopPropagation();showFeedEventDetail(${gi})">${e.time?`<span class="cal-time">${e.time.slice(0,5)}</span>`:''}<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0">${esc(e.title)}</span></div>`;
+      } else if (e.from_date) {
+        pills += `<div class="cal-event leave-event"><span class="cal-ev-title">${esc(e.employee)}</span></div>`;
+      } else if (e.owner !== undefined && e.due !== undefined) {
+        // task
+        const cls = e.status === 'done' ? 'done-event' : '';
+        pills += `<div class="cal-event ${cls}" title="${esc(e.owner||'')+': '+esc(e.title)}" onclick="event.stopPropagation();openTaskPanel('${e.id}')">${avatarHtml(e.owner,19)}<span class="cal-ev-title">${esc(e.title)}</span></div>`;
+      } else if (e.date && e.title && !e._feedId) {
+        // calendar event
+        const bg = e.color||'#1967d2';
+        pills += `<div class="cal-event cal-event-custom" style="background:${bg}" title="${esc(e.title)}" onclick="event.stopPropagation();showEventModal('${e.id}')">${e.time?`<span class="cal-time">${e.time.slice(0,5)}</span>`:''}<span class="cal-ev-title">${esc(e.title)}</span></div>`;
+      } else {
+        pills += `<div class="cal-event shoot-event"><span class="cal-ev-title">${esc(e.title||e.employee||'')}</span></div>`;
+      }
+      count++;
+    });
+    const overflow = remaining.length - CAL_MAX_PILLS;
+    if (overflow > 0) pills += `<div class="cal-more">+${overflow} more</div>`;
+    out += `<div class="cal-cell ${isToday?'today':''}" onclick="calDayClick('${dateStr}')">
+      <div class="cal-day-num">${d}</div>
+      ${pills}
+      <div class="cal-add-hint">+ add</div>
+    </div>`;
+  }
+  // trailing cells
+  const total = first + days;
+  const trailing = total % 7 === 0 ? 0 : 7 - (total % 7);
+  for (let i = 1; i <= trailing; i++) out += `<div class="cal-cell other-month"><div class="cal-day-num" style="color:var(--text3)">${i}</div></div>`;
+  out += '</div>';
   wrap.innerHTML = out;
+  renderCalSidebar(y, m, today);
+}
+
+function renderCalSidebar(y, m, today) {
+  renderMiniCal(y, m, today);
+  renderFeedToggles();
+  renderUpcoming(today);
+}
+
+function renderMiniCal(y, m, today) {
+  const wrap = document.getElementById('cal-mini-wrap');
+  if (!wrap) return;
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const first = new Date(y, m, 1).getDay();
+  const days  = new Date(y, m+1, 0).getDate();
+  const datesWithEvents = new Set([
+    ...S.tasks.map(t=>t.due),
+    ...(S.feedEvents||[]).filter(e=>(S.feeds||[]).find(f=>f.id===e._feedId&&f.enabled!=='false')).map(e=>e.date),
+    ...(S.events||[]).map(e=>e.date)
+  ]);
+  let hdrs = ['S','M','T','W','T','F','S'].map(d=>`<div class="cal-mini-hdr">${d}</div>`).join('');
+  let cells = '';
+  for (let i = 0; i < first; i++) cells += '<div></div>';
+  for (let d = 1; d <= days; d++) {
+    const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const cls = ds === today ? 'today-mini' : datesWithEvents.has(ds) ? 'has' : '';
+    cells += `<div class="cal-mini-day ${cls}" onclick="calJumpTo('${ds}')">${d}</div>`;
+  }
+  wrap.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:600;margin-bottom:2px">
+    <span>${monthNames[m]} ${y}</span>
+    <div style="display:flex;gap:2px">
+      <button class="btn btn-secondary btn-sm" style="padding:3px 6px" onclick="calShift(-1)"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <button class="btn btn-secondary btn-sm" style="padding:3px 6px" onclick="calShift(1)"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+    </div>
+  </div>
+  <div class="cal-mini-grid">${hdrs}${cells}</div>`;
+}
+
+function renderFeedToggles() {
+  const wrap = document.getElementById('cal-feed-toggles');
+  if (!wrap) return;
+  const feeds = S.feeds||[];
+  if (!feeds.length) { wrap.innerHTML = '<div style="font-size:12px;color:var(--text3)">No subscriptions</div>'; return; }
+  wrap.innerHTML = feeds.map(f => `
+    <div class="cal-feed-tog" onclick="toggleFeedEnabled('${f.id}')">
+      <div class="cal-feed-tog-dot" style="background:${f.color||'#888'}"></div>
+      <div class="cal-feed-tog-name">${esc(f.name)}</div>
+      <div class="cal-tog ${f.enabled==='false'?'off':'on'}"></div>
+    </div>`).join('') +
+    `<div class="cal-feed-tog" style="border-top:1px solid var(--border);padding-top:8px;margin-top:4px">
+      <div class="cal-feed-tog-dot" style="background:var(--brand)"></div>
+      <div class="cal-feed-tog-name">Tasks</div>
+      <div class="cal-tog on" style="pointer-events:none"></div>
+    </div>`;
+}
+
+function toggleFeedEnabled(id) {
+  const f = (S.feeds||[]).find(x => x.id === id);
+  if (!f) return;
+  f.enabled = f.enabled === 'false' ? 'true' : 'false';
+  renderCalendar();
+  api('updateFeed', {}, { id, enabled: f.enabled });
+}
+
+function renderUpcoming(today) {
+  const wrap = document.getElementById('cal-upcoming');
+  if (!wrap) return;
+  const soon = S.tasks.filter(t => t.due && t.due >= today && t.status !== 'done').sort((a,b)=>a.due.localeCompare(b.due)).slice(0,5);
+  const feedSoon = (S.feedEvents||[]).filter(e => {
+    const fd = (S.feeds||[]).find(f=>f.id===e._feedId&&f.enabled!=='false');
+    return fd && e.date >= today;
+  }).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,3);
+  const pBadge = p => p==='P0'?`<span class="cal-up-badge" style="background:#fce8e6;color:#c5221f">P0</span>`:p==='P1'?`<span class="cal-up-badge" style="background:#fef7e0;color:#b06000">P1</span>`:'';
+  let html = '';
+  [...soon.map(t=>({type:'task',t})), ...feedSoon.map(e=>({type:'feed',e}))].sort((a,b)=>{
+    const da = a.type==='task'?a.t.due:a.e.date;
+    const db = b.type==='task'?b.t.due:b.e.date;
+    return da.localeCompare(db);
+  }).slice(0,6).forEach(item => {
+    if (item.type==='task') {
+      const t = item.t;
+      const m = getMember(t.owner);
+      const color = m?.avatar_color||'var(--brand)';
+      html += `<div class="cal-up-row"><div class="cal-up-dot" style="background:${color}"></div><div><div class="cal-up-txt">${esc(t.title)}${pBadge(t.priority)}</div><div class="cal-up-meta">${t.due}${t.owner?' · '+esc(t.owner):''}</div></div></div>`;
+    } else {
+      const e = item.e;
+      const fd = (S.feeds||[]).find(f=>f.id===e._feedId)||{};
+      html += `<div class="cal-up-row"><div class="cal-up-dot" style="background:${fd.color||'#888'}"></div><div><div class="cal-up-txt">${esc(e.title)}</div><div class="cal-up-meta">${e.date}${e.time?' · '+e.time.slice(0,5):''}</div></div></div>`;
+    }
+  });
+  wrap.innerHTML = html || '<div style="font-size:12px;color:var(--text3)">Nothing upcoming</div>';
+}
+
+function calJumpTo(dateStr) {
+  const [y, m] = dateStr.split('-').map(Number);
+  S.calYear = y; S.calMonth = m - 1;
+  renderCalendar();
 }
 
 function calDayClick(dateStr) {
@@ -1334,7 +1519,7 @@ function calDayClick(dateStr) {
 }
 
 function calShift(dir) {
-  S.calMonth += dir * CAL_MONTHS_SHOWN;
+  S.calMonth += dir;
   while (S.calMonth > 11) { S.calMonth -= 12; S.calYear++; }
   while (S.calMonth < 0)  { S.calMonth += 12; S.calYear--; }
   renderCalendar();
