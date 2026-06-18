@@ -2142,7 +2142,7 @@ function renderTeam() {
   document.getElementById('team-grid').innerHTML = S.team.length
     ? S.team.map(m => `
         <div class="card" style="text-align:center;position:relative">
-          <button class="btn btn-icon btn-secondary" style="position:absolute;top:8px;right:8px;width:28px;height:28px;padding:0" onclick="showMemberModal('${m.id}')">✏️</button>
+          <button class="btn btn-icon btn-secondary" style="position:absolute;top:8px;right:8px;width:28px;height:28px;padding:0;font-size:12px" onclick="showMemberModal('${m.id}')">Edit</button>
           ${memberAvatarHtml(m)}
           <div class="font-bold">${esc(m.name)}</div>
           <div class="text-sm text-muted">${m.role||'Member'}</div>
