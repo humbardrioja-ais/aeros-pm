@@ -329,6 +329,14 @@ select.td-value{appearance:auto}
 .activity-time{font-size:11px;color:var(--text3);white-space:nowrap;flex-shrink:0}
 /* Complete button done state */
 .btn-done{background:var(--ok)!important;color:#fff!important;border-color:var(--ok)!important}
+/* Feed subscription list */
+.feed-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius);border:1px solid var(--border);margin-bottom:8px;background:var(--surface)}
+.feed-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+.feed-info{flex:1;min-width:0}
+.feed-info-name{font-size:13px;font-weight:600;truncate:ellipsis;white-space:nowrap;overflow:hidden}
+.feed-info-meta{font-size:11px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.feed-actions{display:flex;gap:4px;flex-shrink:0}
+.cal-event-feed{font-size:10px;padding:1px 4px;border-radius:3px;cursor:pointer;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.9}
 @media(max-width:768px){#task-panel{width:100vw}}
 </style>
 </head>
@@ -438,6 +446,7 @@ select.td-value{appearance:auto}
             <button class="btn btn-secondary btn-sm" onclick="calNext()">Next ›</button>
           </div>
           <div style="display:flex;gap:8px">
+            <button class="btn btn-secondary btn-sm" onclick="showFeedPanel()" title="Manage calendar subscriptions">📅 Subscriptions</button>
             <button class="btn btn-secondary" onclick="showEventModal()">+ Event</button>
             <button class="btn btn-primary" onclick="openTaskPanel('new')">+ Task</button>
           </div>
@@ -780,6 +789,48 @@ select.td-value{appearance:auto}
   </div>
 </div>
 
+<!-- Feed Subscriptions Panel -->
+<div class="modal-overlay hidden" id="feed-panel-overlay" onclick="if(event.target===this)closeFeedPanel()">
+  <div class="modal" style="max-width:480px;margin-left:auto;margin-right:0;height:100vh;max-height:100vh;border-radius:0;display:flex;flex-direction:column">
+    <div class="modal-header" style="flex-shrink:0">
+      <span style="font-weight:700">Calendar Subscriptions</span>
+      <button class="btn btn-secondary btn-sm" onclick="refreshAllFeeds()" id="feed-refresh-btn" style="margin-left:auto;margin-right:8px">↻ Refresh</button>
+      <button class="btn btn-icon" onclick="closeFeedPanel()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:20px">
+      <div id="feed-list"></div>
+      <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:20px">
+        <div style="font-weight:600;font-size:13px;margin-bottom:12px">Add public iCal feed</div>
+        <div class="form-row"><label>URL *</label><input id="feed-url" placeholder="https://calendar.google.com/...ical/..." style="font-size:12px"></div>
+        <div class="form-grid">
+          <div class="form-row"><label>Name</label><input id="feed-name" placeholder="My Calendar"></div>
+          <div class="form-row"><label>Color</label><input type="color" id="feed-color" value="#0b8043" style="height:36px;padding:2px 4px"></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:4px">
+          <button class="btn btn-primary" style="flex:1" onclick="addFeed()">Subscribe</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Feed Event Detail -->
+<div class="modal-overlay hidden" id="feed-event-modal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <span id="fevm-title" style="font-weight:700;font-size:15px"></span>
+      <button class="btn btn-icon" style="margin-left:auto" onclick="closeModal('feed-event-modal')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div id="fevm-body" style="font-size:13px;line-height:1.7;color:var(--text2)"></div>
+    </div>
+    <div class="modal-footer">
+      <span id="fevm-feed-name" style="font-size:11px;color:var(--text3);margin-right:auto"></span>
+      <button class="btn btn-secondary" onclick="closeModal('feed-event-modal')">Close</button>
+    </div>
+  </div>
+</div>
+
 <!-- Meeting Modal -->
 <div class="modal-overlay hidden" id="meeting-modal">
   <div class="modal" style="max-width:800px">
@@ -1016,7 +1067,7 @@ const S = {
   myDept: localStorage.getItem('aeros_my_dept') || '',
   tasks: [], projects: [], team: [], meetings: [], missions: [],
   leaves: [], shoots: [], videos: [], notifications: [], events: [],
-  cdoBalances: [], cdoRedemptions: [],
+  cdoBalances: [], cdoRedemptions: [], feeds: [], feedEvents: [],
   currentView: 'dashboard',
   calYear: new Date().getFullYear(),
   calMonth: new Date().getMonth(),
@@ -1107,6 +1158,7 @@ function applyData(d) {
   if (d.cdoBalances)    S.cdoBalances    = d.cdoBalances;
   if (d.cdoRedemptions) S.cdoRedemptions = d.cdoRedemptions;
   if (d.events)         S.events         = d.events;
+  if (d.feeds)          S.feeds          = d.feeds;
   populateOwnerSelects();
 }
 
@@ -1228,8 +1280,15 @@ function renderCalendar() {
     const dayShoots = S.shoots.filter(s => s.date === dateStr);
     const dayMiss   = S.missions.filter(ms => ms.date === dateStr && ms.status === 'approved');
     const dayEvents = (S.events||[]).filter(e => e.date === dateStr || (e.date <= dateStr && e.end_date >= dateStr));
+    const dayFeedEvs = (S.feedEvents||[]).filter(e => {
+      const enabledFeed = (S.feeds||[]).find(f => f.id === e._feedId && f.enabled !== 'false');
+      if (!enabledFeed) return false;
+      return e.date === dateStr || (e.date <= dateStr && e.end_date && e.end_date >= dateStr);
+    });
     html += `<div class="cal-cell ${isToday ? 'today' : ''}" onclick="calDayClick('${dateStr}')">
       <div class="cal-day-num ${isToday ? 'text-brand' : ''}" style="${isToday ? 'color:var(--brand)' : ''}">${d}</div>
+      ${dayFeedEvs.map((e,i) => { const gi = (S.feedEvents||[]).indexOf(e); return `<div class="cal-event-feed" title="${esc(e.title)}" onclick="event.stopPropagation();showFeedEventDetail(${gi})" style="background:${e._feedColor||'#0b8043'}22;color:${e._feedColor||'#0b8043'};border-left:2px solid ${e._feedColor||'#0b8043'}">
+        ${e.time?`<span style="opacity:.7;font-size:9px">${e.time.slice(0,5)}</span> `:''}${esc(e.title)}</div>`; }).join('')}
       ${dayEvents.map(e => `<div class="cal-event cal-event-custom" title="${esc(e.title)}" onclick="event.stopPropagation();showEventModal('${e.id}')" style="${e.color?`background:${e.color}20;color:${e.color}`:''}">
         ${e.time?`<span style="opacity:.7;font-size:10px">${e.time.slice(0,5)}</span> `:''}${esc(e.title)}</div>`).join('')}
       ${dayTasks.map(t => `<div class="cal-event ${t.status==='done'?'done-event':''}" title="${esc(t.title)}" onclick="event.stopPropagation();openTaskPanel('${t.id}')">${esc(t.title)}</div>`).join('')}
@@ -1327,6 +1386,114 @@ async function deleteCalEvent() {
   renderCalendar();
   toast('Event deleted');
   await api('deleteEvent', { id });
+}
+
+// ── iCal Feed Subscriptions ──
+function showFeedPanel() {
+  renderFeedList();
+  document.getElementById('feed-url').value = '';
+  document.getElementById('feed-name').value = '';
+  document.getElementById('feed-color').value = '#0b8043';
+  document.getElementById('feed-panel-overlay').classList.remove('hidden');
+}
+
+function closeFeedPanel() {
+  document.getElementById('feed-panel-overlay').classList.add('hidden');
+}
+
+function renderFeedList() {
+  const el = document.getElementById('feed-list');
+  if (!S.feeds || S.feeds.length === 0) {
+    el.innerHTML = '<div style="color:var(--text3);font-size:13px;text-align:center;padding:20px 0">No subscriptions yet.<br>Paste a public iCal URL below.</div>';
+    return;
+  }
+  el.innerHTML = S.feeds.map(f => {
+    const enabled = f.enabled !== 'false';
+    const count = (S.feedEvents || []).filter(e => e._feedId === f.id).length;
+    return `<div class="feed-item">
+      <div class="feed-dot" style="background:${f.color||'#0b8043'};opacity:${enabled?1:.35}"></div>
+      <div class="feed-info">
+        <div class="feed-info-name" style="opacity:${enabled?1:.5}">${esc(f.name||'Unnamed')}</div>
+        <div class="feed-info-meta">${count} events · ${f.last_synced ? 'synced '+f.last_synced.slice(0,10) : 'not synced'}</div>
+      </div>
+      <div class="feed-actions">
+        <button class="btn btn-icon btn-sm" title="${enabled?'Disable':'Enable'}" onclick="toggleFeed('${f.id}',${!enabled})">${enabled?'◉':'○'}</button>
+        <button class="btn btn-icon btn-sm" title="Delete" onclick="deleteFeed('${f.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function addFeed() {
+  const url = document.getElementById('feed-url').value.trim();
+  if (!url) { toast('Paste an iCal URL first'); return; }
+  const name  = document.getElementById('feed-name').value.trim() || 'My Calendar';
+  const color = document.getElementById('feed-color').value || '#0b8043';
+  toast('Adding feed…');
+  const feed = { name, url, color, enabled: 'true' };
+  const saved = await api('createFeed', {}, feed);
+  if (!saved || !saved.id) { toast('Failed to save feed'); return; }
+  feed.id = saved.id;
+  S.feeds = [...(S.feeds||[]), feed];
+  renderFeedList();
+  document.getElementById('feed-url').value = '';
+  document.getElementById('feed-name').value = '';
+  toast('Feed added — loading events…');
+  await fetchFeedEvents(feed);
+  renderFeedList();
+  renderCalendar();
+}
+
+async function toggleFeed(id, enable) {
+  const f = S.feeds.find(x => x.id === id);
+  if (!f) return;
+  f.enabled = enable ? 'true' : 'false';
+  renderFeedList();
+  renderCalendar();
+  await api('updateFeed', {}, { id, enabled: f.enabled });
+}
+
+async function deleteFeed(id) {
+  if (!confirm('Remove this calendar subscription?')) return;
+  S.feeds = S.feeds.filter(x => x.id !== id);
+  S.feedEvents = (S.feedEvents||[]).filter(e => e._feedId !== id);
+  renderFeedList();
+  renderCalendar();
+  await api('deleteFeed', { id });
+}
+
+async function fetchFeedEvents(feed) {
+  if (!feed || !feed.url || feed.enabled === 'false') return;
+  const result = await api('fetchIcal', { url: feed.url, feedId: feed.id });
+  if (!result || !result.events) { toast('Could not fetch: ' + (result&&result.error||'unknown error')); return; }
+  S.feedEvents = (S.feedEvents||[]).filter(e => e._feedId !== feed.id);
+  S.feedEvents.push(...result.events.map(e => ({ ...e, _feedId: feed.id, _feedColor: feed.color, _feedName: feed.name })));
+  feed.last_synced = new Date().toISOString();
+}
+
+async function refreshAllFeeds() {
+  const btn = document.getElementById('feed-refresh-btn');
+  if (btn) btn.textContent = '↻ Refreshing…';
+  const enabled = (S.feeds||[]).filter(f => f.enabled !== 'false');
+  for (const feed of enabled) await fetchFeedEvents(feed);
+  renderFeedList();
+  renderCalendar();
+  if (btn) btn.textContent = '↻ Refresh';
+  toast('Feeds refreshed');
+}
+
+function showFeedEventDetail(idx) {
+  const e = (S.feedEvents||[])[idx];
+  if (!e) return;
+  document.getElementById('fevm-title').textContent = e.title || 'Event';
+  document.getElementById('fevm-feed-name').textContent = e._feedName || '';
+  let body = '';
+  if (e.date) body += `<div><strong>Date:</strong> ${e.date}${e.end_date && e.end_date !== e.date ? ' → ' + e.end_date : ''}</div>`;
+  if (e.time) body += `<div><strong>Time:</strong> ${e.time}${e.end_time ? ' – ' + e.end_time : ''}</div>`;
+  if (e.location) body += `<div><strong>Location:</strong> ${esc(e.location)}</div>`;
+  if (e.description) body += `<div style="margin-top:8px;white-space:pre-wrap">${esc(e.description)}</div>`;
+  document.getElementById('fevm-body').innerHTML = body || '<em style="color:var(--text3)">No details</em>';
+  openModal('feed-event-modal');
 }
 
 // ===================== TIMELINE =====================

@@ -241,6 +241,13 @@ function route(method, action, p, body) {
     case 'updateEvent':       return updateRow(ss, 'CalEvents', body);
     case 'deleteEvent':       return deleteRow(ss, 'CalEvents', p.id);
 
+    // ── iCal Feed Subscriptions ──
+    case 'getFeeds':          return getRows(ss, 'CalFeeds');
+    case 'createFeed':        return createRow(ss, 'CalFeeds', body);
+    case 'updateFeed':        return updateRow(ss, 'CalFeeds', body);
+    case 'deleteFeed':        return deleteRow(ss, 'CalFeeds', p.id);
+    case 'fetchIcal':         return fetchIcal(p.url, p.feedId || '');
+
     // ── Batch fetch (all data in one round-trip) ──
     case 'getAll':            return getAllData(ss, p);
 
@@ -267,6 +274,7 @@ function getAllData(ss, p) {
     cdoBalances:    getRows(ss, 'CDOBalances'),
     cdoRedemptions: getRows(ss, 'CDORedemptions'),
     events:         getRows(ss, 'CalEvents'),
+    feeds:          getRows(ss, 'CalFeeds'),
   };
 }
 
@@ -276,6 +284,7 @@ const SHEETS = {
   Tasks: ['id','title','details','owner','department','source','requestedBy','priority','due','status','repeat','attachments','created','updated','followup','notes','projectIds','sectionId','tags','customFields','parentId'],
   Subtasks: ['id','taskId','title','done','assignee','due','created','updated'],
   CalEvents: ['id','title','date','end_date','time','end_time','description','department','color','all_day','created','updated'],
+  CalFeeds:  ['id','name','url','color','enabled','last_synced','created','updated'],
   Dependencies: ['id','taskId','dependsOnId','type','created'],
   Tags: ['id','name','color','created'],
   TaskTags: ['id','taskId','tagId','created'],
@@ -722,4 +731,118 @@ function initSheet() {
   }
 
   return { ok: true, sheets: Object.keys(SHEETS).length };
+}
+
+// ===================== iCAL FEED FETCHER =====================
+
+function fetchIcal(url, feedId) {
+  if (!url) return { error: 'No URL provided' };
+  try {
+    const resp = UrlFetchApp.fetch(url, { muteHttpExceptions: true, followRedirects: true });
+    if (resp.getResponseCode() !== 200) return { error: 'HTTP ' + resp.getResponseCode() };
+    const text = resp.getContentText('UTF-8');
+    const events = parseIcal(text, feedId);
+    return { events, count: events.length };
+  } catch(e) {
+    return { error: e.message };
+  }
+}
+
+function parseIcal(text, feedId) {
+  // Unfold lines (RFC 5545 — continuation lines start with space/tab)
+  const unfolded = text.replace(/\r\n[ \t]/g, '').replace(/\n[ \t]/g, '');
+  const lines = unfolded.split(/\r\n|\r|\n/);
+
+  const events = [];
+  let inEvent = false;
+  let cur = {};
+
+  for (const raw of lines) {
+    const line = raw.trim();
+    if (line === 'BEGIN:VEVENT') { inEvent = true; cur = {}; continue; }
+    if (line === 'END:VEVENT')   { inEvent = false; const evs = buildEvents(cur, feedId); if (evs) events.push(...evs); continue; }
+    if (!inEvent) continue;
+    const ci = line.indexOf(':');
+    if (ci < 0) continue;
+    const keyFull = line.substring(0, ci);          // e.g. DTSTART;TZID=America/Manila
+    const key     = keyFull.split(';')[0].toUpperCase();
+    const val     = line.substring(ci + 1);
+    cur[key] = val;
+  }
+  return events;
+}
+
+function buildEvents(cur, feedId) {
+  const title = icalText(cur['SUMMARY'] || cur['DESCRIPTION'] || '');
+  if (!title) return null;
+
+  const startRaw = cur['DTSTART'] || '';
+  const endRaw   = cur['DTEND']   || cur['DTSTART'] || '';
+  const start    = parseIcalDt(startRaw);
+  const end      = parseIcalDt(endRaw);
+  if (!start) return null;
+
+  const uid = cur['UID'] || (feedId + '-' + Math.random().toString(36).slice(2));
+  const base = {
+    id:          'ical-' + feedId + '-' + uid.replace(/[^a-z0-9]/gi,''),
+    feedId,
+    title,
+    date:        start.date,
+    end_date:    (end && end.date !== start.date) ? end.date : '',
+    time:        start.time,
+    end_time:    end ? end.time : '',
+    description: icalText(cur['DESCRIPTION'] || ''),
+    location:    icalText(cur['LOCATION']    || ''),
+    uid,
+    isExternal:  true,
+  };
+
+  if (cur['RRULE']) return expandRrule(base, cur['RRULE'], start);
+  return [base];
+}
+
+function parseIcalDt(s) {
+  if (!s) return null;
+  s = s.trim().replace('Z','');   // strip UTC marker for display purposes
+  if (s.length === 8) {           // DATE: 20260601
+    return { date: s.slice(0,4)+'-'+s.slice(4,6)+'-'+s.slice(6,8), time: '' };
+  }
+  if (s.length >= 15) {           // DATETIME: 20260601T090000
+    return { date: s.slice(0,4)+'-'+s.slice(4,6)+'-'+s.slice(6,8),
+             time: s.slice(9,11)+':'+s.slice(11,13) };
+  }
+  return null;
+}
+
+function icalText(s) {
+  return s.replace(/\\n/g,'\n').replace(/\\,/g,',').replace(/\;/g,';').replace(/\\\\/g,'\\').trim();
+}
+
+function expandRrule(base, rrule, start) {
+  const rules = {};
+  rrule.split(';').forEach(p => { const [k,v]=p.split('='); rules[k]=v; });
+
+  const freq     = rules['FREQ'] || 'DAILY';
+  const maxCount = Math.min(parseInt(rules['COUNT'] || '365'), 200);
+  const interval = parseInt(rules['INTERVAL'] || '1');
+  const untilStr = rules['UNTIL'] ? parseIcalDt(rules['UNTIL']) : null;
+  const cutoff   = new Date(); cutoff.setFullYear(cutoff.getFullYear() + 1);
+
+  const results = [{ ...base }];
+  const cur = new Date(start.date + 'T' + (start.time || '00:00') + ':00');
+
+  for (let i = 1; i < maxCount; i++) {
+    const prev = new Date(cur);
+    if      (freq === 'DAILY')   cur.setDate(cur.getDate() + interval);
+    else if (freq === 'WEEKLY')  cur.setDate(cur.getDate() + 7 * interval);
+    else if (freq === 'MONTHLY') cur.setMonth(cur.getMonth() + interval);
+    else if (freq === 'YEARLY')  cur.setFullYear(cur.getFullYear() + interval);
+    else break;
+    if (cur <= prev) break; // safety — no infinite loops
+    if (untilStr && cur > new Date(untilStr.date)) break;
+    if (cur > cutoff) break;
+    const dateStr = cur.toISOString().split('T')[0];
+    results.push({ ...base, id: base.id + '_' + i, date: dateStr });
+  }
+  return results;
 }
