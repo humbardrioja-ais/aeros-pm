@@ -267,43 +267,64 @@ select option{background:var(--surface);color:var(--text)}
 /* ===================== TASK PANEL (SLIDE-OVER) ===================== */
 #task-panel-overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:500;opacity:0;pointer-events:none;transition:opacity .25s}
 #task-panel-overlay.open{opacity:1;pointer-events:all}
-#task-panel{position:fixed;top:0;right:0;bottom:0;width:520px;max-width:100vw;background:var(--surface);z-index:501;display:flex;flex-direction:column;box-shadow:-4px 0 24px rgba(0,0,0,.18);transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1)}
+#task-panel{position:fixed;top:0;right:0;bottom:0;width:560px;max-width:100vw;background:var(--surface);z-index:501;display:flex;flex-direction:column;box-shadow:-4px 0 24px rgba(0,0,0,.18);transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1)}
 #task-panel.open{transform:translateX(0)}
-.tp-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:10px;flex-shrink:0}
-.tp-title-wrap{flex:1}
-.tp-title{font-size:16px;font-weight:700;line-height:1.4;border:none;outline:none;background:transparent;color:var(--text);width:100%;resize:none;font-family:inherit;padding:0}
-.tp-title:focus{background:var(--surface2);border-radius:var(--radius);padding:4px 6px}
-.tp-meta-row{display:flex;align-items:center;gap:6px;margin-top:6px;flex-wrap:wrap}
-.tp-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface)}
-.tp-tab{padding:10px 16px;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s}
-.tp-tab.active{color:var(--brand);border-bottom-color:var(--brand)}
-.tp-tab:hover:not(.active){color:var(--text)}
-.tp-body{flex:1;overflow-y:auto;padding:16px}
-.tp-section{margin-bottom:20px}
-.tp-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:8px}
+/* Action bar */
+.tp-actionbar{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0;background:var(--surface)}
+/* Scrollable body */
+.tp-body{flex:1;overflow-y:auto;padding:20px 20px 40px}
+/* Title */
+.tp-title{font-size:22px;font-weight:700;line-height:1.3;border:none;outline:none;background:transparent;color:var(--text);width:100%;resize:none;font-family:inherit;padding:0 0 12px;display:block;border-bottom:1px solid transparent}
+.tp-title:focus{border-bottom-color:var(--brand)}
+/* Field rows */
+.td-fields{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:24px}
+.td-field-row{display:flex;align-items:center;border-bottom:1px solid var(--border);min-height:38px}
+.td-field-row:last-child{border-bottom:none}
+.td-icon{width:38px;display:flex;align-items:center;justify-content:center;color:var(--text3);flex-shrink:0}
+.td-label{width:96px;font-size:12px;color:var(--text2);font-weight:500;flex-shrink:0}
+.td-value{flex:1;border:none;outline:none;background:transparent;font-size:13px;color:var(--text);padding:8px 10px 8px 0;cursor:pointer;width:100%;font-family:inherit}
+.td-value:focus,.td-value:hover{background:var(--surface2)}
+select.td-value{appearance:auto}
+/* Section */
+.td-section{margin-bottom:24px}
+.td-section-hd{font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.td-badge{font-size:10px;background:var(--surface2);border-radius:99px;padding:1px 6px;color:var(--text2);font-weight:500}
+/* Description */
+.td-desc{min-height:72px;font-size:13px;line-height:1.6;border:1px solid transparent;background:transparent;color:var(--text);width:100%;font-family:inherit;resize:vertical;outline:none;padding:8px;border-radius:var(--radius)}
+.td-desc:focus{border-color:var(--border);background:var(--surface2)}
+.td-desc:empty::before{content:attr(placeholder);color:var(--text3)}
 /* Subtasks */
-.subtask-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)}
+.subtask-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)}
 .subtask-row:last-child{border-bottom:none}
-.subtask-check{width:16px;height:16px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px;transition:all .15s}
+.subtask-check{width:16px;height:16px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
 .subtask-check.done{background:var(--ok);border-color:var(--ok);color:#fff}
 .subtask-title{flex:1;font-size:13px}
 .subtask-title.done{text-decoration:line-through;color:var(--text3)}
 .subtask-assignee{font-size:11px;color:var(--text3);width:60px;text-align:right;flex-shrink:0}
-.progress-bar-wrap{height:5px;background:var(--surface2);border-radius:99px;margin-bottom:10px;overflow:hidden}
+.progress-bar-wrap{height:4px;background:var(--surface2);border-radius:99px;margin-bottom:12px;overflow:hidden}
 .progress-bar-fill{height:100%;background:var(--ok);border-radius:99px;transition:width .3s}
+.td-subtask-add{display:flex;gap:8px;margin-top:10px;align-items:center}
+.td-subtask-add input{flex:1;font-size:13px}
+/* Comments / Activity tabs at bottom */
+.tp-tabs{display:flex;border-bottom:1px solid var(--border);margin:0 -20px 16px;padding:0 20px;background:var(--surface)}
+.tp-tab{padding:9px 14px 9px 0;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;margin-right:4px}
+.tp-tab.active{color:var(--brand);border-bottom-color:var(--brand)}
+.tp-tab:hover:not(.active){color:var(--text)}
 /* Comments */
 .comment-item{display:flex;gap:10px;margin-bottom:14px}
 .comment-body{flex:1;background:var(--surface2);border-radius:var(--radius);padding:9px 12px}
-.comment-author{font-weight:700;font-size:12px;margin-bottom:2px}
+.comment-author{font-weight:700;font-size:12px;margin-bottom:2px;display:block}
 .comment-time{font-size:11px;color:var(--text3);float:right}
 .comment-text{font-size:13px;line-height:1.5}
 /* Activity */
 .activity-item{display:flex;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px}
 .activity-item:last-child{border-bottom:none}
-.activity-dot{width:8px;height:8px;border-radius:50%;background:var(--brand);flex-shrink:0;margin-top:5px}
+.activity-dot{width:8px;height:8px;border-radius:50%;background:var(--brand);flex-shrink:0;margin-top:4px}
 .activity-detail{flex:1;color:var(--text2);line-height:1.5}
 .activity-who{font-weight:600;color:var(--text)}
 .activity-time{font-size:11px;color:var(--text3);white-space:nowrap;flex-shrink:0}
+/* Complete button done state */
+.btn-done{background:var(--ok)!important;color:#fff!important;border-color:var(--ok)!important}
 @media(max-width:768px){#task-panel{width:100vw}}
 </style>
 </head>
@@ -606,129 +627,122 @@ select option{background:var(--surface);color:var(--text)}
 <!-- ==================== TASK SLIDE-OVER PANEL ==================== -->
 <div id="task-panel-overlay" onclick="closeTaskPanel()"></div>
 <div id="task-panel">
-  <div class="tp-header">
-    <div class="tp-title-wrap">
-      <textarea class="tp-title" id="tp-title" rows="2" onblur="savePanelField('title',this.value)"></textarea>
-      <div class="tp-meta-row">
-        <select id="tp-status" class="badge" style="border:1px solid var(--border);padding:3px 8px;font-size:11px;font-weight:700;border-radius:99px;cursor:pointer" onchange="savePanelField('status',this.value)">
+  <!-- Action bar -->
+  <div class="tp-actionbar">
+    <button class="btn btn-sm" id="tp-complete-btn" onclick="togglePanelDone()" style="display:flex;align-items:center;gap:5px;font-size:12px"></button>
+    <div style="flex:1"></div>
+    <button class="btn btn-icon" onclick="closeTaskPanel()" title="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <!-- Scrollable body -->
+  <div class="tp-body">
+    <!-- Title -->
+    <textarea class="tp-title" id="tp-title" rows="2" placeholder="Task name" onblur="savePanelField('title',this.value)"></textarea>
+
+    <!-- Field rows -->
+    <div class="td-fields">
+      <div class="td-field-row">
+        <span class="td-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+        <span class="td-label">Assignee</span>
+        <select id="tp-owner" class="td-value" onchange="savePanelField('owner',this.value)"><option value="">— Anyone —</option></select>
+      </div>
+      <div class="td-field-row">
+        <span class="td-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+        <span class="td-label">Due date</span>
+        <input type="date" id="tp-due" class="td-value" onchange="savePanelField('due',this.value)">
+      </div>
+      <div class="td-field-row">
+        <span class="td-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg></span>
+        <span class="td-label">Priority</span>
+        <select id="tp-priority" class="td-value" onchange="savePanelField('priority',this.value)">
+          <option>P0</option><option>P1</option><option>P2</option><option>P3</option>
+        </select>
+      </div>
+      <div class="td-field-row">
+        <span class="td-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span>
+        <span class="td-label">Status</span>
+        <select id="tp-status" class="td-value" onchange="savePanelField('status',this.value)">
           <option value="inbox">Inbox</option><option value="todo">To Do</option>
           <option value="doing">Doing</option><option value="blocked">Blocked</option><option value="done">Done</option>
         </select>
-        <select id="tp-priority" style="border:1px solid var(--border);padding:3px 8px;font-size:11px;font-weight:700;border-radius:99px;cursor:pointer" onchange="savePanelField('priority',this.value)">
-          <option>P0</option><option>P1</option><option>P2</option><option>P3</option>
+      </div>
+      <div class="td-field-row">
+        <span class="td-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></span>
+        <span class="td-label">Department</span>
+        <input id="tp-dept" class="td-value" placeholder="—" onblur="savePanelField('department',this.value)">
+      </div>
+      <div class="td-field-row">
+        <span class="td-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></span>
+        <span class="td-label">Repeat</span>
+        <select id="tp-repeat" class="td-value" onchange="savePanelField('repeat',this.value)">
+          <option value="">None</option><option>daily</option><option>weekly</option><option>biweekly</option><option>monthly</option>
         </select>
-        <select id="tp-owner" style="border:1px solid var(--border);padding:3px 8px;font-size:11px;border-radius:99px;cursor:pointer;max-width:120px" onchange="savePanelField('owner',this.value)"></select>
-        <input type="date" id="tp-due" style="border:1px solid var(--border);padding:3px 8px;font-size:11px;border-radius:99px;cursor:pointer;width:auto" onchange="savePanelField('due',this.value)">
+      </div>
+      <div class="td-field-row">
+        <span class="td-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+        <span class="td-label">Follow-up</span>
+        <input type="date" id="tp-followup" class="td-value" onchange="savePanelField('followup',this.value)">
+      </div>
+      <div class="td-field-row">
+        <span class="td-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
+        <span class="td-label">Source</span>
+        <select id="tp-source" class="td-value" onchange="savePanelField('source',this.value)">
+          <option>ad-hoc</option><option>meeting</option><option>email</option><option>chat</option><option>notebook</option>
+        </select>
       </div>
     </div>
-    <button class="btn btn-icon" onclick="closeTaskPanel()" style="flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-  </div>
-  <div class="tp-tabs">
-    <div class="tp-tab active" onclick="tpTab('details',this)">Details</div>
-    <div class="tp-tab" onclick="tpTab('subtasks',this)">Subtasks <span id="tp-subtask-count" style="font-size:10px;background:var(--surface2);border-radius:99px;padding:1px 6px;margin-left:2px"></span></div>
-    <div class="tp-tab" onclick="tpTab('comments',this)">Comments <span id="tp-comment-count" style="font-size:10px;background:var(--surface2);border-radius:99px;padding:1px 6px;margin-left:2px"></span></div>
-    <div class="tp-tab" onclick="tpTab('activity',this)">Activity</div>
-  </div>
-  <div class="tp-body">
-    <!-- Details tab -->
-    <div id="tp-tab-details">
-      <div class="tp-section">
-        <div class="tp-section-title">Description</div>
-        <textarea id="tp-details" style="min-height:80px;font-size:13px" placeholder="Add a description..." onblur="savePanelField('details',this.value)"></textarea>
-      </div>
-      <div class="tp-section">
-        <div class="form-grid">
-          <div class="form-row"><label>Department</label><input id="tp-dept" placeholder="Department" onblur="savePanelField('department',this.value)"></div>
-          <div class="form-row"><label>Follow-up Date</label><input type="date" id="tp-followup" onchange="savePanelField('followup',this.value)"></div>
-          <div class="form-row"><label>Source</label>
-            <select id="tp-source" onchange="savePanelField('source',this.value)">
-              <option>ad-hoc</option><option>meeting</option><option>email</option><option>chat</option><option>notebook</option>
-            </select>
-          </div>
-          <div class="form-row"><label>Repeat</label>
-            <select id="tp-repeat" onchange="savePanelField('repeat',this.value)">
-              <option value="">None</option><option>daily</option><option>weekly</option><option>biweekly</option><option>monthly</option>
-            </select>
-          </div>
-        </div>
-      </div>
-      <div class="tp-section">
-        <div class="tp-section-title">Notes / Updates</div>
-        <div id="tp-notes-list" style="margin-bottom:8px"></div>
-        <div style="display:flex;gap:8px">
-          <input id="tp-note-input" placeholder="Add an update..." style="flex:1;font-size:13px" onkeydown="if(event.key==='Enter')addTaskNote()">
-          <button class="btn btn-secondary btn-sm" onclick="addTaskNote()">Post</button>
-        </div>
-      </div>
+
+    <!-- Description -->
+    <div class="td-section">
+      <div class="td-section-hd"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg> Description</div>
+      <textarea id="tp-details" class="td-desc" placeholder="What is this task about?..." onblur="savePanelField('details',this.value)"></textarea>
     </div>
-    <!-- Subtasks tab -->
-    <div id="tp-tab-subtasks" class="hidden">
+
+    <!-- Subtasks -->
+    <div class="td-section">
+      <div class="td-section-hd"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> Subtasks <span id="tp-subtask-count" class="td-badge"></span></div>
       <div class="progress-bar-wrap"><div class="progress-bar-fill" id="tp-progress" style="width:0%"></div></div>
       <div id="tp-subtasks-list"></div>
-      <div style="display:flex;gap:8px;margin-top:10px;align-items:center">
-        <input id="tp-subtask-input" placeholder="Add subtask..." style="flex:1;font-size:13px" onkeydown="if(event.key==='Enter')addSubtask()">
+      <div class="td-subtask-add">
+        <input id="tp-subtask-input" placeholder="Type to add a subtask..." onkeydown="if(event.key==='Enter')addSubtask()">
         <select id="tp-subtask-assignee" style="width:110px;font-size:12px"></select>
-        <button class="btn btn-primary btn-sm" onclick="addSubtask()">Add</button>
+        <button class="btn btn-secondary btn-sm" onclick="addSubtask()">Add</button>
       </div>
     </div>
-    <!-- Comments tab -->
-    <div id="tp-tab-comments" class="hidden">
-      <div id="tp-comments-list"></div>
-      <div style="margin-top:12px">
-        <textarea id="tp-comment-input" placeholder="Write a comment... (@name to mention)" style="min-height:64px;font-size:13px;margin-bottom:6px"></textarea>
-        <button class="btn btn-primary btn-sm" onclick="addComment()">Post Comment</button>
+
+    <!-- Updates / Notes -->
+    <div class="td-section">
+      <div class="td-section-hd"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Updates</div>
+      <div id="tp-notes-list" style="margin-bottom:8px"></div>
+      <div style="display:flex;gap:8px">
+        <input id="tp-note-input" placeholder="Add an update..." style="flex:1;font-size:13px" onkeydown="if(event.key==='Enter')addTaskNote()">
+        <button class="btn btn-secondary btn-sm" onclick="addTaskNote()">Post</button>
       </div>
     </div>
-    <!-- Activity tab -->
-    <div id="tp-tab-activity" class="hidden">
-      <div id="tp-activity-list"></div>
+
+    <!-- Comments / Activity -->
+    <div class="td-section">
+      <div class="tp-tabs">
+        <div class="tp-tab active" onclick="tpBottomTab('comments',this)">Comments <span id="tp-comment-count" class="td-badge"></span></div>
+        <div class="tp-tab" onclick="tpBottomTab('activity',this)">All activity</div>
+      </div>
+      <div id="tp-tab-comments">
+        <div id="tp-comments-list"></div>
+        <div style="display:flex;gap:10px;margin-top:14px;align-items:flex-start">
+          <div class="avatar" style="width:28px;height:28px;font-size:11px;flex-shrink:0" id="tp-my-avatar">?</div>
+          <div style="flex:1">
+            <textarea id="tp-comment-input" placeholder="Add a comment..." style="min-height:60px;font-size:13px;margin-bottom:6px"></textarea>
+            <button class="btn btn-primary btn-sm" onclick="addComment()">Post</button>
+          </div>
+        </div>
+      </div>
+      <div id="tp-tab-activity" class="hidden">
+        <div id="tp-activity-list"></div>
+      </div>
     </div>
   </div>
 </div>
 
 <!-- ==================== MODALS ==================== -->
-<!-- Task Modal -->
-<div class="modal-overlay hidden" id="task-modal">
-  <div class="modal">
-    <div class="modal-header">
-      <span id="task-modal-title">New Task</span>
-      <button class="btn btn-icon" style="margin-left:auto" onclick="closeModal('task-modal')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-    </div>
-    <div class="modal-body">
-      <input type="hidden" id="task-id">
-      <div class="form-row"><label>Title *</label><input id="t-title" placeholder="Task title"></div>
-      <div class="form-row"><label>Details</label><textarea id="t-details" placeholder="Context, acceptance criteria..."></textarea></div>
-      <div class="form-grid">
-        <div class="form-row"><label>Owner</label><select id="t-owner"><option value="ME">ME</option></select></div>
-        <div class="form-row"><label>Priority</label>
-          <select id="t-priority"><option>P0</option><option selected>P1</option><option>P2</option><option>P3</option></select>
-        </div>
-        <div class="form-row"><label>Due Date</label><input type="date" id="t-due"></div>
-        <div class="form-row"><label>Status</label>
-          <select id="t-status"><option>inbox</option><option>todo</option><option>doing</option><option>blocked</option><option>done</option></select>
-        </div>
-        <div class="form-row"><label>Department</label><input id="t-dept" placeholder="Department"></div>
-        <div class="form-row"><label>Repeat</label>
-          <select id="t-repeat"><option value="">None</option><option>daily</option><option>weekly</option><option>biweekly</option><option>monthly</option></select>
-        </div>
-      </div>
-      <div class="form-row"><label>Tags (comma separated)</label><input id="t-tags" placeholder="design, urgent"></div>
-      <div class="form-row">
-        <label>Subtasks</label>
-        <div id="modal-subtasks" style="margin-bottom:6px"></div>
-        <div style="display:flex;gap:6px">
-          <input id="t-subtask-input" placeholder="Add a subtask…" style="flex:1" onkeydown="if(event.key==='Enter'){event.preventDefault();addModalSubtask()}">
-          <button class="btn btn-secondary btn-sm" type="button" onclick="addModalSubtask()">Add</button>
-        </div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="closeModal('task-modal')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveTask()">Save Task</button>
-    </div>
-  </div>
-</div>
-
 <!-- Meeting Modal -->
 <div class="modal-overlay hidden" id="meeting-modal">
   <div class="modal" style="max-width:800px">
@@ -924,6 +938,7 @@ const ICONS = {
   'camera':           '<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',
   'check':            '<polyline points="20 6 9 17 4 12"/>',
   'check-circle':     '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>',
+  'circle':           '<circle cx="12" cy="12" r="10"/>',
   'check-square':     '<polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
   'clock':            '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
   'crosshair':        '<circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/>',
@@ -1678,97 +1693,9 @@ async function runInit() {
 }
 
 // ===================== TASK CRUD =====================
-function showQuickAdd() { showTaskModal(); }
-
-function showTaskModal(id) {
-  document.getElementById('task-id').value = id || '';
-  document.getElementById('task-modal-title').textContent = id ? 'Edit Task' : 'New Task';
-  S._modalSubtasks = [];
-  renderModalSubtasks();
-  if (id) {
-    const t = S.tasks.find(x => x.id === id);
-    if (t) {
-      document.getElementById('t-title').value   = t.title || '';
-      document.getElementById('t-details').value = t.details || '';
-      document.getElementById('t-owner').value   = t.owner || 'ME';
-      document.getElementById('t-priority').value= t.priority || 'P1';
-      document.getElementById('t-due').value     = t.due || '';
-      document.getElementById('t-status').value  = t.status || 'todo';
-      document.getElementById('t-dept').value    = t.department || '';
-      document.getElementById('t-repeat').value  = t.repeat || '';
-    }
-  } else {
-    document.getElementById('t-title').value = '';
-    document.getElementById('t-details').value = '';
-    document.getElementById('t-due').value = '';
-    document.getElementById('t-dept').value = S.myDept;
-  }
-  openModal('task-modal');
-}
-
-function addModalSubtask() {
-  const input = document.getElementById('t-subtask-input');
-  const title = input.value.trim();
-  if (!title) return;
-  S._modalSubtasks = S._modalSubtasks || [];
-  S._modalSubtasks.push({ title, done: false });
-  input.value = '';
-  renderModalSubtasks();
-}
-
-function removeModalSubtask(i) {
-  S._modalSubtasks.splice(i, 1);
-  renderModalSubtasks();
-}
-
-function renderModalSubtasks() {
-  const list = S._modalSubtasks || [];
-  document.getElementById('modal-subtasks').innerHTML = list.map((s, i) =>
-    `<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--border)">
-      <span style="flex:1;font-size:13px">${esc(s.title)}</span>
-      <button class="btn btn-icon" style="width:20px;height:20px" onclick="removeModalSubtask(${i})"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-    </div>`
-  ).join('');
-}
-
+function showQuickAdd() { openTaskPanel('new'); }
+function showTaskModal(id) { openTaskPanel(id || 'new'); }
 function editTask(id) { openTaskPanel(id); }
-
-async function saveTask() {
-  const title = document.getElementById('t-title').value;
-  if (!title) { toast('Title required'); return; }
-  const id = document.getElementById('task-id').value;
-  const data = {
-    title, details: document.getElementById('t-details').value,
-    owner: document.getElementById('t-owner').value,
-    priority: document.getElementById('t-priority').value,
-    due: document.getElementById('t-due').value,
-    status: document.getElementById('t-status').value,
-    department: document.getElementById('t-dept').value,
-    repeat: document.getElementById('t-repeat').value,
-    source: 'ad-hoc',
-  };
-  // optimistic update
-  if (id) {
-    const idx = S.tasks.findIndex(x => x.id === id);
-    if (idx >= 0) Object.assign(S.tasks[idx], data);
-    data.id = id;
-  } else {
-    const tempId = 'T-tmp-' + Date.now();
-    S.tasks.unshift({ ...data, id: tempId, created: todayStr() });
-  }
-  closeModal('task-modal');
-  toast(id ? 'Task updated!' : 'Task created!');
-  renderViewNow(S.currentView);
-  // sync in background
-  const saved = id ? await api('updateTask', {}, data) : await api('createTask', {}, data);
-  // save modal subtasks for new tasks
-  const subtasks = S._modalSubtasks || [];
-  if (!id && saved?.id && subtasks.length) {
-    await Promise.all(subtasks.map(s => api('createSubtask', {}, { taskId: saved.id, title: s.title, done: false })));
-  }
-  S._modalSubtasks = [];
-  if (saved && !id) { S._lastLoaded = 0; loadData(true).then(() => renderViewNow(S.currentView)); }
-}
 
 function toggleDone(id) {
   const t = S.tasks.find(x => x.id === id);
@@ -2034,45 +1961,73 @@ function toggleDark() {
 const var_ok = '#137333', var_warn = '#e37400', var_danger = '#c5221f';
 
 // ===================== TASK PANEL =====================
-const TP = { taskId: null, task: null, subtasks: [], comments: [], activity: [], currentTab: 'details' };
+const TP = { taskId: null, task: {}, subtasks: [], comments: [], activity: [] };
 
 async function openTaskPanel(id) {
-  TP.taskId = id;
-  TP.task = S.tasks.find(t => t.id === id) || {};
+  const isNew = id === 'new';
+  TP.taskId  = isNew ? null : id;
+  TP.task    = isNew ? { priority: 'P1', status: 'todo', source: 'ad-hoc', department: S.myDept } : (S.tasks.find(t => t.id === id) || {});
+  TP.subtasks = []; TP.comments = []; TP.activity = [];
   document.getElementById('task-panel-overlay').classList.add('open');
   document.getElementById('task-panel').classList.add('open');
   document.body.style.overflow = 'hidden';
+  // Reset scroll
+  document.querySelector('.tp-body').scrollTop = 0;
   populatePanelFields();
-  tpTab('details', document.querySelector('.tp-tab'));
-  await Promise.all([loadSubtasks(), loadComments(), loadActivity()]);
+  renderSubtasks(); renderComments(); renderActivity();
+  updateCompleteBtnState();
+  // Bottom tab default
+  tpBottomTab('comments', document.querySelector('.tp-tab'));
+  if (!isNew) {
+    await Promise.all([loadSubtasks(), loadComments(), loadActivity()]);
+  }
 }
 
-function closeTaskPanel() {
+async function closeTaskPanel() {
+  // New task mode — create on close if title filled
+  if (TP.taskId === null) {
+    const title = document.getElementById('tp-title').value.trim();
+    if (title) {
+      const data = { ...TP.task, title };
+      const tempId = 'T-tmp-' + Date.now();
+      S.tasks.unshift({ ...data, id: tempId, created: todayStr() });
+      renderViewNow(S.currentView);
+      toast('Task created!');
+      const saved = await api('createTask', {}, data);
+      if (saved?.id && TP.subtasks.length) {
+        await Promise.all(TP.subtasks.map(s => api('createSubtask', {}, { taskId: saved.id, title: s.title, done: false })));
+      }
+      S._lastLoaded = 0; loadData(true).then(() => renderViewNow(S.currentView));
+    }
+  }
   document.getElementById('task-panel-overlay').classList.remove('open');
   document.getElementById('task-panel').classList.remove('open');
   document.body.style.overflow = '';
-  loadData().then(() => renderView(S.currentView));
+  if (TP.taskId) { loadData().then(() => renderViewNow(S.currentView)); }
 }
 
 function populatePanelFields() {
   const t = TP.task;
-  document.getElementById('tp-title').value   = t.title || '';
-  document.getElementById('tp-details').value = t.details || '';
-  document.getElementById('tp-status').value  = t.status || 'inbox';
-  document.getElementById('tp-priority').value= t.priority || 'P1';
-  document.getElementById('tp-due').value     = t.due || '';
-  document.getElementById('tp-dept').value    = t.department || '';
-  document.getElementById('tp-followup').value= t.followup || '';
-  document.getElementById('tp-source').value  = t.source || 'ad-hoc';
-  document.getElementById('tp-repeat').value  = t.repeat || '';
-  // Populate owner select
+  document.getElementById('tp-title').value    = t.title || '';
+  document.getElementById('tp-details').value  = t.details || '';
+  document.getElementById('tp-status').value   = t.status || 'todo';
+  document.getElementById('tp-priority').value = t.priority || 'P1';
+  document.getElementById('tp-due').value      = t.due || '';
+  document.getElementById('tp-dept').value     = t.department || '';
+  document.getElementById('tp-followup').value = t.followup || '';
+  document.getElementById('tp-source').value   = t.source || 'ad-hoc';
+  document.getElementById('tp-repeat').value   = t.repeat || '';
+  // Populate owner + subtask assignee selects
   const names = [S.myName, ...S.team.map(m => m.name)].filter(Boolean);
-  ['tp-owner','tp-subtask-assignee'].forEach(id => {
-    const sel = document.getElementById(id);
+  ['tp-owner','tp-subtask-assignee'].forEach(selId => {
+    const sel = document.getElementById(selId);
     if (!sel) return;
     sel.innerHTML = '<option value="">— Anyone —</option>' + names.map(n => `<option>${esc(n)}</option>`).join('');
-    if (id === 'tp-owner') sel.value = t.owner || '';
+    if (selId === 'tp-owner') sel.value = t.owner || '';
   });
+  // My avatar
+  const av = document.getElementById('tp-my-avatar');
+  if (av) av.textContent = (S.myName || '?')[0].toUpperCase();
   // Notes
   const notes = Array.isArray(t.notes) ? t.notes : (t.notes ? String(t.notes).split('|') : []);
   document.getElementById('tp-notes-list').innerHTML = notes.filter(Boolean).map(n =>
@@ -2080,20 +2035,40 @@ function populatePanelFields() {
   ).join('');
 }
 
-function tpTab(tab, el) {
-  TP.currentTab = tab;
-  document.querySelectorAll('.tp-tab').forEach(t => t.classList.remove('active'));
+function tpBottomTab(tab, el) {
+  document.querySelectorAll('.tp-tabs .tp-tab').forEach(t => t.classList.remove('active'));
   if (el) el.classList.add('active');
-  ['details','subtasks','comments','activity'].forEach(t =>
-    document.getElementById('tp-tab-' + t).classList.toggle('hidden', t !== tab)
-  );
+  document.getElementById('tp-tab-comments').classList.toggle('hidden', tab !== 'comments');
+  document.getElementById('tp-tab-activity').classList.toggle('hidden', tab !== 'activity');
 }
 
 function savePanelField(field, value) {
-  if (!TP.taskId) return;
-  TP.task[field] = value; // optimistic
+  TP.task[field] = value;
+  if (!TP.taskId) return; // new task — collect locally, save all on close
   logActivityLocal(field, value);
-  api('updateTask', {}, { id: TP.taskId, [field]: value }); // fire and forget
+  api('updateTask', {}, { id: TP.taskId, [field]: value });
+}
+
+function togglePanelDone() {
+  const isDone = TP.task.status !== 'done';
+  TP.task.status = isDone ? 'done' : 'todo';
+  document.getElementById('tp-status').value = TP.task.status;
+  updateCompleteBtnState();
+  if (TP.taskId) {
+    logActivityLocal('status', TP.task.status);
+    api('updateTask', {}, { id: TP.taskId, status: TP.task.status });
+  }
+  // also update local task list optimistically
+  const t = S.tasks.find(x => x.id === TP.taskId);
+  if (t) { t.status = TP.task.status; renderViewNow(S.currentView); }
+}
+
+function updateCompleteBtnState() {
+  const btn = document.getElementById('tp-complete-btn');
+  if (!btn) return;
+  const isDone = TP.task.status === 'done';
+  btn.className = 'btn btn-sm' + (isDone ? ' btn-done' : '');
+  btn.innerHTML = ic(isDone ? 'check-circle' : 'circle', 13) + '&nbsp;' + (isDone ? 'Completed' : 'Mark complete');
 }
 
 function logActivityLocal(field, value) {
@@ -2138,6 +2113,7 @@ async function addSubtask() {
   TP.subtasks.push({ id: tempId, title, assignee, done: false });
   renderSubtasks();
   input.value = '';
+  if (!TP.taskId) return; // new task — subtasks saved on close
   logActivityLocal('subtask', `Added subtask "${title}"`);
   const sub = await api('createSubtask', {}, { taskId: TP.taskId, title, assignee, done: false });
   if (sub) { const i = TP.subtasks.findIndex(x => x.id === tempId); if (i >= 0) TP.subtasks[i] = sub; }
