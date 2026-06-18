@@ -346,8 +346,16 @@ function getRows(ss, sheetName, filter) {
 }
 
 function createRow(ss, sheetName, data) {
-  const sh = ss.getSheetByName(sheetName);
-  if (!sh) throw new Error('Sheet not found: ' + sheetName);
+  let sh = ss.getSheetByName(sheetName);
+  if (!sh) {
+    sh = ss.insertSheet(sheetName);
+    const headers = SHEETS[sheetName];
+    if (headers) {
+      sh.getRange(1, 1, 1, headers.length).setValues([headers]);
+      sh.getRange(1, 1, 1, headers.length).setBackground('#1a73e8').setFontColor('#ffffff').setFontWeight('bold');
+      sh.setFrozenRows(1);
+    }
+  }
   const headers = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
   if (!data.id) data.id = generateId(sheetName);
   if (!data.created) data.created = new Date().toISOString();
