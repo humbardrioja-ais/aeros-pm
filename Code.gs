@@ -317,9 +317,9 @@ const SHEETS = {
   FootageVideoLink: ['id','footageId','videoId','notes','created'],
   VideoReviews: ['id','videoId','reviewer','status','comments','reviewedAt','created'],
   VideoPosts: ['id','videoId','platform','postUrl','scheduledDate','postedDate','status','metrics','created','updated'],
-  MeetingNotes: ['id','title','date','attendees','department','rawNotes','summary','status','created','updated'],
+  MeetingNotes: ['id','title','type','date','attendees','department','rawNotes','summary','status','taskCount','doneCount','pinned','created','updated'],
   MeetingAttendees: ['id','meetingId','memberId','memberName','role','created'],
-  MeetingItems: ['id','meetingId','type','title','assignee','department','dueDate','status','taskId','created'],
+  MeetingItems: ['id','meetingId','type','title','assignee','department','dueDate','priority','status','taskId','created'],
   Rules: ['id','name','trigger','conditions','actions','active','created','updated'],
   Audit: ['id','actor','action','entity','entityId','before','after','created']
 };
@@ -610,6 +610,15 @@ function submitForm(ss, body) {
 }
 
 function saveMeetingItems(ss, body) {
+  // normalise field names from either old or new frontend
+  if (body.items) body.items = body.items.map(i => ({
+    ...i,
+    type:      i.type      || i.item_type || 'task',
+    assignee:  i.assignee  || i.owner     || '',
+    dueDate:   i.dueDate   || i.due       || '',
+    priority:  i.priority  || 'P2',
+  }));
+
   const meetingId = body.meetingId || body.meeting_id;
   const items = body.items || [];
   const created = [];
@@ -617,10 +626,17 @@ function saveMeetingItems(ss, body) {
     const row = createRow(ss, 'MeetingItems', { ...item, meetingId });
     if (item.type === 'task') {
       const task = createRow(ss, 'Tasks', {
-        title: item.title, owner: item.assignee, department: item.department,
-        due: item.dueDate, source: 'meeting', status: 'inbox', priority: 'P2'
+        title: item.title, owner: item.assignee, department: item.department || body.department,
+        due: item.dueDate, source: 'meeting', status: 'inbox', priority: item.priority || 'P2',
+        requested_by: body.requestedBy || ''
       });
       updateRow(ss, 'MeetingItems', { id: row.id, taskId: task.id });
+      row.taskId = task.id;
+    } else if (item.type === 'event') {
+      createRow(ss, 'Events', {
+        title: item.title, date: item.dueDate, department: item.department || body.department,
+        description: 'Extracted from meeting notes'
+      });
     }
     created.push(row);
   }
@@ -630,43 +646,64 @@ function saveMeetingItems(ss, body) {
 function parseMeetingNotes(ss, body) {
   const text = body.text || body.raw_notes || '';
   const team = getRows(ss, 'Team');
-  const teamNames = team.map(m => m.name.toLowerCase());
-  const deptMap = {};
-  team.forEach(m => { deptMap[m.name.toLowerCase()] = m.department; });
+  const teamNames = team.map(m => ({ name: m.name, lower: m.name.toLowerCase(), dept: m.department }));
 
   const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
   const items = [];
 
-  // Action verbs that signal tasks
-  const taskVerbs = /\b(action|todo|task|assign|follow.?up|complete|finish|prepare|send|update|review|schedule|book|check|create|build|fix|resolve|ensure|coordinate|confirm|arrange|draft)\b/i;
-  // Date patterns
-  const datePattern = /\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*\.?\s+\d{1,2}|\b\d{1,2}[\/\-]\d{1,2}([\/\-]\d{2,4})?|\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday|next week|tomorrow|today)\b|\bby\s+(end of|eod|cob)?\s*(the\s+)?(week|month|day)?\b/i;
-  // Event signals
+  const taskVerbs = /\b(action|todo|task|assign|follow.?up|complete|finish|prepare|send|update|review|schedule|book|check|create|build|fix|resolve|ensure|coordinate|confirm|arrange|draft|submit|deliver|share)\b/i;
   const eventVerbs = /\b(meeting|call|sync|event|webinar|session|workshop|conference|presentation|demo|interview|launch)\b/i;
+  const datePattern = /\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*\.?\s*\d{1,2}(?:st|nd|rd|th)?|\b\d{1,2}[\/\-]\d{1,2}(?:[\/\-]\d{2,4})?|\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday|next\s+week|this\s+week|tomorrow|today|eod|eow|end\s+of\s+(week|month|day))\b|\bby\s+\w+/i;
+  const bulletPat = /^[-*•►▪✓☐□]\s+|^\d+[.)]\s+/;
+  const colonAssign = /^([A-Za-z][A-Za-z\s]{1,20}):\s+(.+)$/; // "Sara: send the report"
 
-  lines.forEach((line, idx) => {
-    const linesClean = line.replace(/^[-*•►▪]\s*/, '').replace(/^\d+\.\s*/, '');
+  lines.forEach(line => {
+    const isBullet = bulletPat.test(line);
+    const clean = line.replace(bulletPat, '').trim();
+    if (!clean || clean.length < 5) return;
 
-    // Find assignee
-    let assignee = '', department = '';
-    teamNames.forEach(name => {
-      if (linesClean.toLowerCase().includes(name)) {
-        const member = team.find(m => m.name.toLowerCase() === name);
-        if (member) { assignee = member.name; department = member.department; }
+    // Detect colon-assignment pattern "Name: action"
+    let assignee = '', department = '', titleText = clean;
+    const colonMatch = clean.match(colonAssign);
+    if (colonMatch) {
+      const possible = colonMatch[1].trim().toLowerCase();
+      const member = teamNames.find(m => m.lower === possible || m.lower.startsWith(possible));
+      if (member) {
+        assignee = member.name; department = member.dept;
+        titleText = colonMatch[2].trim();
       }
-    });
+    }
+    // Fallback: name anywhere in the line
+    if (!assignee) {
+      for (const m of teamNames) {
+        if (clean.toLowerCase().includes(m.lower)) {
+          assignee = m.name; department = m.dept; break;
+        }
+      }
+    }
 
-    // Extract due date
-    const dateMatch = linesClean.match(datePattern);
-    const dueDate = dateMatch ? dateMatch[0] : '';
+    const dateMatch = clean.match(datePattern);
+    const due = dateMatch ? dateMatch[0] : '';
 
-    if (taskVerbs.test(linesClean)) {
-      items.push({ type: 'task', title: linesClean, assignee, department, dueDate, confirmed: false });
-    } else if (eventVerbs.test(linesClean)) {
-      items.push({ type: 'event', title: linesClean, assignee, department, date: dueDate, confirmed: false });
+    // Confidence: sum signals (0-100)
+    const hasVerb  = taskVerbs.test(clean) ? 30 : 0;
+    const hasBullet= isBullet ? 25 : 0;
+    const hasDate  = due ? 20 : 0;
+    const hasOwner = assignee ? 15 : 0;
+    const hasColon = colonMatch && assignee ? 10 : 0;
+    const confidence = Math.min(100, hasVerb + hasBullet + hasDate + hasOwner + hasColon);
+
+    if (confidence < 20) return; // skip very unlikely lines
+
+    if (eventVerbs.test(clean) && !taskVerbs.test(clean)) {
+      items.push({ item_type: 'event', title: titleText, owner: assignee, department, due, confidence });
+    } else if (taskVerbs.test(clean) || isBullet) {
+      items.push({ item_type: 'task', title: titleText, owner: assignee, department, due, priority: 'P2', confidence });
     }
   });
 
+  // Sort by confidence desc
+  items.sort((a, b) => b.confidence - a.confidence);
   return { ok: true, items };
 }
 
