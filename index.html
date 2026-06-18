@@ -795,9 +795,10 @@ select.td-value{appearance:auto}
         <div style="font-weight:600;font-size:13px;margin-bottom:12px" id="feed-form-title">Add public iCal feed</div>
         <input type="hidden" id="feed-edit-id">
         <div class="form-row"><label>URL *</label><input id="feed-url" placeholder="https://calendar.google.com/...ical/..." style="font-size:12px"></div>
+        <div class="form-row"><label>Name</label><input id="feed-name" placeholder="My Calendar"></div>
         <div class="form-grid">
-          <div class="form-row"><label>Name</label><input id="feed-name" placeholder="My Calendar"></div>
-          <div class="form-row"><label>Color</label><input type="color" id="feed-color" value="#0b8043" style="height:36px;padding:2px 4px"></div>
+          <div class="form-row"><label>Bg Color</label><input type="color" id="feed-color" value="#0b8043" style="height:36px;padding:2px 4px;width:100%"></div>
+          <div class="form-row"><label>Text Color</label><input type="color" id="feed-text-color" value="#0b8043" style="height:36px;padding:2px 4px;width:100%"></div>
         </div>
         <div class="form-row"><label>Visible to</label>
           <select id="feed-visibility" style="flex:1;padding:7px 10px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--text);font-size:13px">
@@ -815,7 +816,7 @@ select.td-value{appearance:auto}
 </div>
 
 <!-- Feed Event Detail -->
-<div class="modal-overlay hidden" id="feed-event-modal">
+<div class="modal-overlay hidden" id="feed-event-modal" onclick="if(event.target===this)closeModal('feed-event-modal')">
   <div class="modal" style="max-width:420px">
     <div class="modal-header">
       <span id="fevm-title" style="font-weight:700;font-size:15px"></span>
@@ -1300,7 +1301,7 @@ function renderCalendar() {
       });
       out += `<div class="cal-cell ${isToday?'today':''}" onclick="calDayClick('${dateStr}')">
         <div class="cal-day-num">${d}</div>
-        ${dayFeedEvs.map(e => { const gi=(S.feedEvents||[]).indexOf(e); return `<div class="cal-event-feed" title="${esc(e.title)}" onclick="event.stopPropagation();showFeedEventDetail(${gi})" style="background:${e._feedColor||'#0b8043'}22;color:${e._feedColor||'#0b8043'};border-left:2px solid ${e._feedColor||'#0b8043'}">${e.time?`<span style="opacity:.7;font-size:9px">${e.time.slice(0,5)}</span> `:''}${esc(e.title)}</div>`; }).join('')}
+        ${dayFeedEvs.map(e => { const gi=(S.feedEvents||[]).indexOf(e); return `<div class="cal-event-feed" title="${esc(e.title)}" onclick="event.stopPropagation();showFeedEventDetail(${gi})" style="background:${e._feedColor||'#0b8043'}22;color:${e._feedTextColor||e._feedColor||'#0b8043'};border-left:2px solid ${e._feedColor||'#0b8043'}">${e.time?`<span style="opacity:.7;font-size:9px">${e.time.slice(0,5)}</span> `:''}${esc(e.title)}</div>`; }).join('')}
         ${dayEvents.map(e=>`<div class="cal-event cal-event-custom" title="${esc(e.title)}" onclick="event.stopPropagation();showEventModal('${e.id}')" style="${e.color?`background:${e.color}20;color:${e.color}`:''}"> ${e.time?`<span style="opacity:.7;font-size:10px">${e.time.slice(0,5)}</span> `:''}${esc(e.title)}</div>`).join('')}
         ${dayTasks.map(t=>`<div class="cal-event ${t.status==='done'?'done-event':''}" title="${esc(t.title)}" onclick="event.stopPropagation();openTaskPanel('${t.id}')">${esc(t.title)}</div>`).join('')}
         ${dayLeaves.map(l=>`<div class="cal-event leave-event">${l.employee}</div>`).join('')}
@@ -1423,6 +1424,7 @@ function showFeedPanel() {
   document.getElementById('feed-url').value = '';
   document.getElementById('feed-name').value = '';
   document.getElementById('feed-color').value = '#0b8043';
+  document.getElementById('feed-text-color').value = '#0b8043';
   document.getElementById('feed-panel-overlay').classList.remove('hidden');
 }
 
@@ -1460,9 +1462,10 @@ function startFeedEdit(id) {
   if (!f) return;
   document.getElementById('feed-edit-id').value = id;
   document.getElementById('feed-url').value        = f.url || '';
-  document.getElementById('feed-name').value       = f.name || '';
-  document.getElementById('feed-color').value      = f.color || '#0b8043';
-  document.getElementById('feed-visibility').value = f.visibility || 'all';
+  document.getElementById('feed-name').value        = f.name || '';
+  document.getElementById('feed-color').value       = f.color || '#0b8043';
+  document.getElementById('feed-text-color').value  = f.text_color || f.color || '#0b8043';
+  document.getElementById('feed-visibility').value  = f.visibility || 'all';
   document.getElementById('feed-form-title').textContent = 'Edit subscription';
   document.getElementById('feed-submit-btn').textContent = 'Save changes';
   document.getElementById('feed-cancel-edit').style.display = '';
@@ -1474,6 +1477,7 @@ function cancelFeedEdit() {
   document.getElementById('feed-url').value = '';
   document.getElementById('feed-name').value = '';
   document.getElementById('feed-color').value = '#0b8043';
+  document.getElementById('feed-text-color').value = '#0b8043';
   document.getElementById('feed-form-title').textContent = 'Add public iCal feed';
   document.getElementById('feed-submit-btn').textContent = 'Subscribe';
   document.getElementById('feed-cancel-edit').style.display = 'none';
@@ -1485,21 +1489,22 @@ async function saveFeedForm() {
   if (!url) { toast('Paste an iCal URL first'); return; }
   const name       = document.getElementById('feed-name').value.trim() || 'My Calendar';
   const color      = document.getElementById('feed-color').value || '#0b8043';
+  const text_color = document.getElementById('feed-text-color').value || color;
   const visibility = document.getElementById('feed-visibility').value || 'all';
 
   if (editId) {
     // update existing
     const f = (S.feeds||[]).find(x => x.id === editId);
-    if (f) { f.name = name; f.url = url; f.color = color; f.visibility = visibility; }
+    if (f) { f.name = name; f.url = url; f.color = color; f.text_color = text_color; f.visibility = visibility; }
     renderFeedList();
     cancelFeedEdit();
     toast('Saved — refreshing events…');
-    await api('updateFeed', {}, { id: editId, name, url, color, visibility });
+    await api('updateFeed', {}, { id: editId, name, url, color, text_color, visibility });
     if (f) { await fetchFeedEvents(f); renderFeedList(); renderCalendar(); }
   } else {
     // create new
     toast('Adding feed…');
-    const feed = { name, url, color, enabled: 'true', visibility };
+    const feed = { name, url, color, text_color, enabled: 'true', visibility };
     const saved = await api('createFeed', {}, feed);
     if (!saved || !saved.id) { toast('Failed to save feed'); return; }
     feed.id = saved.id;
@@ -1538,7 +1543,7 @@ async function fetchFeedEvents(feed) {
   const result = await api('fetchIcal', { url: feed.url, feedId: feed.id });
   if (result && result.events) {
     S.feedEvents = (S.feedEvents||[]).filter(e => e._feedId !== feed.id);
-    S.feedEvents.push(...result.events.map(e => ({ ...e, _feedId: feed.id, _feedColor: feed.color, _feedName: feed.name })));
+    S.feedEvents.push(...result.events.map(e => ({ ...e, _feedId: feed.id, _feedColor: feed.color, _feedTextColor: feed.text_color || feed.color, _feedName: feed.name })));
     feed.last_synced = new Date().toISOString();
     return;
   }
@@ -1547,7 +1552,7 @@ async function fetchFeedEvents(feed) {
   if (result && result.raw && result.raw.includes('BEGIN:VCALENDAR')) {
     const events = parseIcalClient(result.raw, feed.id);
     S.feedEvents = (S.feedEvents||[]).filter(e => e._feedId !== feed.id);
-    S.feedEvents.push(...events.map(e => ({ ...e, _feedId: feed.id, _feedColor: feed.color, _feedName: feed.name })));
+    S.feedEvents.push(...events.map(e => ({ ...e, _feedId: feed.id, _feedColor: feed.color, _feedTextColor: feed.text_color || feed.color, _feedName: feed.name })));
     feed.last_synced = new Date().toISOString();
     return;
   }
@@ -2369,7 +2374,7 @@ function globalSearch(q) {
 function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
 function closeModal(id) {
   const el = document.getElementById(id);
-  if (el) { el.classList.add('hidden'); if (!el.id.match(/^(task|meeting|mission|leave|shoot|project|cdo)-modal$/)) el.remove(); }
+  if (el) { el.classList.add('hidden'); if (!el.id.match(/^(event|feed-event|task|meeting|mission|leave|shoot|project|cdo)-modal$/)) el.remove(); }
 }
 
 function toast(msg, type='ok') {
