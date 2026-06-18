@@ -738,9 +738,20 @@ function initSheet() {
 function fetchIcal(url, feedId) {
   if (!url) return { error: 'No URL provided' };
   try {
-    const resp = UrlFetchApp.fetch(url, { muteHttpExceptions: true, followRedirects: true });
-    if (resp.getResponseCode() !== 200) return { error: 'HTTP ' + resp.getResponseCode() };
+    const opts = {
+      muteHttpExceptions: true,
+      followRedirects: true,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; GoogleAppsScript; +https://script.google.com)',
+        'Accept': 'text/calendar, application/calendar+xml, */*'
+      }
+    };
+    const resp = UrlFetchApp.fetch(url, opts);
+    const code = resp.getResponseCode();
+    if (code !== 200) return { error: 'HTTP ' + code };
     const text = resp.getContentText('UTF-8');
+    if (!text || text.trim().length === 0) return { error: 'Empty response — calendar may not be public. In Google Calendar, go to Settings → your calendar → "Make available to public" and use the iCal link.' };
+    if (!text.includes('BEGIN:VCALENDAR')) return { error: 'Not a valid iCal feed (missing BEGIN:VCALENDAR). Check the URL.' };
     const events = parseIcal(text, feedId);
     return { events, count: events.length };
   } catch(e) {

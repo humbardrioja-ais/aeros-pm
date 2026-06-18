@@ -799,15 +799,17 @@ select.td-value{appearance:auto}
     </div>
     <div style="flex:1;overflow-y:auto;padding:20px">
       <div id="feed-list"></div>
-      <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:20px">
-        <div style="font-weight:600;font-size:13px;margin-bottom:12px">Add public iCal feed</div>
+      <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:20px" id="feed-form-section">
+        <div style="font-weight:600;font-size:13px;margin-bottom:12px" id="feed-form-title">Add public iCal feed</div>
+        <input type="hidden" id="feed-edit-id">
         <div class="form-row"><label>URL *</label><input id="feed-url" placeholder="https://calendar.google.com/...ical/..." style="font-size:12px"></div>
         <div class="form-grid">
           <div class="form-row"><label>Name</label><input id="feed-name" placeholder="My Calendar"></div>
           <div class="form-row"><label>Color</label><input type="color" id="feed-color" value="#0b8043" style="height:36px;padding:2px 4px"></div>
         </div>
         <div style="display:flex;gap:8px;margin-top:4px">
-          <button class="btn btn-primary" style="flex:1" onclick="addFeed()">Subscribe</button>
+          <button class="btn btn-secondary" id="feed-cancel-edit" style="display:none" onclick="cancelFeedEdit()">Cancel</button>
+          <button class="btn btn-primary" style="flex:1" id="feed-submit-btn" onclick="saveFeedForm()">Subscribe</button>
         </div>
       </div>
     </div>
@@ -1418,30 +1420,67 @@ function renderFeedList() {
       </div>
       <div class="feed-actions">
         <button class="btn btn-icon btn-sm" title="${enabled?'Disable':'Enable'}" onclick="toggleFeed('${f.id}',${!enabled})">${enabled?'◉':'○'}</button>
+        <button class="btn btn-icon btn-sm" title="Edit" onclick="startFeedEdit('${f.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
         <button class="btn btn-icon btn-sm" title="Delete" onclick="deleteFeed('${f.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>
       </div>
     </div>`;
   }).join('');
 }
 
-async function addFeed() {
-  const url = document.getElementById('feed-url').value.trim();
+function startFeedEdit(id) {
+  const f = (S.feeds||[]).find(x => x.id === id);
+  if (!f) return;
+  document.getElementById('feed-edit-id').value = id;
+  document.getElementById('feed-url').value   = f.url || '';
+  document.getElementById('feed-name').value  = f.name || '';
+  document.getElementById('feed-color').value = f.color || '#0b8043';
+  document.getElementById('feed-form-title').textContent = 'Edit subscription';
+  document.getElementById('feed-submit-btn').textContent = 'Save changes';
+  document.getElementById('feed-cancel-edit').style.display = '';
+  document.getElementById('feed-form-section').scrollIntoView({ behavior: 'smooth' });
+}
+
+function cancelFeedEdit() {
+  document.getElementById('feed-edit-id').value = '';
+  document.getElementById('feed-url').value = '';
+  document.getElementById('feed-name').value = '';
+  document.getElementById('feed-color').value = '#0b8043';
+  document.getElementById('feed-form-title').textContent = 'Add public iCal feed';
+  document.getElementById('feed-submit-btn').textContent = 'Subscribe';
+  document.getElementById('feed-cancel-edit').style.display = 'none';
+}
+
+async function saveFeedForm() {
+  const editId = document.getElementById('feed-edit-id').value;
+  const url    = document.getElementById('feed-url').value.trim();
   if (!url) { toast('Paste an iCal URL first'); return; }
   const name  = document.getElementById('feed-name').value.trim() || 'My Calendar';
   const color = document.getElementById('feed-color').value || '#0b8043';
-  toast('Adding feed…');
-  const feed = { name, url, color, enabled: 'true' };
-  const saved = await api('createFeed', {}, feed);
-  if (!saved || !saved.id) { toast('Failed to save feed'); return; }
-  feed.id = saved.id;
-  S.feeds = [...(S.feeds||[]), feed];
-  renderFeedList();
-  document.getElementById('feed-url').value = '';
-  document.getElementById('feed-name').value = '';
-  toast('Feed added — loading events…');
-  await fetchFeedEvents(feed);
-  renderFeedList();
-  renderCalendar();
+
+  if (editId) {
+    // update existing
+    const f = (S.feeds||[]).find(x => x.id === editId);
+    if (f) { f.name = name; f.url = url; f.color = color; }
+    renderFeedList();
+    cancelFeedEdit();
+    toast('Saved — refreshing events…');
+    await api('updateFeed', {}, { id: editId, name, url, color });
+    if (f) { await fetchFeedEvents(f); renderFeedList(); renderCalendar(); }
+  } else {
+    // create new
+    toast('Adding feed…');
+    const feed = { name, url, color, enabled: 'true' };
+    const saved = await api('createFeed', {}, feed);
+    if (!saved || !saved.id) { toast('Failed to save feed'); return; }
+    feed.id = saved.id;
+    S.feeds = [...(S.feeds||[]), feed];
+    renderFeedList();
+    cancelFeedEdit();
+    toast('Feed added — loading events…');
+    await fetchFeedEvents(feed);
+    renderFeedList();
+    renderCalendar();
+  }
 }
 
 async function toggleFeed(id, enable) {
