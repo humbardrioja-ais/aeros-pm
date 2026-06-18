@@ -104,13 +104,48 @@ label{font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bot
 
 /* ===================== VIEWS ===================== */
 /* List */
-.task-row{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
+.task-row{display:grid;grid-template-columns:26px 1fr 68px 90px 120px 90px 100px;align-items:center;gap:0;padding:0 4px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;min-height:40px}
 .task-row:hover{background:var(--surface2)}
-.task-check{width:18px;height:18px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s}
+.task-row.done-row{opacity:.6}
+.task-check{width:18px;height:18px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;margin:0 4px}
 .task-check.done{background:var(--ok);border-color:var(--ok);color:#fff}
-.task-title{flex:1;font-size:13.5px}
+.task-title-cell{padding:6px 8px 6px 0;overflow:hidden}
+.task-title{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
 .task-title.done{text-decoration:line-through;color:var(--text2)}
+.task-sub-hint{font-size:10px;color:var(--text3);margin-top:1px}
 .task-meta{display:flex;align-items:center;gap:8px;flex-shrink:0}
+/* list header */
+.list-header{display:grid;grid-template-columns:26px 1fr 68px 90px 120px 90px 100px;align-items:center;gap:0;padding:0 4px;border-bottom:2px solid var(--border);background:var(--surface2);position:sticky;top:0;z-index:5}
+.list-col-hd{padding:8px 8px 8px 0;font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;cursor:pointer;display:flex;align-items:center;gap:3px;white-space:nowrap;user-select:none}
+.list-col-hd:hover{color:var(--text)}
+.list-col-hd.sorted{color:var(--brand)}
+.sort-arrow{font-size:9px;opacity:.6}
+/* group headers */
+.list-group-hd{display:flex;align-items:center;gap:8px;padding:8px 12px 6px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);background:var(--bg);border-bottom:1px solid var(--border);cursor:pointer;user-select:none}
+.list-group-hd:hover{background:var(--surface2)}
+.list-group-count{background:var(--surface2);border-radius:99px;padding:1px 7px;font-size:10px;font-weight:600;color:var(--text3)}
+.list-group-arrow{font-size:10px;color:var(--text3);transition:transform .15s;margin-right:2px}
+.list-group-arrow.collapsed{transform:rotate(-90deg)}
+/* toolbar chips */
+.list-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:0 0 14px;position:sticky;top:-20px;background:var(--bg);z-index:10;padding-top:4px}
+.list-filter-chip{display:flex;align-items:center;gap:4px;border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:500;cursor:pointer;color:var(--text2);background:var(--surface);transition:all .12s;white-space:nowrap}
+.list-filter-chip:hover{border-color:var(--brand);color:var(--brand)}
+.list-filter-chip.active{border-color:var(--brand);background:var(--brand);color:#fff}
+.list-filter-chip select{border:none;outline:none;background:transparent;font-size:12px;font-weight:500;color:inherit;cursor:pointer;padding:0;font-family:inherit}
+.list-search{flex:1;min-width:160px;max-width:280px;border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:13px;outline:none;background:var(--surface);color:var(--text)}
+.list-search:focus{border-color:var(--brand)}
+/* due date coloring */
+.due-overdue{color:#c5221f;font-weight:600}
+.due-today{color:#e37400;font-weight:600}
+.due-soon{color:#e37400}
+.due-normal{color:var(--text2)}
+/* status micro-chips in list */
+.st-chip{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;white-space:nowrap}
+.st-chip.inbox{background:var(--surface2);color:var(--text3)}
+.st-chip.todo{background:#f3f4f6;color:#374151}
+.st-chip.doing{background:#dbeafe;color:#1d4ed8}
+.st-chip.blocked{background:#fee2e2;color:#991b1b}
+.st-chip.done{background:#dcfce7;color:#15803d}
 
 /* Board */
 .board{display:flex;gap:14px;overflow-x:auto;padding-bottom:8px}
@@ -385,6 +420,58 @@ select.td-value{appearance:auto}
 .activity-time{font-size:11px;color:var(--text3);white-space:nowrap;flex-shrink:0}
 /* Complete button done state */
 .btn-done{background:var(--ok)!important;color:#fff!important;border-color:var(--ok)!important}
+/* Subtask mini-drawer */
+#subtask-drawer{position:fixed;top:0;right:0;bottom:0;width:400px;max-width:100vw;background:var(--surface);z-index:502;display:flex;flex-direction:column;box-shadow:-6px 0 32px rgba(0,0,0,.22);transform:translateX(100%);transition:transform .25s cubic-bezier(.4,0,.2,1);border-left:1px solid var(--border)}
+#subtask-drawer.open{transform:translateX(0)}
+.sd-bar{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0;background:var(--surface2)}
+.sd-crumb{font-size:11px;color:var(--text3);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sd-crumb strong{color:var(--text2)}
+.sd-body{flex:1;overflow-y:auto;padding:16px 18px 32px}
+.sd-title{font-size:18px;font-weight:700;line-height:1.3;border:none;outline:none;background:transparent;color:var(--text);width:100%;resize:none;font-family:inherit;padding:0 0 10px;display:block;border-bottom:1px solid transparent}
+.sd-title:focus{border-bottom-color:var(--brand)}
+.sd-check-row{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.sd-done-chip{padding:5px 14px;border-radius:99px;font-size:12px;font-weight:600;cursor:pointer;border:2px solid;transition:all .15s}
+.sd-done-chip.todo{background:#f3f4f6;color:#374151;border-color:#e5e7eb}
+.sd-done-chip.done{background:#dcfce7;color:#15803d;border-color:#22c55e}
+.sd-field{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border)}
+.sd-field:last-of-type{border-bottom:none}
+.sd-icon{width:30px;text-align:center;color:var(--text3);font-size:13px;flex-shrink:0}
+.sd-label{width:80px;font-size:12px;color:var(--text2);flex-shrink:0}
+.sd-val{flex:1;border:none;outline:none;background:transparent;font-size:13px;color:var(--text);font-family:inherit}
+.sd-val:hover,.sd-val:focus{background:var(--surface2);border-radius:4px;padding:1px 4px;margin:-1px -4px}
+select.sd-val{appearance:auto;cursor:pointer}
+/* Status chips in task drawer */
+.tp-status-chips{display:flex;gap:6px;flex-wrap:wrap;padding:8px 0 4px}
+.tp-status-chip{padding:5px 12px;border-radius:99px;font-size:12px;font-weight:600;cursor:pointer;border:2px solid transparent;transition:all .15s;opacity:.55}
+.tp-status-chip.active{opacity:1}
+.tp-status-chip[data-s="inbox"]{background:var(--surface2);color:var(--text3);border-color:var(--border)}
+.tp-status-chip[data-s="inbox"].active{opacity:1;border-color:var(--text3)}
+.tp-status-chip[data-s="todo"]{background:#f3f4f6;color:#374151;border-color:#e5e7eb}
+.tp-status-chip[data-s="todo"].active{background:#e5e7eb;border-color:#6b7280}
+.tp-status-chip[data-s="doing"]{background:#dbeafe;color:#1d4ed8;border-color:#93c5fd}
+.tp-status-chip[data-s="doing"].active{background:#bfdbfe;border-color:#3b82f6}
+.tp-status-chip[data-s="blocked"]{background:#fee2e2;color:#991b1b;border-color:#fca5a5}
+.tp-status-chip[data-s="blocked"].active{background:#fecaca;border-color:#ef4444}
+.tp-status-chip[data-s="done"]{background:#dcfce7;color:#15803d;border-color:#86efac}
+.tp-status-chip[data-s="done"].active{background:#bbf7d0;border-color:#22c55e}
+/* Blocked reason row */
+.tp-blocked-reason{display:none!important;padding:8px 0 4px}
+.tp-blocked-reason.visible{display:flex!important}
+.tp-blocked-reason textarea{width:100%;font-size:12px;font-family:inherit;border:1px solid #fca5a5;border-radius:6px;padding:7px 10px;background:#fff5f5;color:#991b1b;resize:none;outline:none;min-height:48px}
+.tp-blocked-reason textarea:focus{border-color:#ef4444}
+.tp-blocked-reason textarea::placeholder{color:#fca5a5}
+/* Priority chips */
+.tp-priority-chips{display:flex;gap:5px;padding:2px 0}
+.tp-priority-chip{padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700;cursor:pointer;border:2px solid transparent;opacity:.5;transition:all .15s}
+.tp-priority-chip.active{opacity:1}
+.tp-priority-chip[data-p="P0"]{background:#fee2e2;color:#dc2626;border-color:#fca5a5}
+.tp-priority-chip[data-p="P0"].active{border-color:#dc2626}
+.tp-priority-chip[data-p="P1"]{background:#ffedd5;color:#c2410c;border-color:#fdba74}
+.tp-priority-chip[data-p="P1"].active{border-color:#ea580c}
+.tp-priority-chip[data-p="P2"]{background:#fef9c3;color:#854d0e;border-color:#fde68a}
+.tp-priority-chip[data-p="P2"].active{border-color:#ca8a04}
+.tp-priority-chip[data-p="P3"]{background:#f3f4f6;color:#6b7280;border-color:#e5e7eb}
+.tp-priority-chip[data-p="P3"].active{border-color:#9ca3af}
 /* Feed subscription list */
 .feed-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius);border:1px solid var(--border);margin-bottom:8px;background:var(--surface)}
 .feed-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
@@ -472,15 +559,57 @@ select.td-value{appearance:auto}
       </div>
 
       <div id="view-list" class="hidden">
-        <div class="flex items-center justify-between mb-16">
-          <div class="flex gap-8">
-            <select id="list-filter-status" onchange="renderList()"><option value="">All Status</option><option>inbox</option><option>todo</option><option>doing</option><option>blocked</option><option>done</option></select>
-            <select id="list-filter-priority" onchange="renderList()"><option value="">All Priority</option><option>P0</option><option>P1</option><option>P2</option><option>P3</option></select>
-            <select id="list-filter-owner" onchange="renderList()"><option value="">All Owners</option></select>
+        <!-- Toolbar -->
+        <div class="list-toolbar">
+          <input class="list-search" id="list-search" placeholder="Search tasks..." oninput="renderList()">
+          <div class="list-filter-chip" id="lfc-status">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <select id="list-filter-status" onchange="renderList()">
+              <option value="">All status</option>
+              <option value="inbox">Inbox</option><option value="todo">To do</option>
+              <option value="doing">Doing</option><option value="blocked">Blocked</option><option value="done">Done</option>
+            </select>
           </div>
-          <button class="btn btn-primary" onclick="showTaskModal()">+ Task</button>
+          <div class="list-filter-chip" id="lfc-priority">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+            <select id="list-filter-priority" onchange="renderList()">
+              <option value="">All priority</option>
+              <option>P0</option><option>P1</option><option>P2</option><option>P3</option>
+            </select>
+          </div>
+          <div class="list-filter-chip" id="lfc-owner">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <select id="list-filter-owner" onchange="renderList()"><option value="">All owners</option></select>
+          </div>
+          <div class="list-filter-chip" id="lfc-dept">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+            <select id="list-filter-dept" onchange="renderList()"><option value="">All teams</option></select>
+          </div>
+          <div class="list-filter-chip" id="lfc-group">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            <select id="list-group-by" onchange="renderList()">
+              <option value="">No grouping</option>
+              <option value="status">Group by status</option>
+              <option value="priority">Group by priority</option>
+              <option value="owner">Group by owner</option>
+              <option value="department">Group by team</option>
+            </select>
+          </div>
+          <div style="flex:1"></div>
+          <button class="btn btn-secondary btn-sm" onclick="listToggleDone()" id="list-show-done-btn" style="font-size:12px">Show done</button>
+          <button class="btn btn-primary" onclick="openTaskPanel('new')">+ Task</button>
         </div>
-        <div class="panel">
+        <!-- Table -->
+        <div class="panel" style="overflow:hidden;padding:0">
+          <div class="list-header">
+            <div></div>
+            <div class="list-col-hd" onclick="listSort('title')" id="lhd-title">Task <span class="sort-arrow" id="lsa-title"></span></div>
+            <div class="list-col-hd" onclick="listSort('priority')" id="lhd-priority">Priority <span class="sort-arrow" id="lsa-priority"></span></div>
+            <div class="list-col-hd" onclick="listSort('status')" id="lhd-status">Status <span class="sort-arrow" id="lsa-status"></span></div>
+            <div class="list-col-hd" onclick="listSort('owner')" id="lhd-owner">Owner <span class="sort-arrow" id="lsa-owner"></span></div>
+            <div class="list-col-hd" onclick="listSort('due')" id="lhd-due">Due <span class="sort-arrow" id="lsa-due"></span></div>
+            <div class="list-col-hd" onclick="listSort('department')" id="lhd-dept">Team <span class="sort-arrow" id="lsa-dept"></span></div>
+          </div>
           <div id="task-list-body"></div>
         </div>
       </div>
@@ -787,20 +916,31 @@ select.td-value{appearance:auto}
         <span class="td-label">Due date</span>
         <input type="date" id="tp-due" class="td-value" onchange="savePanelField('due',this.value)">
       </div>
-      <div class="td-field-row">
+      <div class="td-field-row" style="padding:6px 0">
         <span class="td-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg></span>
         <span class="td-label">Priority</span>
-        <select id="tp-priority" class="td-value" onchange="savePanelField('priority',this.value)">
-          <option>P0</option><option>P1</option><option>P2</option><option>P3</option>
-        </select>
+        <div class="tp-priority-chips" id="tp-priority-chips">
+          <span class="tp-priority-chip" data-p="P0" onclick="setTaskPriority('P0')">P0</span>
+          <span class="tp-priority-chip" data-p="P1" onclick="setTaskPriority('P1')">P1</span>
+          <span class="tp-priority-chip" data-p="P2" onclick="setTaskPriority('P2')">P2</span>
+          <span class="tp-priority-chip" data-p="P3" onclick="setTaskPriority('P3')">P3</span>
+        </div>
       </div>
-      <div class="td-field-row">
+      <div class="td-field-row" style="flex-wrap:wrap;padding:4px 0">
         <span class="td-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span>
         <span class="td-label">Status</span>
-        <select id="tp-status" class="td-value" onchange="savePanelField('status',this.value)">
-          <option value="inbox">Inbox</option><option value="todo">To Do</option>
-          <option value="doing">Doing</option><option value="blocked">Blocked</option><option value="done">Done</option>
-        </select>
+        <div class="tp-status-chips" id="tp-status-chips">
+          <span class="tp-status-chip" data-s="inbox" onclick="setTaskStatus('inbox')">Inbox</span>
+          <span class="tp-status-chip" data-s="todo" onclick="setTaskStatus('todo')">To Do</span>
+          <span class="tp-status-chip" data-s="doing" onclick="setTaskStatus('doing')">Doing</span>
+          <span class="tp-status-chip" data-s="blocked" onclick="setTaskStatus('blocked')">Blocked</span>
+          <span class="tp-status-chip" data-s="done" onclick="setTaskStatus('done')">Done</span>
+        </div>
+      </div>
+      <div class="td-field-row tp-blocked-reason" id="tp-blocked-reason-row" style="flex-wrap:wrap">
+        <span class="td-icon" style="align-self:flex-start;padding-top:10px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>
+        <span class="td-label" style="color:#dc2626;align-self:flex-start;padding-top:10px">Blocker</span>
+        <div style="flex:1;padding:6px 10px 8px 0"><textarea id="tp-blocked-reason" placeholder="What is blocking this? (helps manager's dashboard)" rows="2" onblur="savePanelField('blocked_reason',this.value)"></textarea></div>
       </div>
       <div class="td-field-row">
         <span class="td-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></span>
@@ -875,6 +1015,40 @@ select.td-value{appearance:auto}
       <div id="tp-tab-activity" class="hidden">
         <div id="tp-activity-list"></div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SUBTASK DRAWER ==================== -->
+<div id="subtask-drawer">
+  <div class="sd-bar">
+    <button class="btn btn-icon" onclick="closeSubtaskDrawer()" title="Back to task"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+    <div class="sd-crumb" id="sd-crumb">Subtask</div>
+    <button class="btn btn-icon" onclick="closeSubtaskDrawer()" title="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="sd-body">
+    <textarea class="sd-title" id="sd-title" rows="2" placeholder="Subtask name" onblur="saveSubtaskField('title',this.value)"></textarea>
+    <div class="sd-check-row">
+      <div class="sd-done-chip todo" id="sd-done-chip" onclick="toggleSubtaskDrawerDone()">
+        <span id="sd-done-label">Mark done</span>
+      </div>
+    </div>
+    <div style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:20px">
+      <div class="sd-field">
+        <span class="sd-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+        <span class="sd-label">Assignee</span>
+        <select id="sd-assignee" class="sd-val" onchange="saveSubtaskField('assignee',this.value)"><option value="">— Anyone —</option></select>
+      </div>
+      <div class="sd-field">
+        <span class="sd-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+        <span class="sd-label">Due date</span>
+        <input type="date" id="sd-due" class="sd-val" onchange="saveSubtaskField('due',this.value)">
+      </div>
+    </div>
+    <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px">Notes</div>
+    <textarea id="sd-notes" placeholder="Any notes for this subtask..." style="width:100%;font-size:13px;min-height:80px;font-family:inherit;border:1px solid var(--border);border-radius:var(--radius);padding:8px;background:var(--surface2);color:var(--text);resize:vertical;outline:none" onblur="saveSubtaskField('notes',this.value)"></textarea>
+    <div id="sd-delete-wrap" style="margin-top:24px;border-top:1px solid var(--border);padding-top:16px">
+      <button class="btn btn-sm" style="color:var(--danger);border-color:var(--danger)" onclick="deleteSubtaskFromDrawer()">Delete subtask</button>
     </div>
   </div>
 </div>
@@ -1313,29 +1487,156 @@ function statCard(num, label, cls='') {
 }
 
 // ===================== LIST VIEW =====================
+// ── List view state ──
+if (!window.LS) window.LS = { sortField: 'due', sortDir: 1, showDone: false, collapsed: {} };
+
+function listSort(field) {
+  if (LS.sortField === field) LS.sortDir *= -1;
+  else { LS.sortField = field; LS.sortDir = 1; }
+  renderList();
+}
+
+function listToggleDone() {
+  LS.showDone = !LS.showDone;
+  const btn = document.getElementById('list-show-done-btn');
+  if (btn) { btn.textContent = LS.showDone ? 'Hide done' : 'Show done'; btn.classList.toggle('btn-primary', LS.showDone); btn.classList.toggle('btn-secondary', !LS.showDone); }
+  renderList();
+}
+
 function renderList() {
+  const q        = (document.getElementById('list-search')?.value || '').toLowerCase();
   const status   = document.getElementById('list-filter-status')?.value || '';
   const priority = document.getElementById('list-filter-priority')?.value || '';
   const owner    = document.getElementById('list-filter-owner')?.value || '';
-  let tasks = S.tasks;
-  if (status)   tasks = tasks.filter(t => t.status === status);
-  if (priority) tasks = tasks.filter(t => t.priority === priority);
-  if (owner)    tasks = tasks.filter(t => t.owner === owner);
-  document.getElementById('task-list-body').innerHTML = tasks.length
-    ? tasks.map(taskRowHtml).join('')
-    : '<div class="empty-state"><div class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><p>No tasks found</p></div>';
+  const dept     = document.getElementById('list-filter-dept')?.value || '';
+  const groupBy  = document.getElementById('list-group-by')?.value || '';
+
+  // Populate owner & dept selects
+  const ownerSel = document.getElementById('list-filter-owner');
+  const deptSel  = document.getElementById('list-filter-dept');
+  if (ownerSel && ownerSel.options.length <= 1) {
+    const names = [...new Set(S.tasks.map(t => t.owner).filter(Boolean))].sort();
+    names.forEach(n => { const o = document.createElement('option'); o.value = n; o.textContent = n; ownerSel.appendChild(o); });
+  }
+  if (deptSel && deptSel.options.length <= 1) {
+    const depts = [...new Set(S.tasks.map(t => t.department).filter(Boolean))].sort();
+    depts.forEach(d => { const o = document.createElement('option'); o.value = d; o.textContent = d; deptSel.appendChild(o); });
+  }
+
+  // Filter
+  let tasks = S.tasks.filter(t => {
+    if (!LS.showDone && t.status === 'done') return false;
+    if (status   && t.status     !== status)   return false;
+    if (priority && t.priority   !== priority) return false;
+    if (owner    && t.owner      !== owner)    return false;
+    if (dept     && t.department !== dept)     return false;
+    if (q && !((t.title||'').toLowerCase().includes(q) || (t.details||'').toLowerCase().includes(q) || (t.owner||'').toLowerCase().includes(q))) return false;
+    return true;
+  });
+
+  // Sort
+  const pOrder = { P0:0, P1:1, P2:2, P3:3 };
+  const sOrder = { inbox:0, todo:1, doing:2, blocked:3, done:4 };
+  tasks = [...tasks].sort((a, b) => {
+    let av, bv;
+    if (LS.sortField === 'priority') { av = pOrder[a.priority]??9; bv = pOrder[b.priority]??9; }
+    else if (LS.sortField === 'status') { av = sOrder[a.status]??9; bv = sOrder[b.status]??9; }
+    else if (LS.sortField === 'due') { av = a.due||'9999'; bv = b.due||'9999'; }
+    else { av = (a[LS.sortField]||'').toLowerCase(); bv = (b[LS.sortField]||'').toLowerCase(); }
+    return av < bv ? -LS.sortDir : av > bv ? LS.sortDir : 0;
+  });
+
+  // Update sort arrow indicators
+  ['title','priority','status','owner','due','dept'].forEach(f => {
+    const mapF = f === 'dept' ? 'department' : f;
+    const el = document.getElementById('lsa-' + f);
+    if (el) el.textContent = LS.sortField === mapF ? (LS.sortDir === 1 ? ' ▲' : ' ▼') : '';
+    const hd = document.getElementById('lhd-' + f);
+    if (hd) hd.classList.toggle('sorted', LS.sortField === mapF);
+  });
+
+  // Update filter chip active state
+  [['status','lfc-status'],['priority','lfc-priority'],['owner','lfc-owner'],['dept','lfc-dept']].forEach(([key, id]) => {
+    const val = key === 'dept' ? dept : key === 'owner' ? owner : key === 'status' ? status : priority;
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('active', !!val);
+  });
+
+  const body = document.getElementById('task-list-body');
+  if (!tasks.length) {
+    body.innerHTML = '<div class="empty-state"><p>No tasks match the current filters</p></div>';
+    return;
+  }
+
+  if (!groupBy) {
+    body.innerHTML = tasks.map(taskRowHtml).join('');
+    return;
+  }
+
+  // Grouped view
+  const groupLabels = {
+    status:     { inbox:'Inbox', todo:'To Do', doing:'Doing', blocked:'Blocked', done:'Done' },
+    priority:   { P0:'P0 — Critical', P1:'P1 — Important', P2:'P2 — Normal', P3:'P3 — Low' },
+  };
+  const groups = {};
+  tasks.forEach(t => {
+    const key = t[groupBy] || '(none)';
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(t);
+  });
+
+  // Sort group keys
+  const keyOrder = groupBy === 'priority' ? ['P0','P1','P2','P3'] : groupBy === 'status' ? ['inbox','todo','doing','blocked','done'] : null;
+  const sortedKeys = keyOrder ? keyOrder.filter(k => groups[k]) : Object.keys(groups).sort();
+  if (groups['(none)'] && !sortedKeys.includes('(none)')) sortedKeys.push('(none)');
+
+  body.innerHTML = sortedKeys.map(key => {
+    const label = (groupLabels[groupBy] || {})[key] || key;
+    const collapsed = LS.collapsed[groupBy + ':' + key];
+    const rows = collapsed ? '' : groups[key].map(taskRowHtml).join('');
+    return `<div class="list-group-hd" onclick="listToggleGroup('${groupBy}','${key}')">
+      <span class="list-group-arrow ${collapsed ? 'collapsed' : ''}">▼</span>
+      <span>${esc(label)}</span>
+      <span class="list-group-count">${groups[key].length}</span>
+    </div>${rows}`;
+  }).join('');
+}
+
+function listToggleGroup(groupBy, key) {
+  const k = groupBy + ':' + key;
+  LS.collapsed[k] = !LS.collapsed[k];
+  renderList();
 }
 
 function taskRowHtml(t) {
   const done = t.status === 'done';
-  return `<div class="task-row" onclick="editTask('${t.id}')">
-    <div class="task-check ${done ? 'done' : ''}" onclick="event.stopPropagation();toggleDone('${t.id}')">${done ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg>' : ''}</div>
-    <div class="task-title ${done ? 'done' : ''}">${esc(t.title)}</div>
-    <div class="task-meta">
-      ${t.priority ? `<span class="badge badge-${t.priority.toLowerCase()}">${t.priority}</span>` : ''}
-      ${t.due ? `<span class="text-sm text-muted">${t.due}</span>` : ''}
-      ${t.owner ? avatarHtml(t.owner, 24) : ''}
+  const today = todayStr();
+  let dueCls = 'due-normal', dueLabel = '';
+  if (t.due) {
+    dueLabel = t.due;
+    if (t.due < today) dueCls = 'due-overdue';
+    else if (t.due === today) dueCls = 'due-today';
+    else {
+      const diff = (new Date(t.due) - new Date(today)) / 86400000;
+      if (diff <= 3) dueCls = 'due-soon';
+    }
+    // Format nicely
+    const d = new Date(t.due + 'T00:00:00');
+    dueLabel = d.toLocaleDateString('en-US', { month:'short', day:'numeric' });
+    if (d.getFullYear() !== new Date().getFullYear()) dueLabel += ' ' + d.getFullYear();
+  }
+  const chkSvg = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+  return `<div class="task-row ${done ? 'done-row' : ''}" onclick="editTask('${t.id}')">
+    <div class="task-check ${done ? 'done' : ''}" onclick="event.stopPropagation();toggleDone('${t.id}')">${done ? chkSvg : ''}</div>
+    <div class="task-title-cell">
+      <span class="task-title${done ? ' done' : ''}">${esc(t.title)}</span>
+      ${t.department ? `<span class="task-sub-hint">${esc(t.department)}</span>` : ''}
     </div>
+    <div style="padding:0 8px 0 0">${t.priority ? `<span class="badge badge-${t.priority.toLowerCase()}">${t.priority}</span>` : '<span style="color:var(--text3);font-size:12px">—</span>'}</div>
+    <div style="padding:0 8px 0 0"><span class="st-chip ${t.status||'inbox'}">${t.status||'inbox'}</span></div>
+    <div style="padding:0 8px 0 0;display:flex;align-items:center;gap:6px;overflow:hidden">${t.owner ? avatarHtml(t.owner,22) : ''}<span style="font-size:12px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(t.owner||'—')}</span></div>
+    <div class="${dueCls}" style="font-size:12px;padding:0 8px 0 0;white-space:nowrap">${dueLabel || '<span style="color:var(--text3)">—</span>'}</div>
+    <div style="font-size:12px;color:var(--text2);padding:0 8px 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(t.department||'—')}</div>
   </div>`;
 }
 
@@ -3003,23 +3304,47 @@ async function closeTaskPanel() {
       S._lastLoaded = 0; loadData(true).then(() => renderViewNow(S.currentView));
     }
   }
+  closeSubtaskDrawer();
   document.getElementById('task-panel-overlay').classList.remove('open');
   document.getElementById('task-panel').classList.remove('open');
   document.body.style.overflow = '';
   if (TP.taskId) { loadData().then(() => renderViewNow(S.currentView)); }
 }
 
+function setTaskStatus(s) {
+  savePanelField('status', s);
+  document.querySelectorAll('#tp-status-chips .tp-status-chip').forEach(c => c.classList.toggle('active', c.dataset.s === s));
+  const blockedRow = document.getElementById('tp-blocked-reason-row');
+  blockedRow.classList.toggle('visible', s === 'blocked');
+  if (s === 'blocked') setTimeout(() => document.getElementById('tp-blocked-reason').focus(), 50);
+  const t = S.tasks.find(x => x.id === TP.taskId);
+  if (t) { t.status = s; renderViewNow(S.currentView); }
+}
+
+function setTaskPriority(p) {
+  savePanelField('priority', p);
+  document.querySelectorAll('#tp-priority-chips .tp-priority-chip').forEach(c => c.classList.toggle('active', c.dataset.p === p));
+}
+
 function populatePanelFields() {
   const t = TP.task;
   document.getElementById('tp-title').value    = t.title || '';
   document.getElementById('tp-details').value  = t.details || '';
-  document.getElementById('tp-status').value   = t.status || 'todo';
-  document.getElementById('tp-priority').value = t.priority || 'P1';
   document.getElementById('tp-due').value      = t.due || '';
   document.getElementById('tp-dept').value     = t.department || '';
   document.getElementById('tp-followup').value = t.followup || '';
   document.getElementById('tp-source').value   = t.source || 'ad-hoc';
   document.getElementById('tp-repeat').value   = t.repeat || '';
+  // Status chips
+  const status = t.status || 'todo';
+  document.querySelectorAll('#tp-status-chips .tp-status-chip').forEach(c => c.classList.toggle('active', c.dataset.s === status));
+  const blockedRow = document.getElementById('tp-blocked-reason-row');
+  blockedRow.classList.toggle('visible', status === 'blocked');
+  const br = document.getElementById('tp-blocked-reason');
+  if (br) br.value = t.blocked_reason || '';
+  // Priority chips
+  const prio = t.priority || 'P1';
+  document.querySelectorAll('#tp-priority-chips .tp-priority-chip').forEach(c => c.classList.toggle('active', c.dataset.p === prio));
   // Populate owner + subtask assignee selects
   const names = [S.myName, ...S.team.map(m => m.name)].filter(Boolean);
   ['tp-owner','tp-subtask-assignee'].forEach(selId => {
@@ -3053,17 +3378,10 @@ function savePanelField(field, value) {
 }
 
 function togglePanelDone() {
-  const isDone = TP.task.status !== 'done';
-  TP.task.status = isDone ? 'done' : 'todo';
-  document.getElementById('tp-status').value = TP.task.status;
+  const newStatus = TP.task.status !== 'done' ? 'done' : 'todo';
+  setTaskStatus(newStatus);
   updateCompleteBtnState();
-  if (TP.taskId) {
-    logActivityLocal('status', TP.task.status);
-    api('updateTask', {}, { id: TP.taskId, status: TP.task.status });
-  }
-  // also update local task list optimistically
-  const t = S.tasks.find(x => x.id === TP.taskId);
-  if (t) { t.status = TP.task.status; renderViewNow(S.currentView); }
+  if (TP.taskId) logActivityLocal('status', newStatus);
 }
 
 function updateCompleteBtnState() {
@@ -3098,10 +3416,9 @@ function renderSubtasks() {
         const isDone = s.done === 'true' || s.done === true;
         return `<div class="subtask-row">
           <div class="subtask-check ${isDone ? 'done' : ''}" onclick="toggleSubtask('${s.id}',${!isDone})">${isDone ? '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg>' : ''}</div>
-          <div class="subtask-title ${isDone ? 'done' : ''}">${esc(s.title)}</div>
+          <div class="subtask-title ${isDone ? 'done' : ''}" style="cursor:pointer;flex:1" onclick="openSubtaskDrawer('${s.id}')">${esc(s.title)}</div>
           <div class="subtask-assignee">${s.assignee ? avatarHtml(s.assignee, 20) : ''}</div>
           <div style="font-size:11px;color:var(--text3);width:70px;text-align:right">${s.due || ''}</div>
-          <button class="btn btn-icon" style="width:24px;height:24px;font-size:12px;color:var(--text3)" onclick="deleteSubtask('${s.id}')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
         </div>`;
       }).join('')
     : '<div class="empty-state" style="padding:24px 0"><p>No subtasks yet</p></div>';
@@ -3223,6 +3540,77 @@ function schedulePost(videoId, platform) {
 }
 
 // ===================== INIT =====================
+// ── Subtask Drawer ──
+const SD = { subtaskId: null };
+
+function openSubtaskDrawer(id) {
+  const s = TP.subtasks.find(x => x.id === id);
+  if (!s) return;
+  SD.subtaskId = id;
+  // Populate crumb
+  const taskTitle = TP.task?.title || 'Task';
+  document.getElementById('sd-crumb').innerHTML = `<strong>${esc(taskTitle)}</strong> &rsaquo; subtask`;
+  // Fill fields
+  document.getElementById('sd-title').value    = s.title || '';
+  document.getElementById('sd-due').value      = s.due || '';
+  document.getElementById('sd-notes').value    = s.notes || '';
+  // Assignee select
+  const names = [S.myName, ...S.team.map(m => m.name)].filter(Boolean);
+  const sel = document.getElementById('sd-assignee');
+  sel.innerHTML = '<option value="">— Anyone —</option>' + names.map(n => `<option${s.assignee===n?' selected':''}>${esc(n)}</option>`).join('');
+  // Done state
+  _updateSdDoneChip(s.done === 'true' || s.done === true);
+  document.getElementById('subtask-drawer').classList.add('open');
+}
+
+function closeSubtaskDrawer() {
+  document.getElementById('subtask-drawer').classList.remove('open');
+  SD.subtaskId = null;
+}
+
+function _updateSdDoneChip(isDone) {
+  const chip = document.getElementById('sd-done-chip');
+  chip.className = 'sd-done-chip ' + (isDone ? 'done' : 'todo');
+  document.getElementById('sd-done-label').textContent = isDone ? 'Completed' : 'Mark done';
+}
+
+function toggleSubtaskDrawerDone() {
+  const s = TP.subtasks.find(x => x.id === SD.subtaskId);
+  if (!s) return;
+  const nowDone = !(s.done === 'true' || s.done === true);
+  s.done = String(nowDone);
+  _updateSdDoneChip(nowDone);
+  renderSubtasks();
+  api('updateSubtask', {}, { id: SD.subtaskId, done: String(nowDone) });
+}
+
+function saveSubtaskField(field, value) {
+  if (!SD.subtaskId) return;
+  const s = TP.subtasks.find(x => x.id === SD.subtaskId);
+  if (s) s[field] = value;
+  if (field === 'title') renderSubtasks();
+  api('updateSubtask', {}, { id: SD.subtaskId, [field]: value });
+}
+
+function deleteSubtaskFromDrawer() {
+  if (!SD.subtaskId) return;
+  closeSubtaskDrawer();
+  deleteSubtask(SD.subtaskId);
+}
+
+// Task drawer keyboard shortcuts
+document.addEventListener('keydown', e => {
+  const panelOpen = document.getElementById('task-panel').classList.contains('open');
+  const sdOpen = document.getElementById('subtask-drawer').classList.contains('open');
+  const inInput = ['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName);
+  if (e.key === 'Escape' && sdOpen) { closeSubtaskDrawer(); return; }
+  if (e.key === 'Escape' && panelOpen) { closeTaskPanel(); return; }
+  if (!panelOpen || inInput) return;
+  if (e.key === 'e' || e.key === 'E') { e.preventDefault(); document.getElementById('tp-title').focus(); }
+  if (e.key === 'm' || e.key === 'M') { e.preventDefault(); togglePanelDone(); }
+  if (e.key === 'd' || e.key === 'D') { e.preventDefault(); document.getElementById('tp-due').focus(); }
+});
+
 window.addEventListener('DOMContentLoaded', () => {
   // Restore sidebar state
   if (localStorage.getItem('aeros_sidebar') === '1') {
