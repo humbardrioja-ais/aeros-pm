@@ -284,7 +284,7 @@ const SHEETS = {
   Tasks: ['id','title','details','owner','department','source','requestedBy','priority','due','status','repeat','attachments','created','updated','followup','notes','projectIds','sectionId','tags','customFields','parentId'],
   Subtasks: ['id','taskId','title','done','assignee','due','created','updated'],
   CalEvents: ['id','title','date','end_date','time','end_time','description','department','color','all_day','created','updated'],
-  CalFeeds:  ['id','name','url','color','enabled','last_synced','created','updated'],
+  CalFeeds:  ['id','name','url','color','enabled','visibility','last_synced','created','updated'],
   Dependencies: ['id','taskId','dependsOnId','type','created'],
   Tags: ['id','name','color','created'],
   TaskTags: ['id','taskId','tagId','created'],
