@@ -1129,7 +1129,7 @@ function renderViewNow(view) {
   if (view === 'dashboard')   renderDashboard();
   if (view === 'list')        renderList();
   if (view === 'board')       renderBoard();
-  if (view === 'calendar')    renderCalendar();
+  if (view === 'calendar')    { renderCalendar(); autoLoadFeeds(); }
   if (view === 'timeline')    renderTimeline();
   if (view === 'workload')    renderWorkload();
   if (view === 'eisenhower')  renderEisenhower();
@@ -1581,6 +1581,16 @@ function parseIcalDtClient(s) {
   if (s.length === 8) return { date: s.slice(0,4)+'-'+s.slice(4,6)+'-'+s.slice(6,8), time: '' };
   if (s.length >= 15) return { date: s.slice(0,4)+'-'+s.slice(4,6)+'-'+s.slice(6,8), time: s.slice(9,11)+':'+s.slice(11,13) };
   return null;
+}
+
+async function autoLoadFeeds() {
+  const enabled = (S.feeds||[]).filter(f => f.enabled !== 'false');
+  if (!enabled.length) return;
+  const unloaded = enabled.filter(f => !(S.feedEvents||[]).some(e => e._feedId === f.id));
+  if (!unloaded.length) return;
+  for (const feed of unloaded) await fetchFeedEvents(feed);
+  renderFeedList();
+  renderCalendar();
 }
 
 async function refreshAllFeeds() {
