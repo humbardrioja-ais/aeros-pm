@@ -742,7 +742,7 @@ function fetchIcal(url, feedId) {
       muteHttpExceptions: true,
       followRedirects: true,
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; GoogleAppsScript; +https://script.google.com)',
+        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101 Thunderbird/91.0',
         'Accept': 'text/calendar, application/calendar+xml, */*'
       }
     };
