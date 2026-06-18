@@ -1101,6 +1101,7 @@ function nav(view) {
     if (el.getAttribute('onclick') === `nav('${view}')`) el.classList.add('active');
   });
   S.currentView = view;
+  try { localStorage.setItem('aeros_last_view', view); } catch(_) {}
   const titles = { dashboard:'Dashboard',list:'Tasks',board:'Board',calendar:'Calendar',
     timeline:'Timeline',workload:'Workload',eisenhower:'Eisenhower',portfolio:'Portfolio',
     mytasks:'My Tasks',inbox:'Inbox',projects:'Projects',meetings:'Meeting Notes',
@@ -1632,6 +1633,9 @@ async function autoLoadFeeds() {
 async function refreshAllFeeds() {
   const btn = document.getElementById('feed-refresh-btn');
   if (btn) btn.textContent = '↻ Refreshing…';
+  // Clear cache and in-memory events so we always get fresh data
+  S.feedEvents = [];
+  try { localStorage.removeItem('aeros_feed_events'); } catch(_) {}
   const enabled = (S.feeds||[]).filter(f => f.enabled !== 'false');
   await Promise.all(enabled.map(feed => fetchFeedEvents(feed)));
   saveFeedCache();
@@ -2690,7 +2694,8 @@ window.addEventListener('DOMContentLoaded', () => {
     nav('settings');
     toast('Welcome! Set your API URL in Settings to get started.', 'warn');
   } else {
-    nav('dashboard');
+    const lastView = localStorage.getItem('aeros_last_view');
+    nav(lastView && lastView !== 'settings' ? lastView : 'dashboard');
   }
 });
 </script>
