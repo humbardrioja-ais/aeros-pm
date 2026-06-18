@@ -284,7 +284,7 @@ const SHEETS = {
   Tasks: ['id','title','details','owner','department','source','requestedBy','priority','due','status','repeat','attachments','created','updated','followup','notes','projectIds','sectionId','tags','customFields','parentId'],
   Subtasks: ['id','taskId','title','done','assignee','due','created','updated'],
   CalEvents: ['id','title','date','end_date','time','end_time','description','department','color','all_day','created','updated'],
-  CalFeeds:  ['id','name','url','color','enabled','visibility','last_synced','created','updated'],
+  CalFeeds:  ['id','name','url','color','text_color','enabled','visibility','last_synced','created','updated'],
   Dependencies: ['id','taskId','dependsOnId','type','created'],
   Tags: ['id','name','color','created'],
   TaskTags: ['id','taskId','tagId','created'],
@@ -298,7 +298,7 @@ const SHEETS = {
   Goals: ['id','title','description','owner','department','metric','target','current','unit','dueDate','status','parentGoalId','created','updated'],
   Portfolios: ['id','name','description','owner','created','updated'],
   Templates: ['id','name','description','projectId','taskIds','created'],
-  Team: ['id','name','email','role','department','avatar','phone','active','created'],
+  Team: ['id','name','email','role','department','avatar','avatar_color','avatar_img','phone','active','created'],
   CustomFields: ['id','name','type','options','projectId','created'],
   FieldValues: ['id','taskId','fieldId','value','updated'],
   FormDefs: ['id','name','projectId','fields','active','created'],
@@ -365,10 +365,15 @@ function createRow(ss, sheetName, data) {
       sh.setFrozenRows(1);
     }
   }
-  const headers = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
+  let headers = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
   if (!data.id) data.id = generateId(sheetName);
   if (!data.created) data.created = new Date().toISOString();
   if ('updated' in data || headers.includes('updated')) data.updated = new Date().toISOString();
+  // Auto-add missing columns
+  const newCols = Object.keys(data).filter(k => !headers.includes(k));
+  if (newCols.length) {
+    newCols.forEach(col => { sh.getRange(1, headers.length + 1).setValue(col); headers.push(col); });
+  }
   const row = headers.map(h => data[h] !== undefined ? data[h] : '');
   sh.appendRow(row);
   logAudit(ss, 'system', 'create', sheetName, data.id, null, data);
@@ -379,7 +384,16 @@ function updateRow(ss, sheetName, data) {
   const sh = ss.getSheetByName(sheetName);
   if (!sh) throw new Error('Sheet not found: ' + sheetName);
   const allData = sh.getDataRange().getValues();
-  const headers = allData[0];
+  let headers = allData[0];
+  // Auto-add any missing columns that are in the data
+  const newCols = Object.keys(data).filter(k => k !== 'id' && !headers.includes(k));
+  if (newCols.length) {
+    newCols.forEach(col => {
+      const newColIdx = headers.length + 1;
+      sh.getRange(1, newColIdx).setValue(col);
+      headers.push(col);
+    });
+  }
   const idCol = headers.indexOf('id');
   const rowIdx = allData.findIndex((r, i) => i > 0 && String(r[idCol]) === String(data.id));
   if (rowIdx < 0) throw new Error('Row not found: ' + data.id);
