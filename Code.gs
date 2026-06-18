@@ -735,6 +735,15 @@ function initSheet() {
 
 // ===================== iCAL FEED FETCHER =====================
 
+function testExternalFetch() {
+  const r = UrlFetchApp.fetch('https://calendar.google.com/calendar/ical/school.production%40mjqeducation.edu.kh/public/basic.ics', {
+    muteHttpExceptions: true,
+    headers: { 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101 Thunderbird/91.0' }
+  });
+  Logger.log('Status: ' + r.getResponseCode());
+  Logger.log('Body length: ' + r.getContentText().length);
+}
+
 function fetchIcal(url, feedId) {
   if (!url) return { error: 'No URL provided' };
   try {
