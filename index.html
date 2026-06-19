@@ -2616,9 +2616,9 @@ async function confirmScheduleMeeting() {
       S.meetings = S.meetings || [];
       S.meetings.unshift({ ...body, id: res.id });
     }
-    showToast('Meeting scheduled');
+    toast('Meeting scheduled');
     renderMeetings();
-  } catch(e) { showToast('Error: ' + e.message, true); }
+  } catch(e) { toast('Error: ' + e.message, true); }
 }
 
 function newMeeting(type) {
@@ -4237,6 +4237,9 @@ function renderColorLegend(){
     }).join('')}
   </div>`;
 }
+
+function pBadge(p) { return p ? ` <span style="font-size:10px;font-weight:600;color:${p==='P0'?'var(--danger)':p==='P1'?'var(--brand)':'var(--text3)'}">${p}</span>` : ''; }
+function statusDot(s) { const colors={todo:'var(--text3)',doing:'var(--brand)',blocked:'var(--danger)',done:'var(--ok)',inbox:'var(--text3)'};return s?`<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${colors[s]||'var(--text3)'}" title="${s}"></span>`:''; }
 
 /* ===================== CALENDAR REBUILD ===================== */
 function renderCalendar(){
