@@ -4285,11 +4285,6 @@ function renderCalendar(){
   (S.shoots||[]).forEach(s=>{if(!s.date)return;if(!S._calCache.shootsByDate[s.date])S._calCache.shootsByDate[s.date]=[];S._calCache.shootsByDate[s.date].push(s);});
   (S.missions||[]).filter(m=>m.status==='approved').forEach(m=>{if(!m.date)return;if(!S._calCache.missionsByDate[m.date])S._calCache.missionsByDate[m.date]=[];S._calCache.missionsByDate[m.date].push(m);});
   (S.events||[]).forEach(e=>{if(!e.date)return;const end=e.end_date||e.date;let d=new Date(e.date+'T00:00:00');const endD=new Date(end+'T00:00:00');while(d<=endD){const k=d.toISOString().slice(0,10);if(!S._calCache.eventsByDate[k])S._calCache.eventsByDate[k]=[];S._calCache.eventsByDate[k].push(e);d.setDate(d.getDate()+1);}});
-  // Only index feed events within 3-month window for performance
-  const calStart=`${y}-${String(m+1).padStart(2,'0')}-01`;
-  const calEndM=m+3>12?m+3-12:m+3;const calEndY=m+3>12?y+1:y;
-  const calEnd=`${calEndY}-${String(calEndM).padStart(2,'0')}-28`;
-  (S.feedEvents||[]).forEach(e=>{if(!S._calCache.enabledFeeds.has(e._feedId))return;if(!e.date)return;const eEnd=e.end_date||e.date;if(eEnd<calStart||e.date>calEnd)return;const end=eEnd>calEnd?calEnd:eEnd;const start=e.date<calStart?calStart:e.date;let d=new Date(start+'T00:00:00');const endD=new Date(end+'T00:00:00');while(d<=endD){const k=d.toISOString().slice(0,10);if(!S._calCache.feedByDate[k])S._calCache.feedByDate[k]=[];S._calCache.feedByDate[k].push(e);d.setDate(d.getDate()+1);}});
   const w=document.getElementById('cal-months-wrap');
   if(!w){renderCalendarLegacy();return;}
   w.innerHTML='';
@@ -4297,6 +4292,11 @@ function renderCalendar(){
   const today=new Date();
   const y=S.calYear||today.getFullYear();
   const m=S.calMonth!==undefined?S.calMonth:today.getMonth();
+  // Only index feed events within 3-month window for performance
+  const calStart=`${y}-${String(m+1).padStart(2,'0')}-01`;
+  const calEndM=m+3>12?m+3-12:m+3;const calEndY=m+3>12?y+1:y;
+  const calEnd=`${calEndY}-${String(calEndM).padStart(2,'0')}-28`;
+  (S.feedEvents||[]).forEach(e=>{if(!S._calCache.enabledFeeds.has(e._feedId))return;if(!e.date)return;const eEnd=e.end_date||e.date;if(eEnd<calStart||e.date>calEnd)return;const end=eEnd>calEnd?calEnd:eEnd;const start=e.date<calStart?calStart:e.date;let d=new Date(start+'T00:00:00');const endD=new Date(end+'T00:00:00');while(d<=endD){const k=d.toISOString().slice(0,10);if(!S._calCache.feedByDate[k])S._calCache.feedByDate[k]=[];S._calCache.feedByDate[k].push(e);d.setDate(d.getDate()+1);}});
   _appendMonthBlock(y,m);
   const nm=m===11?0:m+1,ny=m===11?y+1:y;
   _appendMonthBlock(ny,nm);
