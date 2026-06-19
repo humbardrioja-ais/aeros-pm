@@ -943,13 +943,25 @@ function buildEvents(cur, feedId) {
 
 function parseIcalDt(s) {
   if (!s) return null;
-  s = s.trim().replace('Z','');   // strip UTC marker for display purposes
-  if (s.length === 8) {           // DATE: 20260601
+  s = s.trim();
+  if (s.length === 8) {           // DATE only: 20260601
     return { date: s.slice(0,4)+'-'+s.slice(4,6)+'-'+s.slice(6,8), time: '' };
   }
-  if (s.length >= 15) {           // DATETIME: 20260601T090000
-    return { date: s.slice(0,4)+'-'+s.slice(4,6)+'-'+s.slice(6,8),
-             time: s.slice(9,11)+':'+s.slice(11,13) };
+  if (s.length >= 15) {           // DATETIME: 20260601T090000 or 20260601T090000Z
+    const isUtc = s.endsWith('Z');
+    const raw = s.replace('Z','');
+    if (isUtc) {
+      // Convert UTC to spreadsheet timezone
+      const y=+raw.slice(0,4),mo=+raw.slice(4,6)-1,d=+raw.slice(6,8);
+      const h=+raw.slice(9,11),mi=+raw.slice(11,13);
+      const utc = new Date(Date.UTC(y,mo,d,h,mi));
+      const tz = SpreadsheetApp.getActiveSpreadsheet().getSpreadsheetTimeZone();
+      const localDate = Utilities.formatDate(utc, tz, 'yyyy-MM-dd');
+      const localTime = Utilities.formatDate(utc, tz, 'HH:mm');
+      return { date: localDate, time: localTime };
+    }
+    return { date: raw.slice(0,4)+'-'+raw.slice(4,6)+'-'+raw.slice(6,8),
+             time: raw.slice(9,11)+':'+raw.slice(11,13) };
   }
   return null;
 }

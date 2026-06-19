@@ -2277,9 +2277,22 @@ function buildIcalEvent(cur, feedId) {
 }
 
 function parseIcalDtClient(s) {
-  s = s.trim().replace('Z','');
+  if (!s) return null;
+  s = s.trim();
   if (s.length === 8) return { date: s.slice(0,4)+'-'+s.slice(4,6)+'-'+s.slice(6,8), time: '' };
-  if (s.length >= 15) return { date: s.slice(0,4)+'-'+s.slice(4,6)+'-'+s.slice(6,8), time: s.slice(9,11)+':'+s.slice(11,13) };
+  if (s.length >= 15) {
+    const isUtc = s.endsWith('Z');
+    const raw = s.replace('Z','');
+    if (isUtc) {
+      const y=+raw.slice(0,4),mo=+raw.slice(4,6)-1,d=+raw.slice(6,8);
+      const h=+raw.slice(9,11),mi=+raw.slice(11,13);
+      const utc = new Date(Date.UTC(y,mo,d,h,mi));
+      const localDate = utc.getFullYear()+'-'+String(utc.getMonth()+1).padStart(2,'0')+'-'+String(utc.getDate()).padStart(2,'0');
+      const localTime = String(utc.getHours()).padStart(2,'0')+':'+String(utc.getMinutes()).padStart(2,'0');
+      return { date: localDate, time: localTime };
+    }
+    return { date: raw.slice(0,4)+'-'+raw.slice(4,6)+'-'+raw.slice(6,8), time: raw.slice(9,11)+':'+raw.slice(11,13) };
+  }
   return null;
 }
 
