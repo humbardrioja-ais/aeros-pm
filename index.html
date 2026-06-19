@@ -4184,7 +4184,8 @@ function loadCalendarColors() {
   const defaults = {
     task:'#7baaf7',blocked:'#f28b82',event:'#aecbfa',
     shoot:'#fdd663',leave:'#b39ddb',mission:'#81c995',
-    pub:'#ff8a65',campaign:'#ce93d8',ical:{}
+    pub:'#ff8a65',campaign:'#ce93d8',design:'#4fc3f7',
+    seo:'#aed581',website:'#90a4ae',meeting:'#ffb74d',ical:{}
   };
   S.calColors = stored ? Object.assign({},defaults,JSON.parse(stored)) : defaults;
   applyCalColorVars();
@@ -4197,7 +4198,7 @@ function hexToHslParts(hex){
 }
 function applyCalColorVars(){
   const root=document.documentElement;
-  const layers=['task','blocked','event','shoot','leave','mission','pub','campaign'];
+  const layers=['task','blocked','event','shoot','leave','mission','pub','campaign','design','seo','website','meeting'];
   layers.forEach(k=>{
     if(!S.calColors[k]) return;
     const[h,s]=hexToHslParts(S.calColors[k]);
@@ -4219,9 +4220,12 @@ function livePreviewIcalColor(feedId,hex){if(!S.calColors.ical)S.calColors.ical=
 /* ===================== LAYER TOGGLES ===================== */
 const CAL_LAYERS=[
   {key:'task',label:'Tasks'},{key:'blocked',label:'Blocked'},
-  {key:'shoot',label:'Shoots'},{key:'leave',label:'Leave'},
-  {key:'mission',label:'Missions'},{key:'pub',label:'Publishing'},
-  {key:'event',label:'Events'},{key:'campaign',label:'Campaigns'},{key:'ical',label:'iCal'}
+  {key:'event',label:'Events'},{key:'campaign',label:'Campaigns'},
+  {key:'design',label:'Designs'},{key:'pub',label:'Publications'},
+  {key:'seo',label:'SEO'},{key:'website',label:'Website'},
+  {key:'meeting',label:'Meetings'},{key:'shoot',label:'Shoots'},
+  {key:'leave',label:'Leave'},{key:'mission',label:'Missions'},
+  {key:'ical',label:'iCal'}
 ];
 function loadLayerToggles(){S.calLayers=JSON.parse(localStorage.getItem('cal_layers')||'{}');}
 function toggleCalLayer(key){
@@ -4248,9 +4252,11 @@ function showCalColorEditor(){
   if(!isAdmin){toast('Only admin can edit colors');return;}
   const layers=[
     {key:'task',label:'Tasks'},{key:'blocked',label:'Blocked'},
-    {key:'event',label:'Events'},{key:'shoot',label:'Shoots'},
-    {key:'leave',label:'Leave'},{key:'mission',label:'Missions'},
-    {key:'pub',label:'Publishing'},{key:'campaign',label:'Campaigns'}
+    {key:'event',label:'Events'},{key:'campaign',label:'Campaigns'},
+    {key:'design',label:'Designs'},{key:'pub',label:'Publications'},
+    {key:'seo',label:'SEO'},{key:'website',label:'Website'},
+    {key:'meeting',label:'Meetings'},{key:'shoot',label:'Shoots'},
+    {key:'leave',label:'Leave'},{key:'mission',label:'Missions'}
   ];
   const feedRows=(S.feeds||[]).map(f=>{
     const hex=(S.calColors&&S.calColors.ical&&S.calColors.ical[f.id])||f.color||'#d4edda';
@@ -4352,9 +4358,11 @@ function renderColorLegend(){
   const isAdmin=S.myRole==='admin';
   const layers=[
     {key:'task',label:'Tasks'},{key:'blocked',label:'Blocked'},
-    {key:'event',label:'Events'},{key:'shoot',label:'Shoots'},
-    {key:'leave',label:'Leave'},{key:'mission',label:'Missions'},
-    {key:'pub',label:'Publishing'},{key:'campaign',label:'Campaigns'}
+    {key:'event',label:'Events'},{key:'campaign',label:'Campaigns'},
+    {key:'design',label:'Designs'},{key:'pub',label:'Publications'},
+    {key:'seo',label:'SEO'},{key:'website',label:'Website'},
+    {key:'meeting',label:'Meetings'},{key:'shoot',label:'Shoots'},
+    {key:'leave',label:'Leave'},{key:'mission',label:'Missions'}
   ];
   w.innerHTML=`<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">Color Legend${isAdmin?' <span style="font-size:9px;background:#111;color:#fff;padding:1px 5px;border-radius:3px">Admin</span>':''}</div>
   ${layers.map(({key,label})=>{
@@ -4389,6 +4397,8 @@ function renderCalendar(){
   S._calCache={
     tasksByDate:{}, doneByDate:{}, leavesByDate:{}, shootsByDate:{},
     missionsByDate:{}, eventsByDate:{}, feedByDate:{},
+    campaignsByDate:{}, designsByDate:{}, pubsByDate:{},
+    seoByDate:{}, websiteByDate:{}, meetingsByDate:{},
     enabledFeeds:new Set((S.feeds||[]).filter(f=>String(f.enabled)!=='false').map(f=>f.id))
   };
   ft.forEach(t=>{if(!t.due)return;const k=t.due;if(t.status==='done'){if(!S._calCache.doneByDate[k])S._calCache.doneByDate[k]=[];S._calCache.doneByDate[k].push(t);}else{if(!S._calCache.tasksByDate[k])S._calCache.tasksByDate[k]=[];S._calCache.tasksByDate[k].push(t);}});
@@ -4403,6 +4413,18 @@ function renderCalendar(){
   const today=new Date();
   const y=S.calYear||today.getFullYear();
   const m=S.calMonth!==undefined?S.calMonth:today.getMonth();
+  // Index campaigns by start/end date
+  (S.campaigns||[]).forEach(cm=>{const s=cm.start||cm.created;if(!s)return;const e=cm.end||s;let d=new Date(s+'T00:00:00');const endD=new Date(e+'T00:00:00');while(d<=endD){const k=d.toISOString().slice(0,10);if(!S._calCache.campaignsByDate[k])S._calCache.campaignsByDate[k]=[];S._calCache.campaignsByDate[k].push(cm);d.setDate(d.getDate()+1);}});
+  // Index designs by due date
+  (S.designs||[]).forEach(ds2=>{const dd=ds2.due||ds2.publish_date;if(!dd)return;if(!S._calCache.designsByDate[dd])S._calCache.designsByDate[dd]=[];S._calCache.designsByDate[dd].push(ds2);});
+  // Index publications by deadline and target_release
+  (S.publishing||[]).forEach(pb=>{[pb.deadline,pb.target_release].forEach(dd=>{if(!dd)return;if(!S._calCache.pubsByDate[dd])S._calCache.pubsByDate[dd]=[];S._calCache.pubsByDate[dd].push(pb);});});
+  // Index SEO by due date
+  (S.seoProjects||[]).forEach(sp=>{if(!sp.due)return;if(!S._calCache.seoByDate[sp.due])S._calCache.seoByDate[sp.due]=[];S._calCache.seoByDate[sp.due].push(sp);});
+  // Index website by launch_date
+  (S.websiteProjects||[]).forEach(wp=>{if(!wp.launch_date)return;if(!S._calCache.websiteByDate[wp.launch_date])S._calCache.websiteByDate[wp.launch_date]=[];S._calCache.websiteByDate[wp.launch_date].push(wp);});
+  // Index meetings by date
+  (S.meetings||[]).forEach(mt=>{if(!mt.date)return;if(!S._calCache.meetingsByDate[mt.date])S._calCache.meetingsByDate[mt.date]=[];S._calCache.meetingsByDate[mt.date].push(mt);});
   // Only index feed events within 3-month window for performance
   const calStart=`${y}-${String(m+1).padStart(2,'0')}-01`;
   const calEndM=m+3>12?m+3-12:m+3;const calEndY=m+3>12?y+1:y;
@@ -4529,11 +4551,23 @@ function _buildDayCell(ds,d,isToday){
   const missions=(cc.missionsByDate||{})[ds]||[];
   const events=(cc.eventsByDate||{})[ds]||[];
   const feedEvts=(cc.feedByDate||{})[ds]||[];
+  const campaigns=(cc.campaignsByDate||{})[ds]||[];
+  const designs=(cc.designsByDate||{})[ds]||[];
+  const pubs=(cc.pubsByDate||{})[ds]||[];
+  const seos=(cc.seoByDate||{})[ds]||[];
+  const websites=(cc.websiteByDate||{})[ds]||[];
+  const meetings=(cc.meetingsByDate||{})[ds]||[];
   const blocked=tasks.filter(t=>t.status==='blocked');
   const active=tasks.filter(t=>t.status!=='blocked');
 
   const allItems=[
     ...blocked.map(t=>({item:t,type:'blocked',fn:`openTaskPanel('${t.id}')`})),
+    ...campaigns.map(cm=>({item:{...cm,owner:''},type:'campaign',fn:`showCampaignModal('${cm.id}')`})),
+    ...designs.map(d2=>({item:{...d2,owner:d2.assigned||''},type:'design',fn:`showDesignModal('${d2.id}')`})),
+    ...pubs.map(pb=>({item:{...pb,owner:pb.lead||''},type:'pub',fn:`showPublishingModal('${pb.id}')`})),
+    ...seos.map(sp=>({item:{...sp,owner:sp.lead||''},type:'seo',fn:`showSeoModal('${sp.id}')`})),
+    ...websites.map(wp=>({item:{...wp,owner:wp.lead||''},type:'website',fn:`showWebsiteModal('${wp.id}')`})),
+    ...meetings.map(mt=>({item:{...mt,owner:''},type:'meeting',fn:`openMeeting('${mt.id}')`})),
     ...shoots.map(s=>({item:{...s,title:s.title||'Shoot',owner:s.photographer||''},type:'shoot',fn:`openTaskPanel('${s.id}')`})),
     ...missions.map(ms=>({item:{...ms,title:`${ms.employee||''} — mission`},type:'mission',fn:''})),
     ...leaves.map(l=>({item:{...l,title:`${l.employee||''} — ${l.type||'leave'}`},type:'leave',fn:''})),
