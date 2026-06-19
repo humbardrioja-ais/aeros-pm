@@ -2297,11 +2297,14 @@ function saveFeedCache() {
 async function autoLoadFeeds() {
   const enabled = (S.feeds||[]).filter(f => f.enabled !== 'false');
   if (!enabled.length) return;
+  const hadEvents = (S.feedEvents||[]).length;
   loadFeedCache();
-  // Only load feeds not yet fetched
   const unloaded = enabled.filter(f => !(S.feedEvents||[]).some(e => e._feedId === f.id));
-  if (!unloaded.length) return;
-  // Fetch all feeds, then filter to show only current+2 months initially
+  if (!unloaded.length) {
+    // Cache had all feeds — re-render calendar if events were loaded
+    if ((S.feedEvents||[]).length > hadEvents) renderCalendar();
+    return;
+  }
   await Promise.all(unloaded.map(feed => fetchFeedEvents(feed)));
   saveFeedCache();
   renderFeedList();
