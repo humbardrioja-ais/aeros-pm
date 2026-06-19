@@ -4413,6 +4413,9 @@ function renderCalendar(){
     seoByDate:{}, websiteByDate:{}, meetingsByDate:{},
     enabledFeeds:new Set((S.feeds||[]).filter(f=>String(f.enabled)!=='false').map(f=>f.id))
   };
+  // DEBUG: log task data to console
+  console.log('[CAL DEBUG] tasks:',ft.length,'withDue:',ft.filter(t=>t.due).length,'sample dues:',ft.slice(0,5).map(t=>({title:t.title,due:t.due,duetype:typeof t.due})));
+  console.log('[CAL DEBUG] events:',S.events?.length,'campaigns:',S.campaigns?.length,'designs:',S.designs?.length,'meetings:',S.meetings?.length);
   ft.forEach(t=>{if(!t.due)return;const k=t.due;if(t.status==='done'){if(!S._calCache.doneByDate[k])S._calCache.doneByDate[k]=[];S._calCache.doneByDate[k].push(t);}else{if(!S._calCache.tasksByDate[k])S._calCache.tasksByDate[k]=[];S._calCache.tasksByDate[k].push(t);}});
   (S.leaves||[]).filter(l=>l.status==='approved').forEach(l=>{const s=l.from_date,e=l.to_date;if(s){let d=new Date(s+'T00:00:00');const end=e?new Date(e+'T00:00:00'):d;while(d<=end){const k=d.toISOString().slice(0,10);if(!S._calCache.leavesByDate[k])S._calCache.leavesByDate[k]=[];S._calCache.leavesByDate[k].push(l);d.setDate(d.getDate()+1);}}});
   (S.shoots||[]).forEach(s=>{if(!s.date)return;if(!S._calCache.shootsByDate[s.date])S._calCache.shootsByDate[s.date]=[];S._calCache.shootsByDate[s.date].push(s);});
