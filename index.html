@@ -24,6 +24,10 @@
   --cal-mission:hsl(150,45%,91%);--cal-mission-av:hsl(150,45%,73%);--cal-mission-avt:hsl(150,50%,20%);
   --cal-pub:hsl(22,60%,91%);--cal-pub-av:hsl(22,60%,73%);--cal-pub-avt:hsl(22,65%,22%);
   --cal-campaign:hsl(278,38%,91%);--cal-campaign-av:hsl(278,38%,73%);--cal-campaign-avt:hsl(278,45%,22%);
+  --cal-design:hsl(195,55%,91%);--cal-design-av:hsl(195,55%,73%);--cal-design-avt:hsl(195,60%,22%);
+  --cal-seo:hsl(85,45%,91%);--cal-seo-av:hsl(85,45%,73%);--cal-seo-avt:hsl(85,50%,22%);
+  --cal-website:hsl(200,15%,91%);--cal-website-av:hsl(200,15%,73%);--cal-website-avt:hsl(200,20%,22%);
+  --cal-meeting:hsl(35,55%,91%);--cal-meeting-av:hsl(35,55%,73%);--cal-meeting-avt:hsl(35,60%,22%);
 }
 [data-theme=dark]{
   --bg:#1a1a1a;--surface:#2d2d2d;--surface2:#3a3a3a;
@@ -1910,7 +1914,6 @@ async function boardDrop(e,newStatus){
 
 // ===================== CALENDAR VIEW =====================
 const CAL_MONTHS_SHOWN = 1;
-const CAL_MAX_PILLS = 3;
 
 function renderCalSidebar(y, m, today) {
   renderMiniCal(y, m, today);
@@ -4675,10 +4678,7 @@ function _buildDayCell(ds,d,isToday){
     ...feedEvts.map(e=>({item:e,type:'ical',fn:''}))
   ];
 
-  const MAX=3;
-  let pills=allItems.slice(0,MAX).map(({item,type,fn})=>calPillHtml(item,type,fn)).join('');
-  const more=allItems.length-MAX;
-  if(more>0) pills+=`<div onclick="event.stopPropagation();calShowMore('${ds}')" style="font-size:9px;color:var(--text3);text-align:center;padding:1px 0;cursor:pointer">+${more} more</div>`;
+  let pills=allItems.map(({item,type,fn})=>calPillHtml(item,type,fn)).join('');
 
   return numHtml+pills+`<div class="cal-add-hint" style="font-size:9px;color:var(--text3);opacity:0;transition:opacity .15s" onmouseenter="this.style.opacity=1" onmouseleave="this.style.opacity=0">+ add</div>`;
 }
