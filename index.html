@@ -4452,7 +4452,7 @@ function renderCalendar(){
     missionsByDate:{}, eventsByDate:{}, feedByDate:{},
     campaignsByDate:{}, designsByDate:{}, pubsByDate:{},
     seoByDate:{}, websiteByDate:{}, meetingsByDate:{},
-    enabledFeeds:new Set((S.feeds||[]).filter(f=>String(f.enabled)!=='false').map(f=>f.id))
+    enabledFeeds:(S.feeds&&S.feeds.length)?new Set(S.feeds.filter(f=>String(f.enabled)!=='false').map(f=>f.id)):null
   };
   // DEBUG: log task data to console
   console.log('[CAL DEBUG] tasks:',ft.length,'withDue:',ft.filter(t=>t.due).length,'sample dues:',ft.slice(0,5).map(t=>({title:t.title,due:t.due,duetype:typeof t.due})));
@@ -4485,7 +4485,7 @@ function renderCalendar(){
   const calStart=`${y}-${String(m+1).padStart(2,'0')}-01`;
   const calEndM=m+3>12?m+3-12:m+3;const calEndY=m+3>12?y+1:y;
   const calEnd=`${calEndY}-${String(calEndM).padStart(2,'0')}-28`;
-  (S.feedEvents||[]).forEach(e=>{if(!S._calCache.enabledFeeds.has(e._feedId))return;if(!e.date)return;const eEnd=e.end_date||e.date;if(eEnd<calStart||e.date>calEnd)return;const end=eEnd>calEnd?calEnd:eEnd;const start=e.date<calStart?calStart:e.date;let d=new Date(start+'T00:00:00');const endD=new Date(end+'T00:00:00');while(d<=endD){const k=d.toISOString().slice(0,10);if(!S._calCache.feedByDate[k])S._calCache.feedByDate[k]=[];S._calCache.feedByDate[k].push(e);d.setDate(d.getDate()+1);}});
+  (S.feedEvents||[]).forEach(e=>{if(S._calCache.enabledFeeds&&!S._calCache.enabledFeeds.has(e._feedId))return;if(!e.date)return;const eEnd=e.end_date||e.date;if(eEnd<calStart||e.date>calEnd)return;const end=eEnd>calEnd?calEnd:eEnd;const start=e.date<calStart?calStart:e.date;let d=new Date(start+'T00:00:00');const endD=new Date(end+'T00:00:00');while(d<=endD){const k=d.toISOString().slice(0,10);if(!S._calCache.feedByDate[k])S._calCache.feedByDate[k]=[];S._calCache.feedByDate[k].push(e);d.setDate(d.getDate()+1);}});
   _appendMonthBlock(y,m);
   const nm=m===11?0:m+1,ny=m===11?y+1:y;
   _appendMonthBlock(ny,nm);
@@ -4526,7 +4526,7 @@ function _loadNextCalMonth(){
     const daysInM=new Date(y,m+1,0).getDate();
     const mEnd=`${y}-${ms}-${daysInM}`;
     (S.feedEvents||[]).forEach(e=>{
-      if(!S._calCache.enabledFeeds.has(e._feedId))return;
+      if(S._calCache.enabledFeeds&&!S._calCache.enabledFeeds.has(e._feedId))return;
       if(!e.date)return;const eEnd=e.end_date||e.date;
       if(eEnd<mStart||e.date>mEnd)return;
       const start=e.date<mStart?mStart:e.date;
