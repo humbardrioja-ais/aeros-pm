@@ -4212,8 +4212,8 @@ function saveCalendarColors(){
   renderCalendar();
   toast('Calendar colors saved');
 }
-function livePreviewCalColor(key,hex){S.calColors[key]=hex;applyCalColorVars();renderCalendar();}
-function livePreviewIcalColor(feedId,hex){if(!S.calColors.ical)S.calColors.ical={};S.calColors.ical[feedId]=hex;renderCalendar();}
+function livePreviewCalColor(key,hex){S.calColors[key]=hex;applyCalColorVars();renderCalLayerChips();}
+function livePreviewIcalColor(feedId,hex){if(!S.calColors.ical)S.calColors.ical={};S.calColors.ical[feedId]=hex;}
 
 /* ===================== LAYER TOGGLES ===================== */
 const CAL_LAYERS=[
