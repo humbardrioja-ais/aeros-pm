@@ -399,6 +399,20 @@ select option{background:var(--surface);color:var(--text)}
 #task-panel-overlay.open{opacity:1;pointer-events:all}
 #task-panel{position:fixed;top:0;right:0;bottom:0;width:560px;max-width:100vw;background:var(--surface);z-index:501;display:flex;flex-direction:column;box-shadow:-4px 0 24px rgba(0,0,0,.18);transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1)}
 #task-panel.open{transform:translateX(0)}
+#item-drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:500;opacity:0;pointer-events:none;transition:opacity .25s}
+#item-drawer-overlay.open{opacity:1;pointer-events:all}
+#item-drawer{position:fixed;top:0;right:0;bottom:0;width:560px;max-width:100vw;background:var(--surface);z-index:501;display:flex;flex-direction:column;box-shadow:-4px 0 24px rgba(0,0,0,.18);transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1)}
+#item-drawer.open{transform:translateX(0)}
+#item-drawer .tp-actionbar{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0;background:var(--surface)}
+#item-drawer .tp-body{flex:1;overflow-y:auto;padding:20px}
+#item-drawer .id-field{margin-bottom:14px}
+#item-drawer .id-field label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px}
+#item-drawer .id-field input,#item-drawer .id-field select,#item-drawer .id-field textarea{width:100%;font-size:13px}
+#item-drawer .id-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+#item-drawer .id-section{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin:20px 0 8px;padding-top:12px;border-top:1px solid var(--border)}
+#item-drawer .id-actions{display:flex;gap:6px;margin-top:6px}
+@media(max-width:768px){#item-drawer{width:100vw}}
+
 /* Action bar */
 .tp-actionbar{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0;background:var(--surface)}
 /* Scrollable body */
@@ -735,12 +749,13 @@ select.sd-val{appearance:auto;cursor:pointer}
         <div id="portfolio-projects"></div>
       </div>
 
-      <div id="view-mytasks" class="hidden">
+      <div id="view-mytasks" class="hidden"><div id="mytasks-content">
         <div class="panel">
           <div class="panel-header">My Tasks</div>
           <div id="my-tasks-body"></div>
         </div>
       </div>
+</div>
 
       <div id="view-inbox" class="hidden">
         <div class="panel">
@@ -3793,7 +3808,8 @@ function populateOwnerSelects() {
     if (cur) sel.value = cur;
   });
   const ownerFilter = document.getElementById('list-filter-owner');
-  if (ownerFilter) ownerFilter.innerHTML = '<option value="">All Owners</option>' + names.map(n=>`<option>${esc(n)}</option>`).join('');
+  const ownerFilterVal = ownerFilter ? ownerFilter.value : '';
+  if (ownerFilter) { ownerFilter.innerHTML = '<option value="">All Owners</option>' + names.map(n=>`<option>${esc(n)}</option>`).join(''); if (ownerFilterVal) ownerFilter.value = ownerFilterVal; }
 }
 
 function populateSelect(id) {
@@ -3868,10 +3884,12 @@ async function openTaskPanel(id) {
 }
 
 async function closeTaskPanel() {
-  // New task mode — prompt to save if title filled but not yet saved
+  // New task mode — discard if not explicitly saved
   if (TP.taskId === null) {
     const title = document.getElementById('tp-title').value.trim();
-    if (title) {
+    if (title && !confirm('Save this task before closing?')) {
+      // User chose not to save — discard
+    } else if (title) {
       await saveTaskPanel();
     }
   }
@@ -4509,6 +4527,7 @@ function renderCalendar(){
   const calEndM=m+3>12?m+3-12:m+3;const calEndY=m+3>12?y+1:y;
   const calEnd=`${calEndY}-${String(calEndM).padStart(2,'0')}-28`;
   (S.feedEvents||[]).forEach(e=>{if(S._calCache.enabledFeeds&&!S._calCache.enabledFeeds.has(e._feedId))return;if(!e.date)return;const eEnd=e.end_date||e.date;if(eEnd<calStart||e.date>calEnd)return;const end=eEnd>calEnd?calEnd:eEnd;const start=e.date<calStart?calStart:e.date;let d=new Date(start+'T00:00:00');const endD=new Date(end+'T00:00:00');while(d<=endD){const k=d.toISOString().slice(0,10);if(!S._calCache.feedByDate[k])S._calCache.feedByDate[k]=[];S._calCache.feedByDate[k].push(e);d.setDate(d.getDate()+1);}});
+  document.getElementById('cal-month-label').textContent=_MON[m]+' '+y;
   _appendMonthBlock(y,m);
   const nm=m===11?0:m+1,ny=m===11?y+1:y;
   _appendMonthBlock(ny,nm);
@@ -4740,7 +4759,7 @@ function openCampaignPanel(id){showCampaignModal(id);}
 
 /* ===================== DESIGNS ===================== */
 S.designs=S.designs||[];
-const DESIGN_STAGES=['Briefing','In Progress','For Review','Approved','Published'];
+const DESIGN_STAGES=['Briefing','In Progress','For Review','Revision','Approved','Published'];
 
 function renderDesigns(){
   const w=document.getElementById('designs-board');if(!w)return;
@@ -4815,17 +4834,17 @@ const PUB_TYPES=['Book','Yearbook','Magazine','Newsletter','Journal','Brochure',
 function renderPublishing(){
   const w=document.getElementById('publishing-list');if(!w)return;
   if(!S.publishing||!S.publishing.length){
-    w.innerHTML='<div style="color:var(--text3);padding:32px;text-align:center">No publishing entries yet.</div>';return;
+    w.innerHTML='<div style="color:var(--text3);padding:32px;text-align:center">No publications yet. Add your first book, yearbook, or magazine.</div>';return;
   }
-  w.innerHTML=`<table class="data-table"><thead><tr><th>Title</th><th>Platform</th><th>FB Page</th><th>Deadline</th><th>Publish date</th><th>Status</th><th>Assigned</th><th></th></tr></thead><tbody>
+  w.innerHTML=`<table class="data-table"><thead><tr><th>Title</th><th>Type</th><th>Edition</th><th>Deadline</th><th>Target Release</th><th>Status</th><th>Lead</th><th></th></tr></thead><tbody>
   ${(S.publishing||[]).map(p=>`<tr onclick="openItemDrawer('publication','${p.id}')" style="cursor:pointer">
     <td style="font-weight:600">${esc(p.title)}</td>
-    <td>${esc(p.platform||'')}</td>
-    <td>${esc(p.page||'')}</td>
+    <td>${esc(p.pub_type||'')}</td>
+    <td>${esc(p.edition||'')}</td>
     <td>${p.deadline||'—'}</td>
-    <td>${p.publish_date||'—'}</td>
-    <td><span class="badge" style="background:${p.status==='Published'?'var(--ok)':'var(--surface2)'};color:${p.status==='Published'?'#fff':'var(--text)'}">${p.status||'Draft'}</span></td>
-    <td>${esc(p.assigned||'')}</td>
+    <td>${p.target_release||'—'}</td>
+    <td><span class="badge" style="background:${p.status==='Published'||p.status==='Distributed'?'var(--ok)':'var(--surface2)'};color:${p.status==='Published'||p.status==='Distributed'?'#fff':'var(--text)'}">${p.status||'Planning'}</span></td>
+    <td>${esc(p.lead||'')}</td>
     <td><div class="actions"><button class="btn btn-sm btn-danger" onclick="event.stopPropagation();deletePublishing('${p.id}')">Del</button></div></td>
   </tr>`).join('')}</tbody></table>`;
 }
@@ -4860,7 +4879,7 @@ function showPublishingModal(id){
 
 async function savePublishing(id){
   const title=document.getElementById('pb-title').value.trim();if(!title)return;
-  const obj={title,pub_type:document.getElementById('pb-type').value,edition:document.getElementById('pb-edition').value,status:document.getElementById('pb-stat').value,deadline:document.getElementById('pb-deadline').value,target_release:document.getElementById('pb-release').value,lead:document.getElementById('pb-lead').value,page_count:document.getElementById('pb-pages').value,sections:document.getElementById('pb-sections').value,notes:document.getElementById('pb-notes').value};
+  const obj={title}; // dead code — drawer handles this now
   if(id){const p=(S.publishing||[]).find(x=>x.id===id);if(p)Object.assign(p,obj);}
   else{if(!S.publishing)S.publishing=[];S.publishing.push({id:'PB-'+String(S.publishing.length+1).padStart(3,'0'),...obj,created:todayStr()});}
   closeModal();renderPublishing();
@@ -5008,7 +5027,7 @@ async function deleteRule(id){
 S._myTasksTab=S._myTasksTab||'operational';
 
 function renderMyTasks(){
-  const w=document.getElementById('view-mytasks');if(!w)return;
+  let w=document.getElementById('mytasks-content');if(!w){w=document.getElementById('view-mytasks');if(!w)return;}
   const me=S.myName||'ME';
   const all=filteredTasks().filter(t=>(t.owner===me||t.owner==='ME')&&t.status!=='done');
   const operational=all.filter(t=>['meeting','email','chat'].includes(t.source));
@@ -5309,7 +5328,7 @@ const ID_CONFIGS = {
     idPrefix:'CDO', fields:[
       {key:'employee',label:'Employee',type:'member',required:true},
       {key:'duration',label:'Duration',type:'select',options:['Full Day','Half Day']},
-      {key:'date',label:'Date Off',type:'date'},
+      {key:'date_off',label:'Date Off',type:'date'},
       {key:'notes',label:'Notes',type:'textarea'}
     ]
   },
@@ -5317,7 +5336,7 @@ const ID_CONFIGS = {
     label:'Social Record', color:'#e57373', collection:'_socialTmp',
     apiCreate:'createSocialRecord', apiUpdate:'updateSocialRecord', apiDelete:'deleteSocialRecord',
     idPrefix:'SR', fields:[
-      {key:'page',label:'Page',type:'text',required:true},
+      {key:'page',label:'Page',type:'text',required:true,default:'_selectedPage'},
       {key:'date_from',label:'From',type:'date'},{key:'date_to',label:'To',type:'date'},
       {key:'reach',label:'Reach',type:'number'},{key:'engagement',label:'Engagement',type:'number'},
       {key:'followers',label:'Followers',type:'number'},{key:'posts',label:'Posts',type:'number'},
@@ -5375,7 +5394,7 @@ function openItemDrawer(type, id) {
   let inRow = false;
 
   for (const f of cfg.fields) {
-    const val = _idItem[f.key] || (f.default === 'myDept' ? S.myDept||'' : f.default || '');
+    const val = _idItem[f.key] || (f.default === 'myDept' ? S.myDept||'' : f.default === '_selectedPage' ? S._selectedPage||'' : f.default || '');
     const inputId = 'id-f-' + f.key;
 
     if (f.full || f.type === 'textarea') {

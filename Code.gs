@@ -176,6 +176,9 @@ function route(method, action, p, body) {
     case 'getCDOBalances':    return getRows(ss, 'CDOBalances');
     case 'getCDORedemptions': return getRows(ss, 'CDORedemptions');
     case 'requestCDO':        return createRow(ss, 'CDORedemptions', body);
+    case 'createCDORedemption': return createRow(ss, 'CDORedemptions', body);
+    case 'updateCDORedemption': return updateRow(ss, 'CDORedemptions', body);
+    case 'deleteCDORedemption': return deleteRow(ss, 'CDORedemptions', p.id || body?.id);
     case 'approveCDO':        return approveCDO(ss, body);
     case 'rejectCDO':         return rejectCDO(ss, body);
 
@@ -183,6 +186,8 @@ function route(method, action, p, body) {
     case 'getLeaveRequests':  return getRows(ss, 'LeaveRequests');
     case 'createLeaveRequest': return createRow(ss, 'LeaveRequests', body);
     case 'updateLeaveRequest': return updateRow(ss, 'LeaveRequests', body);
+    case 'updateLeave':       return updateRow(ss, 'LeaveRequests', body);
+    case 'deleteLeave':       return deleteRow(ss, 'LeaveRequests', p.id || body?.id);
     case 'approveLeave':      return approveLeave(ss, body);
     case 'rejectLeave':       return rejectLeave(ss, body);
     case 'getLeaveBalances':  return getRows(ss, 'LeaveBalances');
@@ -288,6 +293,7 @@ function route(method, action, p, body) {
     // ── Social Records ──
     case 'getSocialRecords':  return getRows(ss, 'SocialRecords');
     case 'createSocialRecord': return createRow(ss, 'SocialRecords', body);
+    case 'updateSocialRecord': return updateRow(ss, 'SocialRecords', body);
     case 'deleteSocialRecord': return deleteRow(ss, 'SocialRecords', p.id || body?.id);
 
     // ── Monthly Plans ──
