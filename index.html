@@ -3702,13 +3702,37 @@ function showModal(html) {
 function nowIso() { return new Date().toISOString().slice(0,16); }
 
 function calShowMore(ds) {
-  const tasks = filteredTasks().filter(t => t.due === ds);
-  const events = (S.events||[]).filter(e => e.date === ds);
-  const shoots = (S.shoots||[]).filter(s => s.date === ds);
-  const all = [...tasks.map(t=>`<div onclick="closeModal();openTaskPanel('${t.id}')" style="padding:8px;border-bottom:1px solid var(--border);cursor:pointer"><span class="badge badge-${(t.priority||'p3').toLowerCase()}">${t.priority}</span> ${esc(t.title)}</div>`),
-    ...events.map(e=>`<div style="padding:8px;border-bottom:1px solid var(--border)">${esc(e.title)}</div>`),
-    ...shoots.map(s=>`<div style="padding:8px;border-bottom:1px solid var(--border)">${esc(s.title||'Shoot')}</div>`)];
-  showModal(`<div class="modal-header">All items — ${ds}</div><div class="modal-body" style="padding:0">${all.join('')}</div><div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal()">Close</button></div>`);
+  const cc=S._calCache||{};
+  const tasks=(cc.tasksByDate||{})[ds]||[];
+  const done=(cc.doneByDate||{})[ds]||[];
+  const leaves=(cc.leavesByDate||{})[ds]||[];
+  const shoots=(cc.shootsByDate||{})[ds]||[];
+  const missions=(cc.missionsByDate||{})[ds]||[];
+  const events=(cc.eventsByDate||{})[ds]||[];
+  const feedEvts=(cc.feedByDate||{})[ds]||[];
+  const campaigns=(cc.campaignsByDate||{})[ds]||[];
+  const designs=(cc.designsByDate||{})[ds]||[];
+  const pubs=(cc.pubsByDate||{})[ds]||[];
+  const seos=(cc.seoByDate||{})[ds]||[];
+  const websites=(cc.websiteByDate||{})[ds]||[];
+  const meetings=(cc.meetingsByDate||{})[ds]||[];
+  const allItems=[
+    ...tasks.map(t=>({item:t,type:'task',fn:`closeModal();openTaskPanel('${t.id}')`})),
+    ...done.map(t=>({item:t,type:'task',fn:`closeModal();openTaskPanel('${t.id}')`})),
+    ...campaigns.map(cm=>({item:{...cm,owner:''},type:'campaign',fn:`closeModal();showCampaignModal('${cm.id}')`})),
+    ...designs.map(d2=>({item:{...d2,owner:d2.assigned||''},type:'design',fn:`closeModal();showDesignModal('${d2.id}')`})),
+    ...pubs.map(pb=>({item:{...pb,owner:pb.lead||''},type:'pub',fn:`closeModal();showPublishingModal('${pb.id}')`})),
+    ...seos.map(sp=>({item:{...sp,owner:sp.lead||''},type:'seo',fn:`closeModal();showSeoModal('${sp.id}')`})),
+    ...websites.map(wp=>({item:{...wp,owner:wp.lead||''},type:'website',fn:`closeModal();showWebsiteModal('${wp.id}')`})),
+    ...meetings.map(mt=>({item:{...mt,owner:''},type:'meeting',fn:`closeModal();openMeeting('${mt.id}')`})),
+    ...shoots.map(s=>({item:{...s,title:s.title||'Shoot',owner:s.photographer||''},type:'shoot',fn:`closeModal();openTaskPanel('${s.id}')`})),
+    ...missions.map(ms=>({item:{...ms,title:`${ms.employee||''} — mission`},type:'mission',fn:''})),
+    ...leaves.map(l=>({item:{...l,title:`${l.employee||''} — ${l.type||'leave'}`},type:'leave',fn:''})),
+    ...events.map(e=>({item:e,type:'event',fn:`closeModal();showEventModal('${e.id}')`})),
+    ...feedEvts.map(e=>({item:e,type:'ical',fn:''}))
+  ];
+  const rows=allItems.map(({item,type,fn})=>calPillHtml(item,type,fn?`${fn}`:'')).join('');
+  showModal(`<div class="modal-header">All items — ${ds}</div><div class="modal-body" style="padding:8px">${rows||'<div class="text-sm text-muted">No items</div>'}</div><div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal()">Close</button></div>`);
 }
 
 function toast(msg, type='ok') {
