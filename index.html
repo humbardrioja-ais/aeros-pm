@@ -665,23 +665,24 @@ select.sd-val{appearance:auto;cursor:pointer}
       </div>
 
       <div id="view-calendar" class="hidden">
-        <!-- Toolbar -->
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;position:sticky;top:-20px;z-index:10;background:var(--bg);padding:12px 0;margin:-12px 0 10px">
-          <div style="display:flex;align-items:center;gap:6px;flex:1;min-width:0">
-            <button class="btn btn-secondary btn-sm" onclick="calShift(-1)" style="padding:5px 8px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
-            <button class="btn btn-secondary btn-sm" onclick="calShift(1)" style="padding:5px 8px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
-            <span id="cal-month-label" style="font-size:16px;font-weight:600"></span>
-            <button class="btn btn-secondary btn-sm" onclick="calGoToday()">Today</button>
+        <!-- Sticky calendar header (toolbar + layer chips) -->
+        <div style="position:sticky;top:-1px;z-index:10;background:var(--bg);padding:8px 0 0;margin-bottom:4px">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-bottom:6px">
+            <div style="display:flex;align-items:center;gap:6px;flex:1;min-width:0">
+              <button class="btn btn-secondary btn-sm" onclick="calShift(-1)" style="padding:5px 8px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+              <button class="btn btn-secondary btn-sm" onclick="calShift(1)" style="padding:5px 8px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+              <span id="cal-month-label" style="font-size:16px;font-weight:600"></span>
+              <button class="btn btn-secondary btn-sm" onclick="calGoToday()">Today</button>
+            </div>
+            <div style="display:flex;gap:6px">
+              <span id="cal-member-filter"></span>
+              <button class="btn btn-secondary btn-sm" onclick="showFeedPanel()">Subscriptions</button>
+              <button class="btn btn-secondary btn-sm" onclick="showEventModal()">+ Event</button>
+              <button class="btn btn-primary btn-sm" onclick="openTaskPanel('new')">+ Task</button>
+            </div>
           </div>
-          <div style="display:flex;gap:6px">
-            <span id="cal-member-filter"></span>
-            <button class="btn btn-secondary btn-sm" onclick="showFeedPanel()">Subscriptions</button>
-            <button class="btn btn-secondary btn-sm" onclick="showEventModal()">+ Event</button>
-            <button class="btn btn-primary btn-sm" onclick="openTaskPanel('new')">+ Task</button>
-          </div>
+          <div id="cal-layer-chips" style="display:flex;gap:5px;flex-wrap:wrap;padding-bottom:8px;border-bottom:1px solid var(--border)"></div>
         </div>
-        <!-- Layer toggles -->
-        <div id="cal-layer-chips" style="display:flex;gap:5px;flex-wrap:wrap;padding:8px 0;position:sticky;top:0;z-index:10;background:var(--bg)"></div>
         <!-- Body: calendar + sidebar -->
         <div style="display:grid;grid-template-columns:1fr 220px;gap:16px;align-items:start">
           <div id="cal-months-wrap" style="min-width:0"></div>
