@@ -387,7 +387,13 @@ function getRows(ss, sheetName, filter) {
   const now = new Date().toISOString();
   const rows = data.slice(1).map((r, rowIdx) => {
     const obj = {};
-    headers.forEach((h, i) => obj[h] = r[i]);
+    headers.forEach((h, i) => {
+      let v = r[i];
+      if (v instanceof Date) {
+        v = Utilities.formatDate(v, ss.getSpreadsheetTimeZone(), 'yyyy-MM-dd');
+      }
+      obj[h] = v;
+    });
     // Auto-fill missing id and created for manually-added rows
     if (idCol >= 0 && !obj.id) {
       const newId = generateId(sheetName);
