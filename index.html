@@ -527,7 +527,9 @@ select.sd-val{appearance:auto;cursor:pointer}
       <div class="nav-item" onclick="nav('projects')"><span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span><span class="label">Projects</span></div>
       <div class="nav-item" onclick="nav('campaigns')"><span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg></span><span class="label">Campaigns</span></div>
       <div class="nav-item" onclick="nav('designs')"><span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="19" cy="17" r="2"/><circle cx="6" cy="17" r="2"/><path d="M14.5 8.5L19 15"/><path d="M12.5 8L6 15"/><path d="M11 6.5H5a2 2 0 0 0-2 2V20"/></svg></span><span class="label">Designs</span></div>
-      <div class="nav-item" onclick="nav('publishing')"><span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></span><span class="label">Publishing</span></div>
+      <div class="nav-item" onclick="nav('publishing')"><span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span><span class="label">Publications</span></div>
+      <div class="nav-item" onclick="nav('seo')"><span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><span class="label">SEO</span></div>
+      <div class="nav-item" onclick="nav('website')"><span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></span><span class="label">Website</span></div>
       <div class="nav-item" onclick="nav('social')"><span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span><span class="label">Social Hub</span></div>
       <div class="nav-item" onclick="nav('meetings')"><span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span><span class="label">Meeting Notes</span></div>
       <div class="nav-item" onclick="nav('media')"><span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></span><span class="label">Media</span></div>
@@ -925,12 +927,29 @@ select.sd-val{appearance:auto;cursor:pointer}
       </div>
       <div id="view-publishing" class="hidden">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-          <div style="font-size:18px;font-weight:700">Publishing</div>
-          <button class="btn btn-primary" onclick="showPublishingModal()">+ Post</button>
+          <div style="font-size:18px;font-weight:700">Publications</div>
+          <button class="btn btn-primary" onclick="showPublishingModal()">+ Publication</button>
         </div>
         <div id="publishing-list"></div>
       </div>
-      <div id="view-social" class="hidden">
+  
+    <div id="view-seo" class="hidden">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div style="font-size:18px;font-weight:700">SEO Projects</div>
+        <button class="btn btn-primary" onclick="showSeoModal()">+ SEO Project</button>
+      </div>
+      <div id="seo-list"></div>
+    </div>
+
+    <div id="view-website" class="hidden">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div style="font-size:18px;font-weight:700">Website Projects</div>
+        <button class="btn btn-primary" onclick="showWebsiteModal()">+ Website Project</button>
+      </div>
+      <div id="website-list"></div>
+    </div>
+
+    <div id="view-social" class="hidden">
         <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px">
           <div style="font-size:18px;font-weight:700">Social Hub</div>
         </div>
@@ -1432,7 +1451,7 @@ const S = {
   tasks: [], projects: [], team: [], meetings: [], missions: [],
   leaves: [], shoots: [], videos: [], notifications: [], events: [],
   cdoBalances: [], cdoRedemptions: [], feeds: [], feedEvents: [],
-  campaigns: [], designs: [], publishing: [], monthlyPlans: [], rules: [],
+  campaigns: [], designs: [], publishing: [], seoProjects: [], websiteProjects: [], monthlyPlans: [], rules: [],
   socialData: {}, config: JSON.parse(localStorage.getItem('aeros_config')||'{}'),
   currentView: 'dashboard',
   calYear: new Date().getFullYear(),
@@ -1482,7 +1501,7 @@ function nav(view) {
     mytasks:'My Tasks',inbox:'Inbox',projects:'Projects',meetings:'Meeting Notes',
     media:'Media Production',missions:'Missions',cdo:'Change Day Off',leave:'Leave',
     team:'Team',settings:'Settings',
-    campaigns:'Campaigns',designs:'Designs',publishing:'Publishing',
+    campaigns:'Campaigns',designs:'Designs',publishing:'Publications',seo:'SEO',website:'Website',
     social:'Social Hub','monthly-planning':'Monthly Planning',rules:'Rules & Guidelines' };
   document.getElementById('page-title').textContent = titles[view] || view;
   renderView(view);
@@ -1517,6 +1536,8 @@ function renderViewNow(view) {
   if (view === 'campaigns')        renderCampaigns();
   if (view === 'designs')          renderDesigns();
   if (view === 'publishing')       renderPublishing();
+  if (view === 'seo')              renderSeo();
+  if (view === 'website')          renderWebsite();
   if (view === 'social')           renderSocial();
   if (view === 'monthly-planning') renderMonthlyPlanning();
   if (view === 'rules')            renderRules();
@@ -1591,7 +1612,7 @@ function renderDashboard() {
     statCard(S.projects.length,'Projects',''),
     statCard((S.campaigns||[]).filter(c=>c.status==='Active').length,'Active Campaigns',''),
     statCard((S.designs||[]).filter(d=>d.stage==='For Review').length,'Designs for Review',(S.designs||[]).filter(d=>d.stage==='For Review').length>0?'warn':''),
-    statCard((S.publishing||[]).filter(p=>p.deadline&&p.deadline<=addDays(today,7)&&p.status!=='Published').length,'Publishing Due Soon',''),
+    statCard((S.publishing||[]).filter(p=>p.deadline&&p.deadline<=addDays(today,7)&&p.status!=='Published'&&p.status!=='Distributed').length,'Publications Due Soon',''),
   ].join('');
   document.getElementById('dash-overdue').innerHTML = overdue.length
     ? overdue.map(taskRowHtml).join('') : '<div class="empty-state"><p>No overdue tasks</p></div>';
@@ -4387,7 +4408,8 @@ async function deleteDesign(id){
 
 /* ===================== PUBLISHING ===================== */
 S.publishing=S.publishing||[];
-const PUB_STATUSES=['Draft','For Approval','Approved','Scheduled','Published'];
+const PUB_STATUSES=['Planning','Writing','Editing','Design/Layout','For Approval','Printing','Published','Distributed'];
+const PUB_TYPES=['Book','Yearbook','Magazine','Newsletter','Journal','Brochure','Report'];
 
 function renderPublishing(){
   const w=document.getElementById('publishing-list');if(!w)return;
@@ -4437,7 +4459,7 @@ function showPublishingModal(id){
 
 async function savePublishing(id){
   const title=document.getElementById('pb-title').value.trim();if(!title)return;
-  const obj={title,platform:document.getElementById('pb-plat').value,page:document.getElementById('pb-page').value,status:document.getElementById('pb-stat').value,deadline:document.getElementById('pb-deadline').value,publish_date:document.getElementById('pb-pub').value,assigned:document.getElementById('pb-assigned').value,notes:document.getElementById('pb-notes').value};
+  const obj={title,pub_type:document.getElementById('pb-type').value,edition:document.getElementById('pb-edition').value,status:document.getElementById('pb-stat').value,deadline:document.getElementById('pb-deadline').value,target_release:document.getElementById('pb-release').value,lead:document.getElementById('pb-lead').value,page_count:document.getElementById('pb-pages').value,sections:document.getElementById('pb-sections').value,notes:document.getElementById('pb-notes').value};
   if(id){const p=(S.publishing||[]).find(x=>x.id===id);if(p)Object.assign(p,obj);}
   else{if(!S.publishing)S.publishing=[];S.publishing.push({id:'PB-'+String(S.publishing.length+1).padStart(3,'0'),...obj,created:todayStr()});}
   closeModal();renderPublishing();
@@ -4692,6 +4714,129 @@ function renderDashboardBlockedAlert(){
     <button onclick="nav('list');setTimeout(()=>listFilterStatus('blocked'),100)" class="btn btn-sm" style="background:#c5221f;color:#fff;border:none">View blocked</button>
   </div>`;
 }
+
+const SEO_STATUSES=['Audit','Keyword Research','On-Page','Technical','Content','Link Building','Monitoring','Complete'];
+const WEB_STATUSES=['Planning','Wireframe','Design','Development','Testing','Staging','Live','Maintenance'];
+const WEB_TYPES=['Landing Page','Full Site','Microsite','Blog','Portal','Redesign'];
+
+function renderSeo(){
+  const w=document.getElementById('seo-list');if(!w)return;
+  if(!S.seoProjects||!S.seoProjects.length){
+    w.innerHTML='<div style="color:var(--text3);padding:32px;text-align:center">No SEO projects yet.</div>';return;
+  }
+  w.innerHTML=`<table class="data-table"><thead><tr><th>Title</th><th>Target URL</th><th>Focus Keywords</th><th>Status</th><th>Lead</th><th>Due</th><th></th></tr></thead><tbody>
+  ${(S.seoProjects||[]).map(p=>`<tr onclick="showSeoModal('${p.id}')" style="cursor:pointer">
+    <td style="font-weight:600">${esc(p.title)}</td>
+    <td>${esc(p.target_url||'')}</td>
+    <td>${esc(p.keywords||'')}</td>
+    <td><span class="badge" style="background:${p.status==='Complete'?'var(--ok)':'var(--surface2)'};color:${p.status==='Complete'?'#fff':'var(--text)'}">${p.status||'Audit'}</span></td>
+    <td>${esc(p.lead||'')}</td>
+    <td>${p.due||'\u2014'}</td>
+    <td><div class="actions"><button class="btn btn-sm btn-danger" onclick="event.stopPropagation();deleteSeo('${p.id}')">Del</button></div></td>
+  </tr>`).join('')}</tbody></table>`;
+}
+
+function showSeoModal(id){
+  const p=id?(S.seoProjects||[]).find(x=>x.id===id)||{}:{};
+  const isEdit=!!id;
+  const stat=SEO_STATUSES.map(s=>`<option ${p.status===s?'selected':''}>${s}</option>`).join('');
+  const team=(S.team||[]).map(m=>`<option ${p.lead===m.name?'selected':''}>${esc(m.name)}</option>`).join('');
+  showModal(`<div class="modal-header">${isEdit?'Edit':'New'} SEO Project</div>
+  <div class="modal-body">
+    <div class="form-row"><label>Title</label><input id="seo-title" value="${esc(p.title||'')}"></div>
+    <div class="form-row"><label>Target URL / Page</label><input id="seo-url" value="${esc(p.target_url||'')}" placeholder="https://..."></div>
+    <div class="form-row"><label>Focus Keywords</label><input id="seo-keywords" value="${esc(p.keywords||'')}" placeholder="comma separated"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+      <div class="form-row"><label>Status</label><select id="seo-stat">${stat}</select></div>
+      <div class="form-row"><label>Lead</label><select id="seo-lead"><option value="">\u2014</option>${team}</select></div>
+      <div class="form-row"><label>Due</label><input type="date" id="seo-due" value="${p.due||''}"></div>
+    </div>
+    <div class="form-row"><label>Current Rank / Metrics</label><textarea id="seo-metrics" placeholder="Position, traffic, DA, etc.">${esc(p.metrics||'')}</textarea></div>
+    <div class="form-row"><label>Notes / Action Items</label><textarea id="seo-notes">${esc(p.notes||'')}</textarea></div>
+  </div>
+  <div class="modal-footer">
+    ${isEdit?`<button class="btn btn-danger btn-sm" onclick="deleteSeo('${id}')">Delete</button>`:''}
+    <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+    <button class="btn btn-primary" onclick="saveSeo(${isEdit?`'${id}'`:null})">Save</button>
+  </div>`);
+}
+
+async function saveSeo(id){
+  const title=document.getElementById('seo-title').value.trim();if(!title)return;
+  const obj={title,target_url:document.getElementById('seo-url').value,keywords:document.getElementById('seo-keywords').value,status:document.getElementById('seo-stat').value,lead:document.getElementById('seo-lead').value,due:document.getElementById('seo-due').value,metrics:document.getElementById('seo-metrics').value,notes:document.getElementById('seo-notes').value};
+  if(id){const p=(S.seoProjects||[]).find(x=>x.id===id);if(p)Object.assign(p,obj);}
+  else{if(!S.seoProjects)S.seoProjects=[];S.seoProjects.push({id:'SEO-'+String(S.seoProjects.length+1).padStart(3,'0'),...obj,created:todayStr()});}
+  closeModal();renderSeo();
+  try{await api(id?'updateSeo':'createSeo',{},{...(id?{id}:{}), ...obj});}catch(e){}
+}
+
+async function deleteSeo(id){
+  if(!confirm('Delete?'))return;
+  S.seoProjects=(S.seoProjects||[]).filter(x=>x.id!==id);closeModal();renderSeo();
+  try{await api('deleteSeo',{id});}catch(e){}
+}
+
+function renderWebsite(){
+  const w=document.getElementById('website-list');if(!w)return;
+  if(!S.websiteProjects||!S.websiteProjects.length){
+    w.innerHTML='<div style="color:var(--text3);padding:32px;text-align:center">No website projects yet.</div>';return;
+  }
+  w.innerHTML=`<table class="data-table"><thead><tr><th>Title</th><th>Type</th><th>URL</th><th>Status</th><th>Lead</th><th>Launch</th><th></th></tr></thead><tbody>
+  ${(S.websiteProjects||[]).map(p=>`<tr onclick="showWebsiteModal('${p.id}')" style="cursor:pointer">
+    <td style="font-weight:600">${esc(p.title)}</td>
+    <td>${esc(p.web_type||'')}</td>
+    <td>${esc(p.url||'')}</td>
+    <td><span class="badge" style="background:${p.status==='Live'?'var(--ok)':'var(--surface2)'};color:${p.status==='Live'?'#fff':'var(--text)'}">${p.status||'Planning'}</span></td>
+    <td>${esc(p.lead||'')}</td>
+    <td>${p.launch_date||'\u2014'}</td>
+    <td><div class="actions"><button class="btn btn-sm btn-danger" onclick="event.stopPropagation();deleteWebsite('${p.id}')">Del</button></div></td>
+  </tr>`).join('')}</tbody></table>`;
+}
+
+function showWebsiteModal(id){
+  const p=id?(S.websiteProjects||[]).find(x=>x.id===id)||{}:{};
+  const isEdit=!!id;
+  const types=WEB_TYPES.map(t=>`<option ${p.web_type===t?'selected':''}>${t}</option>`).join('');
+  const stat=WEB_STATUSES.map(s=>`<option ${p.status===s?'selected':''}>${s}</option>`).join('');
+  const team=(S.team||[]).map(m=>`<option ${p.lead===m.name?'selected':''}>${esc(m.name)}</option>`).join('');
+  showModal(`<div class="modal-header">${isEdit?'Edit':'New'} Website Project</div>
+  <div class="modal-body">
+    <div class="form-row"><label>Title</label><input id="web-title" value="${esc(p.title||'')}"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-row"><label>Type</label><select id="web-type"><option value="">\u2014</option>${types}</select></div>
+      <div class="form-row"><label>URL</label><input id="web-url" value="${esc(p.url||'')}" placeholder="https://..."></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+      <div class="form-row"><label>Status</label><select id="web-stat">${stat}</select></div>
+      <div class="form-row"><label>Lead</label><select id="web-lead"><option value="">\u2014</option>${team}</select></div>
+      <div class="form-row"><label>Launch date</label><input type="date" id="web-launch" value="${p.launch_date||''}"></div>
+    </div>
+    <div class="form-row"><label>Tech stack / Platform</label><input id="web-stack" value="${esc(p.tech_stack||'')}" placeholder="e.g. WordPress, React, Wix"></div>
+    <div class="form-row"><label>Pages / Sections</label><textarea id="web-pages" placeholder="One per line">${esc(p.pages||'')}</textarea></div>
+    <div class="form-row"><label>Notes</label><textarea id="web-notes">${esc(p.notes||'')}</textarea></div>
+  </div>
+  <div class="modal-footer">
+    ${isEdit?`<button class="btn btn-danger btn-sm" onclick="deleteWebsite('${id}')">Delete</button>`:''}
+    <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+    <button class="btn btn-primary" onclick="saveWebsite(${isEdit?`'${id}'`:null})">Save</button>
+  </div>`);
+}
+
+async function saveWebsite(id){
+  const title=document.getElementById('web-title').value.trim();if(!title)return;
+  const obj={title,web_type:document.getElementById('web-type').value,url:document.getElementById('web-url').value,status:document.getElementById('web-stat').value,lead:document.getElementById('web-lead').value,launch_date:document.getElementById('web-launch').value,tech_stack:document.getElementById('web-stack').value,pages:document.getElementById('web-pages').value,notes:document.getElementById('web-notes').value};
+  if(id){const p=(S.websiteProjects||[]).find(x=>x.id===id);if(p)Object.assign(p,obj);}
+  else{if(!S.websiteProjects)S.websiteProjects=[];S.websiteProjects.push({id:'WEB-'+String(S.websiteProjects.length+1).padStart(3,'0'),...obj,created:todayStr()});}
+  closeModal();renderWebsite();
+  try{await api(id?'updateWebsite':'createWebsite',{},{...(id?{id}:{}), ...obj});}catch(e){}
+}
+
+async function deleteWebsite(id){
+  if(!confirm('Delete?'))return;
+  S.websiteProjects=(S.websiteProjects||[]).filter(x=>x.id!==id);closeModal();renderWebsite();
+  try{await api('deleteWebsite',{id});}catch(e){}
+}
+
 </script>
 </body>
 </html>

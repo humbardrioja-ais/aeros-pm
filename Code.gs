@@ -273,6 +273,18 @@ function route(method, action, p, body) {
     case 'updatePublishing':  return updateRow(ss, 'Publishing', body);
     case 'deletePublishing':  return deleteRow(ss, 'Publishing', p.id || body?.id);
 
+    // ── SEO ──
+    case 'getSeo':            return getRows(ss, 'SeoProjects');
+    case 'createSeo':         return createRow(ss, 'SeoProjects', body);
+    case 'updateSeo':         return updateRow(ss, 'SeoProjects', body);
+    case 'deleteSeo':         return deleteRow(ss, 'SeoProjects', p.id || body?.id);
+
+    // ── Website ──
+    case 'getWebsite':        return getRows(ss, 'WebsiteProjects');
+    case 'createWebsite':     return createRow(ss, 'WebsiteProjects', body);
+    case 'updateWebsite':     return updateRow(ss, 'WebsiteProjects', body);
+    case 'deleteWebsite':     return deleteRow(ss, 'WebsiteProjects', p.id || body?.id);
+
     // ── Social Records ──
     case 'getSocialRecords':  return getRows(ss, 'SocialRecords');
     case 'createSocialRecord': return createRow(ss, 'SocialRecords', body);
@@ -307,6 +319,8 @@ function getAllData(ss, p) {
     campaigns:      getRows(ss, 'Campaigns'),
     designs:        getRows(ss, 'Designs'),
     publishing:     getRows(ss, 'Publishing'),
+    seoProjects:    getRows(ss, 'SeoProjects'),
+    websiteProjects: getRows(ss, 'WebsiteProjects'),
     socialRecords:  getRows(ss, 'SocialRecords'),
     monthlyPlans:   getRows(ss, 'MonthlyPlans'),
     rules:          getRows(ss, 'Rules'),
@@ -359,7 +373,9 @@ const SHEETS = {
   Audit: ['id','actor','action','entity','entityId','before','after','created'],
   Campaigns:     ['id','title','status','start','end','description','projects','milestones','created','updated'],
   Designs:       ['id','title','type','stage','assigned','page','due','publish_date','notes','created','updated'],
-  Publishing:    ['id','title','platform','page','status','deadline','publish_date','assigned','notes','created','updated'],
+  Publishing:    ['id','title','pub_type','edition','status','deadline','target_release','lead','page_count','sections','notes','created','updated'],
+  SeoProjects:   ['id','title','target_url','keywords','status','lead','due','metrics','notes','created','updated'],
+  WebsiteProjects: ['id','title','web_type','url','status','lead','launch_date','tech_stack','pages','notes','created','updated'],
   SocialRecords: ['id','page','date_from','date_to','reach','engagement','followers','posts','notes','created'],
   MonthlyPlans:  ['id','month','department','status','submitted_by','goals','key_tasks','created','updated']
 };
