@@ -630,7 +630,6 @@ select.sd-val{appearance:auto;cursor:pointer}
               <option value="department">Group by team</option>
             </select>
           </div>
-          <span id="list-member-filter"></span>
           <div style="flex:1"></div>
           <button class="btn btn-secondary btn-sm" onclick="listToggleDone()" id="list-show-done-btn" style="font-size:12px">Show done</button>
           <button class="btn btn-primary" onclick="openTaskPanel('new')">+ Task</button>
@@ -708,7 +707,6 @@ select.sd-val{appearance:auto;cursor:pointer}
       </div>
 
       <div id="view-workload" class="hidden">
-        <div class="flex items-center gap-8 mb-12"><span id="workload-member-filter"></span></div>
         <div class="card">
           <div class="font-bold mb-12">Team Workload</div>
           <div id="workload-body"></div>
@@ -1676,7 +1674,6 @@ function listToggleDone() {
 }
 
 function renderList() {
-  const mf=document.getElementById('list-member-filter');if(mf)mf.innerHTML=memberFilterHtml();
   const q        = (document.getElementById('list-search')?.value || '').toLowerCase();
   const status   = document.getElementById('list-filter-status')?.value || '';
   const priority = document.getElementById('list-filter-priority')?.value || '';
@@ -2324,7 +2321,6 @@ function renderTimeline() {
 
 // ===================== WORKLOAD =====================
 function renderWorkload() {
-  const mf=document.getElementById('workload-member-filter');if(mf)mf.innerHTML=memberFilterHtml();
   const counts = {};
   filteredTasks().filter(t => t.status !== 'done').forEach(t => { counts[t.owner||'Unassigned'] = (counts[t.owner||'Unassigned']||0)+1; });
   const max = Math.max(...Object.values(counts), 1);
