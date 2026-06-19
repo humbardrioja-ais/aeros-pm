@@ -3557,12 +3557,7 @@ async function saveLeave() {
   S._lastLoaded = 0; loadData(true).then(renderLeave);
 }
 
-function showCDOModal() { openItemDrawer('cdo','new'); return; // old code below unused
-function _oldCDOModal() {
-  populateSelect('cdo-employee');
-  document.getElementById('cdo-date').value = todayStr();
-  openModal('cdo-modal');
-}
+function showCDOModal() { openItemDrawer('cdo','new'); }
 
 async function saveCDORedemption() {
   const employee = document.getElementById('cdo-employee').value;
