@@ -291,10 +291,6 @@ function route(method, action, p, body) {
     case 'deleteSocialRecord': return deleteRow(ss, 'SocialRecords', p.id || body?.id);
 
     // ── Monthly Plans ──
-    case 'getMonthlyPlans':   return getRows(ss, 'MonthlyPlans');
-    case 'createMonthlyPlan': return createRow(ss, 'MonthlyPlans', body);
-    case 'updateMonthlyPlan': return updateRow(ss, 'MonthlyPlans', body);
-    case 'deleteMonthlyPlan': return deleteRow(ss, 'MonthlyPlans', p.id || body?.id);
 
     default: throw new Error('Unknown action: ' + action);
   }
@@ -322,7 +318,6 @@ function getAllData(ss, p) {
     seoProjects:    getRows(ss, 'SeoProjects'),
     websiteProjects: getRows(ss, 'WebsiteProjects'),
     socialRecords:  getRows(ss, 'SocialRecords'),
-    monthlyPlans:   getRows(ss, 'MonthlyPlans'),
     rules:          getRows(ss, 'Rules'),
   };
 }
@@ -377,7 +372,6 @@ const SHEETS = {
   SeoProjects:   ['id','title','target_url','keywords','status','lead','due','metrics','notes','created','updated'],
   WebsiteProjects: ['id','title','web_type','url','status','lead','launch_date','tech_stack','pages','notes','created','updated'],
   SocialRecords: ['id','page','date_from','date_to','reach','engagement','followers','posts','notes','created'],
-  MonthlyPlans:  ['id','month','department','status','submitted_by','goals','key_tasks','created','updated']
 };
 
 // ===================== CRUD HELPERS =====================

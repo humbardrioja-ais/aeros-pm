@@ -533,7 +533,6 @@ select.sd-val{appearance:auto;cursor:pointer}
       <div class="nav-item" onclick="nav('social')"><span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span><span class="label">Social Hub</span></div>
       <div class="nav-item" onclick="nav('meetings')"><span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span><span class="label">Meeting Notes</span></div>
       <div class="nav-item" onclick="nav('media')"><span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></span><span class="label">Media</span></div>
-      <div class="nav-item" onclick="nav('monthly-planning')"><span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="14" x2="8" y2="14"/><line x1="12" y1="14" x2="12" y2="14"/><line x1="16" y1="14" x2="16" y2="14"/></svg></span><span class="label">Monthly Planning</span></div>
     </div>
     <div class="nav-section">
       <div class="nav-section-label">HR</div>
@@ -957,13 +956,6 @@ select.sd-val{appearance:auto;cursor:pointer}
           <div id="social-pages-list" style="width:180px;flex-shrink:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:8px;overflow-y:auto"></div>
           <div id="social-page-content" style="flex:1;overflow-y:auto"></div>
         </div>
-      </div>
-      <div id="view-monthly-planning" class="hidden">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-          <div style="font-size:18px;font-weight:700">Monthly Planning</div>
-          <button class="btn btn-primary" onclick="showMonthlyPlanModal()">+ New Plan</button>
-        </div>
-        <div id="monthly-plans-list"></div>
       </div>
       <div id="view-rules" class="hidden">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
@@ -1451,7 +1443,7 @@ const S = {
   tasks: [], projects: [], team: [], meetings: [], missions: [],
   leaves: [], shoots: [], videos: [], notifications: [], events: [],
   cdoBalances: [], cdoRedemptions: [], feeds: [], feedEvents: [],
-  campaigns: [], designs: [], publishing: [], seoProjects: [], websiteProjects: [], monthlyPlans: [], rules: [],
+  campaigns: [], designs: [], publishing: [], seoProjects: [], websiteProjects: [], rules: [],
   socialData: {}, config: JSON.parse(localStorage.getItem('aeros_config')||'{}'),
   currentView: 'dashboard',
   calYear: new Date().getFullYear(),
@@ -1502,7 +1494,7 @@ function nav(view) {
     media:'Media Production',missions:'Missions',cdo:'Change Day Off',leave:'Leave',
     team:'Team',settings:'Settings',
     campaigns:'Campaigns',designs:'Designs',publishing:'Publications',seo:'SEO',website:'Website',
-    social:'Social Hub','monthly-planning':'Monthly Planning',rules:'Rules & Guidelines' };
+    social:'Social Hub',rules:'Rules & Guidelines' };
   document.getElementById('page-title').textContent = titles[view] || view;
   renderView(view);
 }
@@ -1539,7 +1531,6 @@ function renderViewNow(view) {
   if (view === 'seo')              renderSeo();
   if (view === 'website')          renderWebsite();
   if (view === 'social')           renderSocial();
-  if (view === 'monthly-planning') renderMonthlyPlanning();
   if (view === 'rules')            renderRules();
 }
 
@@ -1561,7 +1552,6 @@ function applyData(d) {
   if (d.campaigns)      S.campaigns      = d.campaigns;
   if (d.designs)        S.designs        = d.designs;
   if (d.publishing)     S.publishing     = d.publishing;
-  if (d.monthlyPlans)   S.monthlyPlans   = d.monthlyPlans;
   if (d.rules)          S.rules          = d.rules;
   if (d.socialRecords) {
     S.socialData = {};
@@ -4534,64 +4524,6 @@ function deleteSocialRecord(idx){
   (S.socialData[S._selectedPage]||[]).splice(idx,1);renderSocial();
 }
 
-/* ===================== MONTHLY PLANNING ===================== */
-S.monthlyPlans=S.monthlyPlans||[];
-
-function renderMonthlyPlanning(){
-  const w=document.getElementById('monthly-plans-list');if(!w)return;
-  const plans=S.monthlyPlans||[];
-  if(!plans.length){
-    w.innerHTML='<div style="color:var(--text3);padding:32px;text-align:center">No monthly plans yet.</div>';return;
-  }
-  w.innerHTML=`<table class="data-table"><thead><tr><th>Month</th><th>Department</th><th>Status</th><th>Submitted by</th><th>Goals</th><th></th></tr></thead><tbody>
-  ${plans.map(p=>`<tr onclick="showMonthlyPlanModal('${p.id}')" style="cursor:pointer">
-    <td style="font-weight:600">${p.month||'—'}</td>
-    <td>${esc(p.department||'')}</td>
-    <td><span class="badge" style="background:${p.status==='Reviewed'?'var(--ok)':p.status==='Submitted'?'var(--brand-light)':'var(--surface2)'};color:${p.status==='Reviewed'?'#fff':p.status==='Submitted'?'var(--brand)':'var(--text2)'}">${p.status||'Draft'}</span></td>
-    <td>${esc(p.submitted_by||'')}</td>
-    <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.goals||'')}</td>
-    <td><div class="actions"><button class="btn btn-sm btn-danger" onclick="event.stopPropagation();deleteMonthlyPlan('${p.id}')">Del</button></div></td>
-  </tr>`).join('')}</tbody></table>`;
-}
-
-function showMonthlyPlanModal(id){
-  const p=id?(S.monthlyPlans||[]).find(x=>x.id===id)||{}:{};
-  const isEdit=!!id;
-  const depts=[...new Set((S.team||[]).map(m=>m.department).filter(Boolean))];
-  const deptOpts=depts.map(d=>`<option ${p.department===d?'selected':''}>${d}</option>`).join('');
-  const statOpts=['Draft','Submitted','Reviewed'].map(s=>`<option ${p.status===s?'selected':''}>${s}</option>`).join('');
-  showModal(`<div class="modal-header">${isEdit?'Edit':'New'} Monthly Plan</div>
-  <div class="modal-body">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-      <div class="form-row"><label>Month (YYYY-MM)</label><input id="mp-month" value="${esc(p.month||'')}"></div>
-      <div class="form-row"><label>Department</label><select id="mp-dept"><option value="">—</option>${deptOpts}</select></div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-      <div class="form-row"><label>Status</label><select id="mp-status">${statOpts}</select></div>
-      <div class="form-row"><label>Submitted by</label><input id="mp-by" value="${esc(p.submitted_by||'')}"></div>
-    </div>
-    <div class="form-row"><label>Goals</label><textarea id="mp-goals">${esc(p.goals||'')}</textarea></div>
-    <div class="form-row"><label>Key tasks (one per line)</label><textarea id="mp-tasks">${(p.key_tasks||[]).join('\n')}</textarea></div>
-  </div>
-  <div class="modal-footer">
-    ${isEdit?`<button class="btn btn-danger btn-sm" onclick="deleteMonthlyPlan('${id}')">Delete</button>`:''}
-    <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-    <button class="btn btn-primary" onclick="saveMonthlyPlan(${isEdit?`'${id}'`:null})">Save</button>
-  </div>`);
-}
-
-async function saveMonthlyPlan(id){
-  const month=document.getElementById('mp-month').value.trim();if(!month)return;
-  const obj={month,department:document.getElementById('mp-dept').value,status:document.getElementById('mp-status').value,submitted_by:document.getElementById('mp-by').value,goals:document.getElementById('mp-goals').value,key_tasks:document.getElementById('mp-tasks').value.split('\n').filter(Boolean)};
-  if(id){const p=(S.monthlyPlans||[]).find(x=>x.id===id);if(p)Object.assign(p,obj);}
-  else{if(!S.monthlyPlans)S.monthlyPlans=[];S.monthlyPlans.push({id:'MP-'+String(S.monthlyPlans.length+1).padStart(3,'0'),...obj,created:todayStr()});}
-  closeModal();renderMonthlyPlanning();
-  try{await api(id?'updateMonthlyPlan':'createMonthlyPlan',{},{...(id?{id}:{}), ...obj});}catch(e){}
-}
-async function deleteMonthlyPlan(id){
-  if(!confirm('Delete?'))return;
-  S.monthlyPlans=(S.monthlyPlans||[]).filter(x=>x.id!==id);closeModal();renderMonthlyPlanning();
-}
 
 /* ===================== RULES & GUIDELINES ===================== */
 S.rules=S.rules||[];
