@@ -886,6 +886,13 @@ select.sd-val{appearance:auto;cursor:pointer}
           </div>
           <button class="btn btn-primary" onclick="runInit()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Initialize Sheet (run once)</button>
         </div>
+        <div class="card" style="max-width:600px;margin-top:16px">
+          <div id="ay-settings-block"></div>
+        </div>
+        <div class="card" style="max-width:600px;margin-top:16px">
+          <div class="font-bold mb-16">Scalable Lists</div>
+          <div id="scalable-lists-block"></div>
+        </div>
       </div>
       <div id="view-campaigns" class="hidden">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
@@ -1406,9 +1413,12 @@ const S = {
   apiUrl: localStorage.getItem('aeros_api_url') || 'https://script.google.com/macros/s/AKfycbx-twUE6SK_8QZ2f5hQwgvwOVCpLN53UH31Hwt8HqWMP4LLf1dLmpfeY6fDi7v5Z7C44A/exec',
   myName: localStorage.getItem('aeros_my_name') || 'ME',
   myDept: localStorage.getItem('aeros_my_dept') || '',
+  myRole: localStorage.getItem('aeros_role') || 'admin',
   tasks: [], projects: [], team: [], meetings: [], missions: [],
   leaves: [], shoots: [], videos: [], notifications: [], events: [],
   cdoBalances: [], cdoRedemptions: [], feeds: [], feedEvents: [],
+  campaigns: [], designs: [], publishing: [], monthlyPlans: [], rules: [],
+  socialData: {}, config: JSON.parse(localStorage.getItem('aeros_config')||'{}'),
   currentView: 'dashboard',
   calYear: new Date().getFullYear(),
   calMonth: new Date().getMonth(),
@@ -1416,6 +1426,9 @@ const S = {
   parsedItems: [],
   _lastLoaded: 0,
 };
+loadAY();
+loadCalendarColors();
+loadLayerToggles();
 
 // ===================== API =====================
 async function api(action, params={}, body=null) {
@@ -1549,6 +1562,9 @@ function renderDashboard() {
     statCard(doneThis.length,'Done (7 days)',''),
     statCard(t.filter(x=>x.status!=='done').length,'Open Tasks',''),
     statCard(S.projects.length,'Projects',''),
+    statCard((S.campaigns||[]).filter(c=>c.status==='Active').length,'Active Campaigns',''),
+    statCard((S.designs||[]).filter(d=>d.stage==='For Review').length,'Designs for Review',(S.designs||[]).filter(d=>d.stage==='For Review').length>0?'warn':''),
+    statCard((S.publishing||[]).filter(p=>p.deadline&&p.deadline<=addDays(today,7)&&p.status!=='Published').length,'Publishing Due Soon',''),
   ].join('');
   document.getElementById('dash-overdue').innerHTML = overdue.length
     ? overdue.map(taskRowHtml).join('') : '<div class="empty-state"><p>No overdue tasks</p></div>';
@@ -2985,6 +3001,85 @@ function renderSettings() {
   document.getElementById('api-url').value = S.apiUrl;
   document.getElementById('my-name').value = S.myName;
   document.getElementById('my-dept').value = S.myDept;
+  renderAYSettings();
+  renderScalableLists();
+}
+
+function loadAY() {
+  const stored = localStorage.getItem('aeros_ay');
+  S.ay = stored ? JSON.parse(stored) : { current:'2025-26', start:'2025-06-01', end:'2026-05-31', next_start:'2026-09-01' };
+}
+
+function saveAY() {
+  S.ay = {
+    current: document.getElementById('ay-current').value,
+    start:   document.getElementById('ay-start').value,
+    end:     document.getElementById('ay-end').value,
+    next_start: document.getElementById('ay-next').value
+  };
+  localStorage.setItem('aeros_ay', JSON.stringify(S.ay));
+  toast('Academic Year saved');
+}
+
+function rolloverAY() {
+  if (!confirm(`Roll over to next AY? This will archive the current year and begin a new one starting ${S.ay?.next_start||'Sep 1 2026'}.`)) return;
+  const parts = (S.ay?.current||'2025-26').split('-');
+  const y1 = parseInt(parts[0])+1, y2 = parseInt(parts[1])+1;
+  S.ay = { current:`${y1}-${y2}`, start: S.ay?.next_start||`${y1}-09-01`, end:`${y2}-05-31`, next_start:`${y2}-09-01` };
+  localStorage.setItem('aeros_ay', JSON.stringify(S.ay));
+  renderAYSettings();
+  toast(`Rolled over to AY ${S.ay.current}`);
+}
+
+function renderAYSettings() {
+  const w = document.getElementById('ay-settings-block');
+  if (!w) return;
+  if (!S.ay) loadAY();
+  const isAdmin = S.myRole === 'admin';
+  w.innerHTML = `<div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px">Academic Year</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px">
+      <div class="form-row"><label>Current AY</label><input id="ay-current" value="${S.ay.current}" ${!isAdmin?'readonly':''}></div>
+      <div class="form-row"><label>Next AY starts</label><input type="date" id="ay-next" value="${S.ay.next_start}" ${!isAdmin?'readonly':''}></div>
+      <div class="form-row"><label>Start date</label><input type="date" id="ay-start" value="${S.ay.start}" ${!isAdmin?'readonly':''}></div>
+      <div class="form-row"><label>End date</label><input type="date" id="ay-end" value="${S.ay.end}" ${!isAdmin?'readonly':''}></div>
+    </div>
+    ${isAdmin?`<div style="display:flex;gap:8px"><button class="btn btn-secondary btn-sm" onclick="saveAY()">Save AY</button><button class="btn btn-sm" style="background:#c5221f;color:#fff;border:none" onclick="rolloverAY()">Roll over AY</button></div>`:'<div style="font-size:11px;color:var(--text3)">Managed by admin</div>'}`;
+}
+
+function renderScalableLists() {
+  const w = document.getElementById('scalable-lists-block');
+  if (!w || S.myRole !== 'admin') { if(w) w.innerHTML='<div style="font-size:11px;color:var(--text3)">Scalable lists — admin only</div>'; return; }
+  const lists = [
+    { key:'facebook_pages', label:'Facebook Pages' },
+    { key:'publishing_platforms', label:'Publishing Platforms' },
+    { key:'design_types', label:'Design Types' }
+  ];
+  if (!S.config) S.config = {};
+  w.innerHTML = lists.map(({key,label}) => {
+    const items = S.config[key] || [];
+    return `<div style="margin-bottom:14px">
+      <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px">${label}</div>
+      <div id="list-${key}" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px">${items.map((v,i)=>`<span class="tag" style="display:flex;align-items:center;gap:4px">${esc(v)}<button onclick="removeListItem('${key}',${i})" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px;padding:0 2px">&times;</button></span>`).join('')}</div>
+      <div style="display:flex;gap:6px"><input id="add-${key}" placeholder="Add item..." style="max-width:180px"><button class="btn btn-secondary btn-sm" onclick="addListItem('${key}')">Add</button></div>
+    </div>`;
+  }).join('');
+}
+
+function addListItem(key) {
+  const inp = document.getElementById('add-'+key);
+  const val = inp.value.trim(); if (!val) return;
+  if (!S.config) S.config = {};
+  if (!S.config[key]) S.config[key] = [];
+  S.config[key].push(val); inp.value = '';
+  localStorage.setItem('aeros_config', JSON.stringify(S.config));
+  renderScalableLists();
+}
+
+function removeListItem(key, idx) {
+  if (!S.config||!S.config[key]) return;
+  S.config[key].splice(idx,1);
+  localStorage.setItem('aeros_config', JSON.stringify(S.config));
+  renderScalableLists();
 }
 
 function saveSettings() {
