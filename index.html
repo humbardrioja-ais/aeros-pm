@@ -1526,6 +1526,18 @@ function applyData(d) {
   if (d.cdoRedemptions) S.cdoRedemptions = d.cdoRedemptions;
   if (d.events)         S.events         = d.events;
   if (d.feeds)          S.feeds          = d.feeds;
+  if (d.campaigns)      S.campaigns      = d.campaigns;
+  if (d.designs)        S.designs        = d.designs;
+  if (d.publishing)     S.publishing     = d.publishing;
+  if (d.monthlyPlans)   S.monthlyPlans   = d.monthlyPlans;
+  if (d.rules)          S.rules          = d.rules;
+  if (d.socialRecords) {
+    S.socialData = {};
+    (d.socialRecords||[]).forEach(r => {
+      if (!S.socialData[r.page]) S.socialData[r.page] = [];
+      S.socialData[r.page].push(r);
+    });
+  }
   populateOwnerSelects();
 }
 
@@ -4096,13 +4108,13 @@ async function saveCampaign(id){
     S.campaigns.push({id:newId,...obj,created:todayStr()});
   }
   closeModal();renderCampaigns();
-  try{await api('saveCampaign',{},{...(id?{id}:{}), ...obj});}catch(e){}
+  try{await api(id?'updateCampaign':'createCampaign',{},{...(id?{id}:{}), ...obj});}catch(e){}
 }
 
 async function deleteCampaign(id){
   if(!confirm('Delete this campaign?'))return;
   S.campaigns=(S.campaigns||[]).filter(x=>x.id!==id);renderCampaigns();
-  try{await api('deleteCampaign',{},{id});}catch(e){}
+  try{await api('deleteCampaign',{id});}catch(e){}
 }
 
 function openCampaignPanel(id){showCampaignModal(id);}
@@ -4168,12 +4180,12 @@ async function saveDesign(id){
   if(id){const d=(S.designs||[]).find(x=>x.id===id);if(d)Object.assign(d,obj);}
   else{if(!S.designs)S.designs=[];S.designs.push({id:'D-'+String(S.designs.length+1).padStart(3,'0'),...obj,created:todayStr()});}
   closeModal();renderDesigns();
-  try{await api('saveDesign',{},{...(id?{id}:{}), ...obj});}catch(e){}
+  try{await api(id?'updateDesign':'createDesign',{},{...(id?{id}:{}), ...obj});}catch(e){}
 }
 async function deleteDesign(id){
   if(!confirm('Delete?'))return;
   S.designs=(S.designs||[]).filter(x=>x.id!==id);closeModal();renderDesigns();
-  try{await api('deleteDesign',{},{id});}catch(e){}
+  try{await api('deleteDesign',{id});}catch(e){}
 }
 
 /* ===================== PUBLISHING ===================== */
@@ -4232,12 +4244,12 @@ async function savePublishing(id){
   if(id){const p=(S.publishing||[]).find(x=>x.id===id);if(p)Object.assign(p,obj);}
   else{if(!S.publishing)S.publishing=[];S.publishing.push({id:'PB-'+String(S.publishing.length+1).padStart(3,'0'),...obj,created:todayStr()});}
   closeModal();renderPublishing();
-  try{await api('savePublishing',{},{...(id?{id}:{}), ...obj});}catch(e){}
+  try{await api(id?'updatePublishing':'createPublishing',{},{...(id?{id}:{}), ...obj});}catch(e){}
 }
 async function deletePublishing(id){
   if(!confirm('Delete?'))return;
   S.publishing=(S.publishing||[]).filter(x=>x.id!==id);closeModal();renderPublishing();
-  try{await api('deletePublishing',{},{id});}catch(e){}
+  try{await api('deletePublishing',{id});}catch(e){}
 }
 
 /* ===================== SOCIAL HUB ===================== */
@@ -4295,7 +4307,7 @@ async function saveSocialRecord(){
   if(!S.socialData[S._selectedPage])S.socialData[S._selectedPage]=[];
   S.socialData[S._selectedPage].push(rec);
   closeModal();renderSocial();
-  try{await api('saveSocialRecord',{},{page:S._selectedPage,...rec});}catch(e){}
+  try{await api('createSocialRecord',{},{page:S._selectedPage,...rec});}catch(e){}
 }
 
 function deleteSocialRecord(idx){
@@ -4355,7 +4367,7 @@ async function saveMonthlyPlan(id){
   if(id){const p=(S.monthlyPlans||[]).find(x=>x.id===id);if(p)Object.assign(p,obj);}
   else{if(!S.monthlyPlans)S.monthlyPlans=[];S.monthlyPlans.push({id:'MP-'+String(S.monthlyPlans.length+1).padStart(3,'0'),...obj,created:todayStr()});}
   closeModal();renderMonthlyPlanning();
-  try{await api('saveMonthlyPlan',{},{...(id?{id}:{}), ...obj});}catch(e){}
+  try{await api(id?'updateMonthlyPlan':'createMonthlyPlan',{},{...(id?{id}:{}), ...obj});}catch(e){}
 }
 async function deleteMonthlyPlan(id){
   if(!confirm('Delete?'))return;
@@ -4423,7 +4435,7 @@ async function saveRule(id){
   if(id){const r=(S.rules||[]).find(x=>x.id===id);if(r)Object.assign(r,obj);}
   else{if(!S.rules)S.rules=[];S.rules.push({id:'R-'+String(S.rules.length+1).padStart(3,'0'),...obj,created:todayStr()});}
   closeModal();renderRules();
-  try{await api('saveRule',{},{...(id?{id}:{}), ...obj});}catch(e){}
+  try{await api(id?'updateRule':'createRule',{},{...(id?{id}:{}), ...obj});}catch(e){}
 }
 async function deleteRule(id){
   if(!confirm('Delete?'))return;

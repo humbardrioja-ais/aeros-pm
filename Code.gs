@@ -255,6 +255,35 @@ function route(method, action, p, body) {
     case 'initSheet':         return initSheet();
     case 'ping':              return { ok: true, ts: new Date().toISOString() };
 
+    // ── Campaigns ──
+    case 'getCampaigns':      return getRows(ss, 'Campaigns');
+    case 'createCampaign':    return createRow(ss, 'Campaigns', body);
+    case 'updateCampaign':    return updateRow(ss, 'Campaigns', body);
+    case 'deleteCampaign':    return deleteRow(ss, 'Campaigns', p.id || body?.id);
+
+    // ── Designs ──
+    case 'getDesigns':        return getRows(ss, 'Designs');
+    case 'createDesign':      return createRow(ss, 'Designs', body);
+    case 'updateDesign':      return updateRow(ss, 'Designs', body);
+    case 'deleteDesign':      return deleteRow(ss, 'Designs', p.id || body?.id);
+
+    // ── Publishing ──
+    case 'getPublishing':     return getRows(ss, 'Publishing');
+    case 'createPublishing':  return createRow(ss, 'Publishing', body);
+    case 'updatePublishing':  return updateRow(ss, 'Publishing', body);
+    case 'deletePublishing':  return deleteRow(ss, 'Publishing', p.id || body?.id);
+
+    // ── Social Records ──
+    case 'getSocialRecords':  return getRows(ss, 'SocialRecords');
+    case 'createSocialRecord': return createRow(ss, 'SocialRecords', body);
+    case 'deleteSocialRecord': return deleteRow(ss, 'SocialRecords', p.id || body?.id);
+
+    // ── Monthly Plans ──
+    case 'getMonthlyPlans':   return getRows(ss, 'MonthlyPlans');
+    case 'createMonthlyPlan': return createRow(ss, 'MonthlyPlans', body);
+    case 'updateMonthlyPlan': return updateRow(ss, 'MonthlyPlans', body);
+    case 'deleteMonthlyPlan': return deleteRow(ss, 'MonthlyPlans', p.id || body?.id);
+
     default: throw new Error('Unknown action: ' + action);
   }
 }
@@ -275,6 +304,12 @@ function getAllData(ss, p) {
     cdoRedemptions: getRows(ss, 'CDORedemptions'),
     events:         getRows(ss, 'CalEvents'),
     feeds:          getRows(ss, 'CalFeeds'),
+    campaigns:      getRows(ss, 'Campaigns'),
+    designs:        getRows(ss, 'Designs'),
+    publishing:     getRows(ss, 'Publishing'),
+    socialRecords:  getRows(ss, 'SocialRecords'),
+    monthlyPlans:   getRows(ss, 'MonthlyPlans'),
+    rules:          getRows(ss, 'Rules'),
   };
 }
 
@@ -321,7 +356,12 @@ const SHEETS = {
   MeetingAttendees: ['id','meetingId','memberId','memberName','role','created'],
   MeetingItems: ['id','meetingId','type','title','assignee','department','dueDate','priority','status','taskId','created'],
   Rules: ['id','name','trigger','conditions','actions','active','created','updated'],
-  Audit: ['id','actor','action','entity','entityId','before','after','created']
+  Audit: ['id','actor','action','entity','entityId','before','after','created'],
+  Campaigns:     ['id','title','status','start','end','description','projects','milestones','created','updated'],
+  Designs:       ['id','title','type','stage','assigned','page','due','publish_date','notes','created','updated'],
+  Publishing:    ['id','title','platform','page','status','deadline','publish_date','assigned','notes','created','updated'],
+  SocialRecords: ['id','page','date_from','date_to','reach','engagement','followers','posts','notes','created'],
+  MonthlyPlans:  ['id','month','department','status','submitted_by','goals','key_tasks','created','updated']
 };
 
 // ===================== CRUD HELPERS =====================
