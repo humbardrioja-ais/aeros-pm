@@ -391,8 +391,13 @@ function getRows(ss, sheetName, filter) {
       let v = r[i];
       if (v instanceof Date) {
         v = Utilities.formatDate(v, ss.getSpreadsheetTimeZone(), 'yyyy-MM-dd');
+      } else if (typeof v === 'string' && /^\d{1,2}\/\d{1,2}\/\d{4}$/.test(v)) {
+        const parts = v.split('/');
+        v = parts[2] + '-' + parts[0].padStart(2,'0') + '-' + parts[1].padStart(2,'0');
+      } else if (typeof v === 'string' && /^\d{1,2}-\w{3}-\d{4}$/.test(v)) {
+        try { const d = new Date(v); if (!isNaN(d)) v = Utilities.formatDate(d, ss.getSpreadsheetTimeZone(), 'yyyy-MM-dd'); } catch(_) {}
       }
-      obj[h] = v;
+      obj[h] = v === '' || v === null || v === undefined ? '' : v;
     });
     // Auto-fill missing id and created for manually-added rows
     if (idCol >= 0 && !obj.id) {

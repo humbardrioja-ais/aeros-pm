@@ -1590,26 +1590,38 @@ function renderViewNow(view) {
   if (view === 'rules')            renderRules();
 }
 
+function normDate(v){
+  if(!v||v==='')return'';
+  if(typeof v==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(v))return v;
+  if(typeof v==='string'&&/^\d{4}-\d{2}-\d{2}T/.test(v))return v.slice(0,10);
+  if(typeof v==='string'&&/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(v)){const p=v.split('/');return p[2]+'-'+p[0].padStart(2,'0')+'-'+p[1].padStart(2,'0');}
+  const d2=new Date(v);if(!isNaN(d2))return d2.toISOString().slice(0,10);
+  return String(v);
+}
+function normDates(arr,fields){
+  if(!arr||!arr.length)return arr;
+  return arr.map(item=>{fields.forEach(f=>{if(item[f])item[f]=normDate(item[f]);});return item;});
+}
 function applyData(d) {
   if (!d) return;
-  if (d.tasks)          S.tasks          = d.tasks;
-  if (d.projects)       S.projects       = d.projects;
+  if (d.tasks)          { normDates(d.tasks,['due','created','updated','followup']); S.tasks = d.tasks; }
+  if (d.projects)       { normDates(d.projects,['start','end']); S.projects = d.projects; }
   if (d.team)           S.team           = d.team;
-  if (d.meetings)       S.meetings       = d.meetings;
-  if (d.missions)       S.missions       = d.missions;
-  if (d.leaves)         S.leaves         = d.leaves;
-  if (d.shoots)         S.shoots         = d.shoots;
+  if (d.meetings)       { normDates(d.meetings,['date']); S.meetings = d.meetings; }
+  if (d.missions)       { normDates(d.missions,['date']); S.missions = d.missions; }
+  if (d.leaves)         { normDates(d.leaves,['from_date','to_date']); S.leaves = d.leaves; }
+  if (d.shoots)         { normDates(d.shoots,['date','scheduledDate']); S.shoots = d.shoots; }
   if (d.videos)         S.videos         = d.videos;
   if (d.notifs)         S.notifications  = d.notifs;
   if (d.cdoBalances)    S.cdoBalances    = d.cdoBalances;
   if (d.cdoRedemptions) S.cdoRedemptions = d.cdoRedemptions;
-  if (d.events)         S.events         = d.events;
+  if (d.events)         { normDates(d.events,['date','end_date']); S.events = d.events; }
   if (d.feeds)          S.feeds          = d.feeds;
-  if (d.campaigns)      S.campaigns      = d.campaigns;
-  if (d.designs)        S.designs        = d.designs;
-  if (d.publishing)     S.publishing     = d.publishing;
-  if (d.seoProjects)    S.seoProjects    = d.seoProjects;
-  if (d.websiteProjects) S.websiteProjects = d.websiteProjects;
+  if (d.campaigns)      { normDates(d.campaigns,['start','end']); S.campaigns = d.campaigns; }
+  if (d.designs)        { normDates(d.designs,['due','publish_date']); S.designs = d.designs; }
+  if (d.publishing)     { normDates(d.publishing,['deadline','target_release']); S.publishing = d.publishing; }
+  if (d.seoProjects)    { normDates(d.seoProjects,['due']); S.seoProjects = d.seoProjects; }
+  if (d.websiteProjects) { normDates(d.websiteProjects,['launch_date']); S.websiteProjects = d.websiteProjects; }
   if (d.rules)          S.rules          = d.rules;
   if (d.socialRecords) {
     S.socialData = {};
