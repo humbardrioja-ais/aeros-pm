@@ -2255,15 +2255,14 @@ function saveFeedCache() {
 async function autoLoadFeeds() {
   const enabled = (S.feeds||[]).filter(f => f.enabled !== 'false');
   if (!enabled.length) return;
-  // Show cached events immediately
   loadFeedCache();
-  renderCalendar();
   // Fetch all unloaded feeds in parallel in background
   const unloaded = enabled.filter(f => !(S.feedEvents||[]).some(e => e._feedId === f.id));
   if (!unloaded.length) return;
   await Promise.all(unloaded.map(feed => fetchFeedEvents(feed)));
   saveFeedCache();
   renderFeedList();
+  // Re-render calendar once after feeds loaded (safe — autoLoadFeeds is not called from renderCalendar)
   renderCalendar();
 }
 
@@ -4245,6 +4244,19 @@ function statusDot(s) { const colors={todo:'var(--text3)',doing:'var(--brand)',b
 function renderCalendar(){
   const mf=document.getElementById('cal-member-filter');if(mf)mf.innerHTML=memberFilterHtml();
   loadCalendarColors();loadLayerToggles();
+  // Pre-compute lookup maps once per render (not per day cell)
+  const ft=filteredTasks();
+  S._calCache={
+    tasksByDate:{}, doneByDate:{}, leavesByDate:{}, shootsByDate:{},
+    missionsByDate:{}, eventsByDate:{}, feedByDate:{},
+    enabledFeeds:new Set((S.feeds||[]).filter(f=>String(f.enabled)!=='false').map(f=>f.id))
+  };
+  ft.forEach(t=>{if(!t.due)return;const k=t.due;if(t.status==='done'){if(!S._calCache.doneByDate[k])S._calCache.doneByDate[k]=[];S._calCache.doneByDate[k].push(t);}else{if(!S._calCache.tasksByDate[k])S._calCache.tasksByDate[k]=[];S._calCache.tasksByDate[k].push(t);}});
+  (S.leaves||[]).filter(l=>l.status==='approved').forEach(l=>{const s=l.from_date,e=l.to_date;if(s){let d=new Date(s+'T00:00:00');const end=e?new Date(e+'T00:00:00'):d;while(d<=end){const k=d.toISOString().slice(0,10);if(!S._calCache.leavesByDate[k])S._calCache.leavesByDate[k]=[];S._calCache.leavesByDate[k].push(l);d.setDate(d.getDate()+1);}}});
+  (S.shoots||[]).forEach(s=>{if(!s.date)return;if(!S._calCache.shootsByDate[s.date])S._calCache.shootsByDate[s.date]=[];S._calCache.shootsByDate[s.date].push(s);});
+  (S.missions||[]).filter(m=>m.status==='approved').forEach(m=>{if(!m.date)return;if(!S._calCache.missionsByDate[m.date])S._calCache.missionsByDate[m.date]=[];S._calCache.missionsByDate[m.date].push(m);});
+  (S.events||[]).forEach(e=>{if(!e.date)return;const end=e.end_date||e.date;let d=new Date(e.date+'T00:00:00');const endD=new Date(end+'T00:00:00');while(d<=endD){const k=d.toISOString().slice(0,10);if(!S._calCache.eventsByDate[k])S._calCache.eventsByDate[k]=[];S._calCache.eventsByDate[k].push(e);d.setDate(d.getDate()+1);}});
+  (S.feedEvents||[]).forEach(e=>{if(!S._calCache.enabledFeeds.has(e._feedId))return;if(!e.date)return;const end=e.end_date||e.date;let d=new Date(e.date+'T00:00:00');const endD=new Date(end+'T00:00:00');while(d<=endD){const k=d.toISOString().slice(0,10);if(!S._calCache.feedByDate[k])S._calCache.feedByDate[k]=[];S._calCache.feedByDate[k].push(e);d.setDate(d.getDate()+1);}});
   const w=document.getElementById('cal-months-wrap');
   if(!w){renderCalendarLegacy();return;}
   w.innerHTML='';
@@ -4267,7 +4279,6 @@ function renderCalendar(){
   },50);
   renderCalLayerChips();renderColorLegend();
   renderCalSidebar(y,m,todayStr());
-  autoLoadFeeds();
 }
 
 function _appendMonthBlock(y,m){
@@ -4348,16 +4359,14 @@ function _buildDayCell(ds,d,isToday){
     ?`<div style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--brand);color:#fff;font-size:11px;font-weight:700;margin-bottom:2px">${d}</div>`
     :`<div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:2px">${d}</div>`;
 
-  const tasks=filteredTasks().filter(t=>t.due===ds&&t.status!=='done');
-  const done=filteredTasks().filter(t=>t.due===ds&&t.status==='done');
-  const leaves=(S.leaves||[]).filter(l=>l.from_date<=ds&&l.to_date>=ds&&l.status==='approved');
-  const shoots=(S.shoots||[]).filter(s=>s.date===ds);
-  const missions=(S.missions||[]).filter(ms=>ms.date===ds&&ms.status==='approved');
-  const events=(S.events||[]).filter(e=>e.date===ds||(e.date<=ds&&e.end_date&&e.end_date>=ds));
-  const feedEvts=(S.feedEvents||[]).filter(e=>{
-    const fd=(S.feeds||[]).find(f=>f.id===e._feedId&&String(f.enabled)!=='false');
-    return fd&&(e.date===ds||(e.date<=ds&&e.end_date&&e.end_date>=ds));
-  });
+  const cc=S._calCache||{};
+  const tasks=(cc.tasksByDate||{})[ds]||[];
+  const done=(cc.doneByDate||{})[ds]||[];
+  const leaves=(cc.leavesByDate||{})[ds]||[];
+  const shoots=(cc.shootsByDate||{})[ds]||[];
+  const missions=(cc.missionsByDate||{})[ds]||[];
+  const events=(cc.eventsByDate||{})[ds]||[];
+  const feedEvts=(cc.feedByDate||{})[ds]||[];
   const blocked=tasks.filter(t=>t.status==='blocked');
   const active=tasks.filter(t=>t.status!=='blocked');
 
