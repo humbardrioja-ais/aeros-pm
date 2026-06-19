@@ -677,7 +677,7 @@ select.sd-val{appearance:auto;cursor:pointer}
             <div style="display:flex;gap:6px">
               <span id="cal-member-filter"></span>
               <button class="btn btn-secondary btn-sm" onclick="showFeedPanel()">Subscriptions</button>
-              <button class="btn btn-secondary btn-sm" onclick="showEventModal()">+ Event</button>
+              <button class="btn btn-secondary btn-sm" onclick="openItemDrawer('event','new')">+ Event</button>
               <button class="btn btn-primary btn-sm" onclick="openTaskPanel('new')">+ Task</button>
             </div>
           </div>
@@ -760,7 +760,7 @@ select.sd-val{appearance:auto;cursor:pointer}
               <button class="btn btn-sm" id="proj-view-cards" onclick="setProjView('cards')" style="border:0;border-radius:0;padding:4px 10px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></button>
               <button class="btn btn-sm" id="proj-view-list" onclick="setProjView('list')" style="border:0;border-radius:0;padding:4px 10px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></button>
             </div>
-            <button class="btn btn-primary" onclick="showProjectModal()">+ Project</button>
+            <button class="btn btn-primary" onclick="openItemDrawer('project','new')">+ Project</button>
           </div>
         </div>
         <div id="projects-container"></div>
@@ -859,7 +859,7 @@ select.sd-val{appearance:auto;cursor:pointer}
         <div id="media-shoots">
           <div class="flex items-center justify-between mb-12">
             <span class="font-bold">Shoot Sessions</span>
-            <button class="btn btn-primary" onclick="showShootModal()">+ New Shoot</button>
+            <button class="btn btn-primary" onclick="openItemDrawer('shoot','new')">+ New Shoot</button>
           </div>
           <div id="shoots-list"></div>
         </div>
@@ -880,7 +880,7 @@ select.sd-val{appearance:auto;cursor:pointer}
       <div id="view-missions" class="hidden">
         <div class="flex items-center justify-between mb-16">
           <span class="font-bold" style="font-size:16px">Mission Requests</span>
-          <button class="btn btn-primary" onclick="showMissionModal()">+ New Mission</button>
+          <button class="btn btn-primary" onclick="openItemDrawer('mission','new')">+ New Mission</button>
         </div>
         <div id="missions-list"></div>
       </div>
@@ -900,7 +900,7 @@ select.sd-val{appearance:auto;cursor:pointer}
       <div id="view-leave" class="hidden">
         <div class="flex items-center justify-between mb-16">
           <span class="font-bold" style="font-size:16px">Leave Requests</span>
-          <button class="btn btn-primary" onclick="showLeaveModal()">+ Request Leave</button>
+          <button class="btn btn-primary" onclick="openItemDrawer('leave','new')">+ Request Leave</button>
         </div>
         <div id="leave-list"></div>
       </div>
@@ -947,21 +947,21 @@ select.sd-val{appearance:auto;cursor:pointer}
       <div id="view-campaigns" class="hidden">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
           <div style="font-size:18px;font-weight:700">Campaigns</div>
-          <button class="btn btn-primary" onclick="showCampaignModal()" id="btn-new-campaign">+ Campaign</button>
+          <button class="btn btn-primary" onclick="openItemDrawer('campaign','new')" id="btn-new-campaign">+ Campaign</button>
         </div>
         <div id="campaigns-list"></div>
       </div>
       <div id="view-designs" class="hidden">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
           <div style="font-size:18px;font-weight:700">Designs</div>
-          <button class="btn btn-primary" onclick="showDesignModal()">+ Design</button>
+          <button class="btn btn-primary" onclick="openItemDrawer('design','new')">+ Design</button>
         </div>
         <div id="designs-board" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px"></div>
       </div>
       <div id="view-publishing" class="hidden">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
           <div style="font-size:18px;font-weight:700">Publications</div>
-          <button class="btn btn-primary" onclick="showPublishingModal()">+ Publication</button>
+          <button class="btn btn-primary" onclick="openItemDrawer('publication','new')">+ Publication</button>
         </div>
         <div id="publishing-list"></div>
       </div>
@@ -969,7 +969,7 @@ select.sd-val{appearance:auto;cursor:pointer}
     <div id="view-seo" class="hidden">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
         <div style="font-size:18px;font-weight:700">SEO Projects</div>
-        <button class="btn btn-primary" onclick="showSeoModal()">+ SEO Project</button>
+        <button class="btn btn-primary" onclick="openItemDrawer('seo','new')">+ SEO Project</button>
       </div>
       <div id="seo-list"></div>
     </div>
@@ -977,7 +977,7 @@ select.sd-val{appearance:auto;cursor:pointer}
     <div id="view-website" class="hidden">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
         <div style="font-size:18px;font-weight:700">Website Projects</div>
-        <button class="btn btn-primary" onclick="showWebsiteModal()">+ Website Project</button>
+        <button class="btn btn-primary" onclick="openItemDrawer('website','new')">+ Website Project</button>
       </div>
       <div id="website-list"></div>
     </div>
@@ -1151,6 +1151,20 @@ select.sd-val{appearance:auto;cursor:pointer}
       </div>
     </div>
   </div>
+</div>
+
+
+<!-- ==================== UNIVERSAL ITEM DRAWER ==================== -->
+<div id="item-drawer-overlay" onclick="closeItemDrawer()"></div>
+<div id="item-drawer">
+  <div class="tp-actionbar">
+    <span id="id-type-badge" style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:4px;background:var(--surface2)"></span>
+    <div style="flex:1"></div>
+    <button class="btn btn-primary btn-sm" id="id-save-btn" onclick="saveItemDrawer()" style="font-size:12px">Save</button>
+    <button class="btn btn-sm btn-danger" id="id-delete-btn" onclick="deleteItemDrawer()" style="font-size:12px;display:none">Delete</button>
+    <button class="btn btn-icon" onclick="closeItemDrawer()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="tp-body" id="id-body"></div>
 </div>
 
 <!-- ==================== SUBTASK DRAWER ==================== -->
@@ -3749,16 +3763,16 @@ function calShowMore(ds) {
   const allItems=[
     ...tasks.map(t=>({item:t,type:'task',fn:`closeModal();openTaskPanel('${t.id}')`})),
     ...done.map(t=>({item:t,type:'task',fn:`closeModal();openTaskPanel('${t.id}')`})),
-    ...campaigns.map(cm=>({item:{...cm,owner:''},type:'campaign',fn:`closeModal();showCampaignModal('${cm.id}')`})),
-    ...designs.map(d2=>({item:{...d2,owner:d2.assigned||''},type:'design',fn:`closeModal();showDesignModal('${d2.id}')`})),
-    ...pubs.map(pb=>({item:{...pb,owner:pb.lead||''},type:'pub',fn:`closeModal();showPublishingModal('${pb.id}')`})),
-    ...seos.map(sp=>({item:{...sp,owner:sp.lead||''},type:'seo',fn:`closeModal();showSeoModal('${sp.id}')`})),
-    ...websites.map(wp=>({item:{...wp,owner:wp.lead||''},type:'website',fn:`closeModal();showWebsiteModal('${wp.id}')`})),
+    ...campaigns.map(cm=>({item:{...cm,owner:''},type:'campaign',fn:`closeModal();openItemDrawer('campaign','${cm.id}')`})),
+    ...designs.map(d2=>({item:{...d2,owner:d2.assigned||''},type:'design',fn:`closeModal();openItemDrawer('design','${d2.id}')`})),
+    ...pubs.map(pb=>({item:{...pb,owner:pb.lead||''},type:'pub',fn:`closeModal();openItemDrawer('publication','${pb.id}')`})),
+    ...seos.map(sp=>({item:{...sp,owner:sp.lead||''},type:'seo',fn:`closeModal();openItemDrawer('seo','${sp.id}')`})),
+    ...websites.map(wp=>({item:{...wp,owner:wp.lead||''},type:'website',fn:`closeModal();openItemDrawer('website','${wp.id}')`})),
     ...meetings.map(mt=>({item:{...mt,owner:''},type:'meeting',fn:`closeModal();openMeeting('${mt.id}')`})),
-    ...shoots.map(s=>({item:{...s,title:s.title||'Shoot',owner:s.photographer||''},type:'shoot',fn:`closeModal();openTaskPanel('${s.id}')`})),
+    ...shoots.map(s=>({item:{...s,title:s.title||'Shoot',owner:s.photographer||''},type:'shoot',fn:`closeModal();openItemDrawer('shoot','${s.id}')`})),
     ...missions.map(ms=>({item:{...ms,title:`${ms.employee||''} — mission`},type:'mission',fn:''})),
     ...leaves.map(l=>({item:{...l,title:`${l.employee||''} — ${l.type||'leave'}`},type:'leave',fn:''})),
-    ...events.map(e=>({item:e,type:'event',fn:`closeModal();showEventModal('${e.id}')`})),
+    ...events.map(e=>({item:e,type:'event',fn:`closeModal();openItemDrawer('event','${e.id}')`})),
     ...feedEvts.map(e=>({item:e,type:'ical',fn:''}))
   ];
   const rows=allItems.map(({item,type,fn})=>calPillHtml(item,type,fn?`${fn}`:'')).join('');
@@ -4631,16 +4645,16 @@ function _buildDayCell(ds,d,isToday){
 
   const allItems=[
     ...blocked.map(t=>({item:t,type:'blocked',fn:`openTaskPanel('${t.id}')`})),
-    ...campaigns.map(cm=>({item:{...cm,owner:''},type:'campaign',fn:`showCampaignModal('${cm.id}')`})),
-    ...designs.map(d2=>({item:{...d2,owner:d2.assigned||''},type:'design',fn:`showDesignModal('${d2.id}')`})),
-    ...pubs.map(pb=>({item:{...pb,owner:pb.lead||''},type:'pub',fn:`showPublishingModal('${pb.id}')`})),
-    ...seos.map(sp=>({item:{...sp,owner:sp.lead||''},type:'seo',fn:`showSeoModal('${sp.id}')`})),
-    ...websites.map(wp=>({item:{...wp,owner:wp.lead||''},type:'website',fn:`showWebsiteModal('${wp.id}')`})),
+    ...campaigns.map(cm=>({item:{...cm,owner:''},type:'campaign',fn:`openItemDrawer('campaign','${cm.id}')`})),
+    ...designs.map(d2=>({item:{...d2,owner:d2.assigned||''},type:'design',fn:`openItemDrawer('design','${d2.id}')`})),
+    ...pubs.map(pb=>({item:{...pb,owner:pb.lead||''},type:'pub',fn:`openItemDrawer('publication','${pb.id}')`})),
+    ...seos.map(sp=>({item:{...sp,owner:sp.lead||''},type:'seo',fn:`openItemDrawer('seo','${sp.id}')`})),
+    ...websites.map(wp=>({item:{...wp,owner:wp.lead||''},type:'website',fn:`openItemDrawer('website','${wp.id}')`})),
     ...meetings.map(mt=>({item:{...mt,owner:''},type:'meeting',fn:`openMeeting('${mt.id}')`})),
-    ...shoots.map(s=>({item:{...s,title:s.title||'Shoot',owner:s.photographer||''},type:'shoot',fn:`openTaskPanel('${s.id}')`})),
+    ...shoots.map(s=>({item:{...s,title:s.title||'Shoot',owner:s.photographer||''},type:'shoot',fn:`openItemDrawer('shoot','${s.id}')`})),
     ...missions.map(ms=>({item:{...ms,title:`${ms.employee||''} — mission`},type:'mission',fn:''})),
     ...leaves.map(l=>({item:{...l,title:`${l.employee||''} — ${l.type||'leave'}`},type:'leave',fn:''})),
-    ...events.map(e=>({item:e,type:'event',fn:`showEventModal&&showEventModal('${e.id}')`})),
+    ...events.map(e=>({item:e,type:'event',fn:`openItemDrawer('event','${e.id}')`})),
     ...active.map(t=>({item:t,type:'task',fn:`openTaskPanel('${t.id}')`})),
     ...done.map(t=>({item:t,type:'task',fn:`openTaskPanel('${t.id}')`})),
     ...feedEvts.map(e=>({item:e,type:'ical',fn:''}))
@@ -4741,7 +4755,7 @@ function renderDesigns(){
     const items=(S.designs||[]).filter(d=>d.stage===stage||(!d.stage&&stage==='Briefing'));
     return`<div style="background:var(--surface2);border-radius:var(--radius-lg);padding:12px;min-height:120px">
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">${stage}<span style="background:var(--surface);border-radius:99px;padding:1px 7px;font-size:10px">${items.length}</span></div>
-      ${items.map(d=>`<div onclick="showDesignModal('${d.id}')" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px;margin-bottom:8px;cursor:pointer">
+      ${items.map(d=>`<div onclick="openItemDrawer('design','${d.id}')" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px;margin-bottom:8px;cursor:pointer">
         <div style="font-size:12px;font-weight:600;margin-bottom:4px">${esc(d.title)}</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
           ${d.type?`<span class="tag">${esc(d.type)}</span>`:''}
@@ -4808,7 +4822,7 @@ function renderPublishing(){
     w.innerHTML='<div style="color:var(--text3);padding:32px;text-align:center">No publishing entries yet.</div>';return;
   }
   w.innerHTML=`<table class="data-table"><thead><tr><th>Title</th><th>Platform</th><th>FB Page</th><th>Deadline</th><th>Publish date</th><th>Status</th><th>Assigned</th><th></th></tr></thead><tbody>
-  ${(S.publishing||[]).map(p=>`<tr onclick="showPublishingModal('${p.id}')" style="cursor:pointer">
+  ${(S.publishing||[]).map(p=>`<tr onclick="openItemDrawer('publication','${p.id}')" style="cursor:pointer">
     <td style="font-weight:600">${esc(p.title)}</td>
     <td>${esc(p.platform||'')}</td>
     <td>${esc(p.page||'')}</td>
@@ -5058,7 +5072,7 @@ function renderSeo(){
     w.innerHTML='<div style="color:var(--text3);padding:32px;text-align:center">No SEO projects yet.</div>';return;
   }
   w.innerHTML=`<table class="data-table"><thead><tr><th>Title</th><th>Target URL</th><th>Focus Keywords</th><th>Status</th><th>Lead</th><th>Due</th><th></th></tr></thead><tbody>
-  ${(S.seoProjects||[]).map(p=>`<tr onclick="showSeoModal('${p.id}')" style="cursor:pointer">
+  ${(S.seoProjects||[]).map(p=>`<tr onclick="openItemDrawer('seo','${p.id}')" style="cursor:pointer">
     <td style="font-weight:600">${esc(p.title)}</td>
     <td>${esc(p.target_url||'')}</td>
     <td>${esc(p.keywords||'')}</td>
@@ -5115,7 +5129,7 @@ function renderWebsite(){
     w.innerHTML='<div style="color:var(--text3);padding:32px;text-align:center">No website projects yet.</div>';return;
   }
   w.innerHTML=`<table class="data-table"><thead><tr><th>Title</th><th>Type</th><th>URL</th><th>Status</th><th>Lead</th><th>Launch</th><th></th></tr></thead><tbody>
-  ${(S.websiteProjects||[]).map(p=>`<tr onclick="showWebsiteModal('${p.id}')" style="cursor:pointer">
+  ${(S.websiteProjects||[]).map(p=>`<tr onclick="openItemDrawer('website','${p.id}')" style="cursor:pointer">
     <td style="font-weight:600">${esc(p.title)}</td>
     <td>${esc(p.web_type||'')}</td>
     <td>${esc(p.url||'')}</td>
@@ -5169,6 +5183,301 @@ async function deleteWebsite(id){
   S.websiteProjects=(S.websiteProjects||[]).filter(x=>x.id!==id);closeModal();renderWebsite();
   try{await api('deleteWebsite',{id});}catch(e){}
 }
+
+/* ===================== UNIVERSAL ITEM DRAWER ===================== */
+const ID_CONFIGS = {
+  event: {
+    label:'Event', color:'var(--cal-event,#aecbfa)', collection:'events',
+    apiCreate:'createEvent', apiUpdate:'updateEvent', apiDelete:'deleteEvent',
+    idPrefix:'EV', fields:[
+      {key:'title',label:'Title',type:'text',required:true,full:true},
+      {key:'date',label:'Date',type:'date'},{key:'end_date',label:'End Date',type:'date'},
+      {key:'time',label:'Start Time',type:'time'},{key:'end_time',label:'End Time',type:'time'},
+      {key:'department',label:'Department',type:'text',default:'myDept'},
+      {key:'description',label:'Description',type:'textarea'},
+      {key:'color',label:'Color',type:'color',default:'#1967d2'}
+    ]
+  },
+  mission: {
+    label:'Mission', color:'var(--cal-mission,#81c995)', collection:'missions',
+    apiCreate:'createMission', apiUpdate:'updateMission', apiDelete:'deleteMission',
+    idPrefix:'MS', approvable:true, fields:[
+      {key:'title',label:'Title',type:'text',full:true},
+      {key:'employee',label:'Employee',type:'member'},{key:'date',label:'Date',type:'date'},
+      {key:'destination',label:'Destination',type:'text'},{key:'purpose',label:'Purpose',type:'text'},
+      {key:'status',label:'Status',type:'select',options:['pending','approved','rejected']},
+      {key:'notes',label:'Notes',type:'textarea'}
+    ]
+  },
+  leave: {
+    label:'Leave Request', color:'var(--cal-leave,#b39ddb)', collection:'leaves',
+    apiCreate:'createLeave', apiUpdate:'updateLeave', apiDelete:'deleteLeave',
+    idPrefix:'LV', approvable:true, fields:[
+      {key:'employee',label:'Employee',type:'member'},
+      {key:'leave_type',label:'Type',type:'select',options:['Annual','Sick','Personal','Maternity','Unpaid']},
+      {key:'from_date',label:'From',type:'date'},{key:'to_date',label:'To',type:'date'},
+      {key:'days',label:'Days',type:'number'},{key:'half_period',label:'Period',type:'select',options:['Full Day','AM','PM']},
+      {key:'status',label:'Status',type:'select',options:['pending','approved','rejected']},
+      {key:'reason',label:'Reason',type:'textarea'}
+    ]
+  },
+  campaign: {
+    label:'Campaign', color:'var(--cal-campaign,#ce93d8)', collection:'campaigns',
+    apiCreate:'createCampaign', apiUpdate:'updateCampaign', apiDelete:'deleteCampaign',
+    idPrefix:'CM', fields:[
+      {key:'title',label:'Title',type:'text',required:true,full:true},
+      {key:'status',label:'Status',type:'select',options:['Draft','Active','Paused','Complete']},
+      {key:'start',label:'Start Date',type:'date'},{key:'end',label:'End Date',type:'date'},
+      {key:'description',label:'Description',type:'textarea'},
+      {key:'projects',label:'Linked Projects',type:'text'},
+      {key:'milestones',label:'Milestones',type:'textarea'}
+    ]
+  },
+  design: {
+    label:'Design', color:'var(--cal-design,#4fc3f7)', collection:'designs',
+    apiCreate:'createDesign', apiUpdate:'updateDesign', apiDelete:'deleteDesign',
+    idPrefix:'DS', fields:[
+      {key:'title',label:'Title',type:'text',required:true,full:true},
+      {key:'type',label:'Design Type',type:'text'},{key:'stage',label:'Stage',type:'select',options:['Briefing','In Progress','For Review','Revision','Approved','Published']},
+      {key:'assigned',label:'Assigned To',type:'member'},{key:'page',label:'Page/Platform',type:'text'},
+      {key:'due',label:'Due Date',type:'date'},{key:'publish_date',label:'Publish Date',type:'date'},
+      {key:'notes',label:'Notes',type:'textarea'}
+    ]
+  },
+  publication: {
+    label:'Publication', color:'var(--cal-pub,#ff8a65)', collection:'publishing',
+    apiCreate:'createPublishing', apiUpdate:'updatePublishing', apiDelete:'deletePublishing',
+    idPrefix:'PB', fields:[
+      {key:'title',label:'Title',type:'text',required:true,full:true},
+      {key:'pub_type',label:'Type',type:'select',options:PUB_TYPES},
+      {key:'edition',label:'Edition / Issue',type:'text'},
+      {key:'status',label:'Status',type:'select',options:PUB_STATUSES},
+      {key:'deadline',label:'Content Deadline',type:'date'},{key:'target_release',label:'Target Release',type:'date'},
+      {key:'lead',label:'Lead',type:'member'},{key:'page_count',label:'Page Count',type:'number'},
+      {key:'sections',label:'Sections / Chapters',type:'textarea'},
+      {key:'notes',label:'Notes',type:'textarea'}
+    ]
+  },
+  seo: {
+    label:'SEO Project', color:'var(--cal-seo,#aed581)', collection:'seoProjects',
+    apiCreate:'createSeo', apiUpdate:'updateSeo', apiDelete:'deleteSeo',
+    idPrefix:'SEO', fields:[
+      {key:'title',label:'Title',type:'text',required:true,full:true},
+      {key:'target_url',label:'Target URL',type:'text',full:true},
+      {key:'keywords',label:'Focus Keywords',type:'text',full:true},
+      {key:'status',label:'Status',type:'select',options:SEO_STATUSES},
+      {key:'lead',label:'Lead',type:'member'},{key:'due',label:'Due',type:'date'},
+      {key:'metrics',label:'Current Rank / Metrics',type:'textarea'},
+      {key:'notes',label:'Notes',type:'textarea'}
+    ]
+  },
+  website: {
+    label:'Website Project', color:'var(--cal-website,#90a4ae)', collection:'websiteProjects',
+    apiCreate:'createWebsite', apiUpdate:'updateWebsite', apiDelete:'deleteWebsite',
+    idPrefix:'WEB', fields:[
+      {key:'title',label:'Title',type:'text',required:true,full:true},
+      {key:'web_type',label:'Type',type:'select',options:WEB_TYPES},
+      {key:'url',label:'URL',type:'text'},{key:'status',label:'Status',type:'select',options:WEB_STATUSES},
+      {key:'lead',label:'Lead',type:'member'},{key:'launch_date',label:'Launch Date',type:'date'},
+      {key:'tech_stack',label:'Tech Stack',type:'text',full:true},
+      {key:'pages',label:'Pages / Sections',type:'textarea'},
+      {key:'notes',label:'Notes',type:'textarea'}
+    ]
+  },
+  shoot: {
+    label:'Shoot', color:'var(--cal-shoot,#fdd663)', collection:'shoots',
+    apiCreate:'createShootSession', apiUpdate:'updateShootSession', apiDelete:'deleteShootSession',
+    idPrefix:'SH', fields:[
+      {key:'title',label:'Title',type:'text',full:true},
+      {key:'date',label:'Date',type:'date'},{key:'time',label:'Time',type:'time'},
+      {key:'photographer',label:'Photographer',type:'member'},{key:'location',label:'Location',type:'text'},
+      {key:'status',label:'Status',type:'select',options:['Scheduled','In Progress','Complete','Cancelled']},
+      {key:'notes',label:'Notes',type:'textarea'}
+    ]
+  },
+  project: {
+    label:'Project', color:'var(--brand)', collection:'projects',
+    apiCreate:'createProject', apiUpdate:'updateProject', apiDelete:'deleteProject',
+    idPrefix:'P', fields:[
+      {key:'title',label:'Project Name',type:'text',required:true,full:true},
+      {key:'description',label:'Description',type:'textarea'},
+      {key:'owner',label:'Owner',type:'member'},{key:'status',label:'Status',type:'select',options:['on-track','at-risk','off-track']},
+      {key:'start',label:'Start Date',type:'date'},{key:'end',label:'End Date',type:'date'},
+      {key:'department',label:'Department',type:'text',default:'myDept'},
+      {key:'color',label:'Color',type:'color',default:'#1a73e8'}
+    ]
+  }
+};
+
+let _idType=null, _idItem=null, _idIsNew=false;
+
+function openItemDrawer(type, id) {
+  const cfg = ID_CONFIGS[type];
+  if (!cfg) { toast('Unknown type: '+type); return; }
+  _idType = type;
+  _idIsNew = !id || id === 'new';
+  const col = S[cfg.collection] || [];
+  _idItem = _idIsNew ? {} : col.find(x => x.id === id) || {};
+
+  document.getElementById('item-drawer-overlay').classList.add('open');
+  document.getElementById('item-drawer').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  document.getElementById('id-type-badge').textContent = cfg.label;
+  document.getElementById('id-type-badge').style.background = cfg.color;
+  document.getElementById('id-type-badge').style.color = '#000';
+  document.getElementById('id-delete-btn').style.display = _idIsNew ? 'none' : '';
+
+  const body = document.getElementById('id-body');
+  body.scrollTop = 0;
+  let html = '';
+
+  // Build form fields
+  const members = [S.myName, ...(S.team||[]).map(m=>m.name)].filter(Boolean);
+  let inRow = false;
+
+  for (const f of cfg.fields) {
+    const val = _idItem[f.key] || (f.default === 'myDept' ? S.myDept||'' : f.default || '');
+    const inputId = 'id-f-' + f.key;
+
+    if (f.full || f.type === 'textarea') {
+      if (inRow) { html += '</div>'; inRow = false; }
+    }
+
+    let input = '';
+    if (f.type === 'text') input = `<input id="${inputId}" value="${esc(val)}" ${f.required?'required':''}>`;
+    else if (f.type === 'number') input = `<input id="${inputId}" type="number" value="${esc(val)}">`;
+    else if (f.type === 'date') input = `<input id="${inputId}" type="date" value="${val}">`;
+    else if (f.type === 'time') input = `<input id="${inputId}" type="time" value="${val}">`;
+    else if (f.type === 'color') input = `<input id="${inputId}" type="color" value="${val||'#1967d2'}">`;
+    else if (f.type === 'textarea') input = `<textarea id="${inputId}" rows="3">${esc(val)}</textarea>`;
+    else if (f.type === 'select') {
+      const opts = (f.options||[]).map(o => `<option ${val===o?'selected':''}>${o}</option>`).join('');
+      input = `<select id="${inputId}"><option value="">—</option>${opts}</select>`;
+    } else if (f.type === 'member') {
+      const opts = members.map(n => `<option ${val===n?'selected':''}>${esc(n)}</option>`).join('');
+      input = `<select id="${inputId}"><option value="">— Anyone —</option>${opts}</select>`;
+    }
+
+    if (f.full || f.type === 'textarea') {
+      html += `<div class="id-field"><label>${f.label}</label>${input}</div>`;
+    } else {
+      if (!inRow) { html += '<div class="id-row">'; inRow = true; }
+      html += `<div class="id-field"><label>${f.label}</label>${input}</div>`;
+    }
+  }
+  if (inRow) html += '</div>';
+
+  // Approve/reject for approvable items
+  if (cfg.approvable && !_idIsNew && _idItem.status === 'pending') {
+    html += `<div class="id-section">Actions</div>
+      <div class="id-actions">
+        <button class="btn btn-primary btn-sm" onclick="approveItemDrawer('approved')">Approve</button>
+        <button class="btn btn-danger btn-sm" onclick="approveItemDrawer('rejected')">Reject</button>
+      </div>`;
+  }
+
+  // Linked tasks for projects
+  if (type === 'project' && !_idIsNew) {
+    const tasks = getProjectTasks(_idItem.id);
+    html += `<div class="id-section">Linked Tasks (${tasks.length})</div>`;
+    if (tasks.length) {
+      html += tasks.map(t => `<div onclick="closeItemDrawer();openTaskPanel('${t.id}')" style="padding:6px 8px;border-bottom:1px solid var(--border);cursor:pointer;font-size:13px;display:flex;align-items:center;gap:8px">
+        <span class="badge badge-${(t.priority||'p3').toLowerCase()}" style="font-size:10px">${t.priority||'P3'}</span>
+        <span style="flex:1">${esc(t.title)}</span>
+        <span style="font-size:11px;color:var(--text3)">${t.status||''}</span>
+      </div>`).join('');
+    } else {
+      html += '<div style="font-size:12px;color:var(--text3);padding:8px 0">No tasks linked</div>';
+    }
+  }
+
+  // Created/updated info
+  if (!_idIsNew && (_idItem.created || _idItem.updated)) {
+    html += `<div class="id-section">Info</div>
+      <div style="font-size:11px;color:var(--text3)">
+        ${_idItem.created?'Created: '+_idItem.created+'<br>':''}
+        ${_idItem.updated?'Updated: '+_idItem.updated:''}
+      </div>`;
+  }
+
+  body.innerHTML = html;
+}
+
+function closeItemDrawer() {
+  document.getElementById('item-drawer-overlay').classList.remove('open');
+  document.getElementById('item-drawer').classList.remove('open');
+  document.body.style.overflow = '';
+  _idType = null; _idItem = null; _idIsNew = false;
+}
+
+async function saveItemDrawer() {
+  const cfg = ID_CONFIGS[_idType];
+  if (!cfg) return;
+  const data = {};
+  for (const f of cfg.fields) {
+    const el = document.getElementById('id-f-' + f.key);
+    if (!el) continue;
+    data[f.key] = el.value;
+  }
+  if (cfg.fields.some(f => f.required) && !data[cfg.fields.find(f => f.required).key]?.trim()) {
+    toast('Title is required'); return;
+  }
+  const col = S[cfg.collection] = S[cfg.collection] || [];
+  if (_idIsNew) {
+    const id = cfg.idPrefix + '-tmp-' + Date.now();
+    col.unshift({ ...data, id, created: todayStr() });
+    closeItemDrawer();
+    renderViewNow(S.currentView);
+    toast(cfg.label + ' created');
+    const saved = await api(cfg.apiCreate, {}, data);
+    if (saved && saved.id) {
+      const idx = col.findIndex(x => x.id === id);
+      if (idx >= 0) col[idx].id = saved.id;
+    }
+  } else {
+    Object.assign(_idItem, data);
+    _idItem.updated = nowIso();
+    closeItemDrawer();
+    renderViewNow(S.currentView);
+    toast(cfg.label + ' saved');
+    await api(cfg.apiUpdate, {}, { id: _idItem.id, ...data, updated: _idItem.updated });
+  }
+}
+
+async function deleteItemDrawer() {
+  const cfg = ID_CONFIGS[_idType];
+  if (!cfg || _idIsNew) return;
+  if (!confirm('Delete this ' + cfg.label.toLowerCase() + '?')) return;
+  const id = _idItem.id;
+  S[cfg.collection] = (S[cfg.collection]||[]).filter(x => x.id !== id);
+  closeItemDrawer();
+  renderViewNow(S.currentView);
+  toast(cfg.label + ' deleted');
+  await api(cfg.apiDelete, { id });
+}
+
+async function approveItemDrawer(decision) {
+  const cfg = ID_CONFIGS[_idType];
+  if (!cfg) return;
+  _idItem.status = decision;
+  _idItem.updated = nowIso();
+  renderViewNow(S.currentView);
+  toast(cfg.label + ' ' + decision);
+  await api(cfg.apiUpdate, {}, { id: _idItem.id, status: decision, updated: _idItem.updated });
+  openItemDrawer(_idType, _idItem.id);
+}
+
+// Escape key closes item drawer
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && _idType) closeItemDrawer(); });
+
+// Aliases so old modal function names still work (calendar pills etc)
+function showCampaignModal(id){openItemDrawer('campaign',id||'new');}
+function showDesignModal(id){openItemDrawer('design',id||'new');}
+function showPublishingModal(id){openItemDrawer('publication',id||'new');}
+function showSeoModal(id){openItemDrawer('seo',id||'new');}
+function showWebsiteModal(id){openItemDrawer('website',id||'new');}
+function showEventModal(id){openItemDrawer('event',id||'new');}
+function showProjectModal(id){openItemDrawer('project',id||'new');}
 
 </script>
 </body>
