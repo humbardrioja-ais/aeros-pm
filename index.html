@@ -250,6 +250,12 @@ label{font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bot
 /* type badges */
 .mtg-badge{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:2px 6px;border-radius:99px;white-space:nowrap}
 .mtg-daily{background:#e8f0fe;color:#1967d2}.mtg-weekly{background:#f3e8fd;color:#7b1fa2}.mtg-monthly{background:#e6f4ea;color:#137333}.mtg-adhoc{background:var(--surface2);color:var(--text2)}
+.mtg-biweekly{background:#fff8e1;color:#f57f17}
+.mtg-quarterly{background:#fce4ec;color:#ad1457}
+.mtg-cat-chips{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px}
+.mtg-cat-chip{padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700;border:1.5px solid var(--border);cursor:pointer;background:var(--surface);color:var(--text2);transition:all .12s}
+.mtg-cat-chip:hover{border-color:var(--brand);color:var(--brand)}
+.mtg-cat-chip.active{border-color:var(--brand);background:var(--brand);color:#fff}
 /* history sidebar */
 .mtg-filter-chip{border:1px solid var(--border);background:var(--surface);border-radius:99px;padding:3px 10px;font-size:11px;font-weight:600;cursor:pointer;color:var(--text2);transition:all .15s}
 .mtg-filter-chip:hover{border-color:var(--brand);color:var(--brand)}
@@ -735,6 +741,7 @@ select.sd-val{appearance:auto;cursor:pointer}
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
           <span style="font-size:16px;font-weight:700">Meeting Notes</span>
           <div style="margin-left:auto;display:flex;gap:6px">
+            <button class="btn btn-secondary btn-sm" onclick="showScheduleMeetingModal()">+ Schedule</button>
             <button class="btn btn-secondary btn-sm" onclick="newMeeting('daily')">+ Daily</button>
             <button class="btn btn-secondary btn-sm" onclick="newMeeting('weekly')">+ Weekly</button>
             <button class="btn btn-secondary btn-sm" onclick="newMeeting('monthly')">+ Monthly</button>
@@ -749,7 +756,9 @@ select.sd-val{appearance:auto;cursor:pointer}
               <button class="mtg-filter-chip active" onclick="filterMeetingType(this,'all')">All</button>
               <button class="mtg-filter-chip" onclick="filterMeetingType(this,'daily')">Daily</button>
               <button class="mtg-filter-chip" onclick="filterMeetingType(this,'weekly')">Weekly</button>
+              <button class="mtg-filter-chip" onclick="filterMeetingType(this,'biweekly')">Biweekly</button>
               <button class="mtg-filter-chip" onclick="filterMeetingType(this,'monthly')">Monthly</button>
+              <button class="mtg-filter-chip" onclick="filterMeetingType(this,'quarterly')">Quarterly</button>
               <button class="mtg-filter-chip" onclick="filterMeetingType(this,'adhoc')">Ad-hoc</button>
             </div>
             <input type="search" id="meeting-search" placeholder="Search meetings..." oninput="filterMeetings(this.value)" style="font-size:12px">
@@ -766,7 +775,9 @@ select.sd-val{appearance:auto;cursor:pointer}
                   <div class="mtg-type-sel" id="mtg-type-sel">
                     <button class="mtg-type-btn" data-type="daily" onclick="selectMeetingType('daily',this)">Daily Standup</button>
                     <button class="mtg-type-btn" data-type="weekly" onclick="selectMeetingType('weekly',this)">Weekly Sync</button>
+                    <button class="mtg-type-btn" data-type="biweekly" onclick="selectMeetingType('biweekly',this)">Biweekly Sync</button>
                     <button class="mtg-type-btn" data-type="monthly" onclick="selectMeetingType('monthly',this)">Monthly Review</button>
+                    <button class="mtg-type-btn" data-type="quarterly" onclick="selectMeetingType('quarterly',this)">Quarterly Review</button>
                     <button class="mtg-type-btn" data-type="adhoc" onclick="selectMeetingType('adhoc',this)">Ad-hoc</button>
                   </div>
                 </div>
@@ -2339,10 +2350,12 @@ function renderProjects() {
 
 // ===================== MEETING NOTES =====================
 const MTG_TITLES = {
-  daily:   d => `Daily Standup — ${fmtDate(d)}`,
-  weekly:  d => `Weekly Sync — ${fmtDate(d)}`,
-  monthly: d => `Monthly Review — ${fmtDate(d, true)}`,
-  adhoc:   ()  => '',
+  daily:     d => `Daily Standup — ${fmtDate(d)}`,
+  weekly:    d => `Weekly Sync — ${fmtDate(d)}`,
+  biweekly:  d => `Biweekly Sync — ${fmtDate(d)}`,
+  monthly:   d => `Monthly Review — ${fmtDate(d, true)}`,
+  quarterly: d => `Quarterly Review — Q${Math.ceil((new Date(d+'T00:00:00').getMonth()+1)/3)} ${new Date(d+'T00:00:00').getFullYear()}`,
+  adhoc:     ()  => '',
 };
 
 function fmtDate(iso, monthOnly) {
@@ -2353,10 +2366,10 @@ function fmtDate(iso, monthOnly) {
 }
 
 function mtgTypeClass(type) {
-  return {daily:'mtg-daily',weekly:'mtg-weekly',monthly:'mtg-monthly',adhoc:'mtg-adhoc'}[type||'adhoc']||'mtg-adhoc';
+  return {daily:'mtg-daily',weekly:'mtg-weekly',biweekly:'mtg-biweekly',monthly:'mtg-monthly',quarterly:'mtg-quarterly',adhoc:'mtg-adhoc'}[type||'adhoc']||'mtg-adhoc';
 }
 function mtgTypeLabel(type) {
-  return {daily:'Daily',weekly:'Weekly',monthly:'Monthly',adhoc:'Ad-hoc'}[type||'adhoc']||'Ad-hoc';
+  return {daily:'Daily',weekly:'Weekly',biweekly:'Biweekly',monthly:'Monthly',quarterly:'Quarterly',adhoc:'Ad-hoc'}[type||'adhoc']||'Ad-hoc';
 }
 
 function renderMeetings() {
@@ -2411,6 +2424,67 @@ function filterMeetingType(el, type) {
   document.querySelectorAll('.mtg-filter-chip').forEach(c => c.classList.remove('active'));
   el.classList.add('active');
   renderMeetings();
+}
+
+function showScheduleMeetingModal() {
+  const mtgOpts = (S.meetings||[]).map(m=>`<option value="${esc(m.id)}">${esc(m.title||m.date)}</option>`).join('');
+  showModal(`<div style="padding:1.5rem;min-width:340px">
+    <h3 style="margin:0 0 1rem">Schedule a Meeting</h3>
+    <label class="form-label">Type</label>
+    <select id="sm-type" class="form-control mb-2">
+      <option value="daily">Daily Standup</option>
+      <option value="weekly">Weekly Sync</option>
+      <option value="biweekly" selected>Biweekly Sync</option>
+      <option value="monthly">Monthly Review</option>
+      <option value="quarterly">Quarterly Review</option>
+      <option value="adhoc">Ad Hoc</option>
+    </select>
+    <label class="form-label">Date</label>
+    <input id="sm-date" type="date" class="form-control mb-2" value="${todayStr()}">
+    <label class="form-label">Title (auto-filled)</label>
+    <input id="sm-title" type="text" class="form-control mb-2" placeholder="Leave blank to auto-generate">
+    <label class="form-label">Department</label>
+    <input id="sm-dept" type="text" class="form-control mb-2" value="${esc(S.myDept||'')}">
+    <label class="form-label">Attendees</label>
+    <input id="sm-attendees" type="text" class="form-control mb-3" placeholder="comma separated names">
+    <div style="display:flex;gap:.5rem;justify-content:flex-end">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmScheduleMeeting()">Schedule</button>
+    </div>
+  </div>`);
+  document.getElementById('sm-type').addEventListener('change', function() {
+    const d = document.getElementById('sm-date').value;
+    const t = MTG_TITLES[this.value];
+    if (t && d) document.getElementById('sm-title').value = t(d);
+  });
+  document.getElementById('sm-date').addEventListener('change', function() {
+    const type = document.getElementById('sm-type').value;
+    const t = MTG_TITLES[type];
+    if (t) document.getElementById('sm-title').value = t(this.value);
+  });
+  // init title
+  const initType = document.getElementById('sm-type').value;
+  const initDate = document.getElementById('sm-date').value;
+  if (MTG_TITLES[initType] && initDate) document.getElementById('sm-title').value = MTG_TITLES[initType](initDate);
+}
+
+async function confirmScheduleMeeting() {
+  const type = document.getElementById('sm-type').value;
+  const date = document.getElementById('sm-date').value;
+  const title = document.getElementById('sm-title').value || (MTG_TITLES[type] ? MTG_TITLES[type](date) : `${type} meeting`);
+  const dept = document.getElementById('sm-dept').value;
+  const attendees = document.getElementById('sm-attendees').value;
+  const body = { title, type, date, department: dept, attendees, rawNotes: '' };
+  closeModal();
+  try {
+    const res = await api('createMeeting', {}, body);
+    if (res && res.id) {
+      S.meetings = S.meetings || [];
+      S.meetings.unshift({ ...body, id: res.id });
+    }
+    showToast('Meeting scheduled');
+    renderMeetings();
+  } catch(e) { showToast('Error: ' + e.message, true); }
 }
 
 function newMeeting(type) {
@@ -2470,32 +2544,85 @@ async function parseNotes() {
 
 function renderExtractedItems() {
   const el = document.getElementById('extracted-items');
-  if (!S.parsedItems.length) { el.innerHTML = '<div class="text-sm text-muted">No items detected</div>'; return; }
+  if (!S.parsedItems || !S.parsedItems.length) {
+    el.innerHTML = '<div style="color:var(--text3);font-size:12px;padding:8px 0">No items detected — paste notes and click Detect.</div>';
+    return;
+  }
   const teamNames = (S.team||[]).map(m=>m.name);
-  el.innerHTML = `<div style="font-weight:600;font-size:13px;margin-bottom:10px">Detected Items — review &amp; confirm</div>` +
+  const projects  = S.projects||[];
+  const meetings  = (S.meetings||[]).filter(m=>m.date>=todayStr()).slice(0,20);
+  const CATS = [
+    {k:'task',      label:'Task'},
+    {k:'event',     label:'Calendar Event'},
+    {k:'project',   label:'Project Item'},
+    {k:'nextmtg',   label:'Next Meeting'},
+  ];
+
+  el.innerHTML = `<div style="font-weight:600;font-size:13px;margin-bottom:10px">Detected Items — set category &amp; confirm</div>` +
     S.parsedItems.map((item, i) => {
-      const isTask = item.item_type !== 'event';
-      const confColor = item.confidence >= 70 ? 'var(--ok)' : item.confidence >= 40 ? '#e37400' : 'var(--danger)';
+      const cat = item.cat || (item.item_type === 'event' ? 'event' : 'task');
+      if (!item.cat) item.cat = cat;
+      const confColor = (item.confidence||0) >= 70 ? 'var(--ok)' : (item.confidence||0) >= 40 ? '#e37400' : 'var(--danger)';
       const prioSel = ['P0','P1','P2','P3'].map(p=>`<option${item.priority===p?' selected':''}>${p}</option>`).join('');
-      const ownerOpts = ['', ...teamNames].map(n=>`<option${item.owner===n?' selected':''}>${n}</option>`).join('');
-      return `<div class="extracted-item" style="opacity:${item.confirmed===false?'.5':'1'}">
+      const ownerOpts = ['', ...teamNames].map(n=>`<option${(item.owner||'')===(n)?' selected':''}>${esc(n)}</option>`).join('');
+      const projOpts  = projects.map(p=>`<option value="${esc(p.id)}" ${item.projectId===p.id?'selected':''}>${esc(p.title||p.name)}</option>`).join('');
+      const mtgOpts   = meetings.map(m=>`<option value="${esc(m.id)}" ${item.targetMeetingId===m.id?'selected':''}>${esc(m.title)} (${m.date||''})</option>`).join('');
+
+      const catChips = CATS.map(({k,label}) =>
+        `<span class="mtg-cat-chip${cat===k?' active':''}" onclick="setItemCat(${i},'${k}')">${label}</span>`
+      ).join('');
+
+      // Category-specific fields
+      let catFields = '';
+      if (cat === 'task') {
+        catFields = `
+          <div class="ext-field"><label>Owner</label><select onchange="S.parsedItems[${i}].owner=this.value">${ownerOpts}</select></div>
+          <div class="ext-field"><label>Due</label><input type="date" value="${item.due||''}" oninput="S.parsedItems[${i}].due=this.value"></div>
+          <div class="ext-field"><label>Priority</label><select onchange="S.parsedItems[${i}].priority=this.value">${prioSel}</select></div>`;
+      } else if (cat === 'event') {
+        catFields = `
+          <div class="ext-field"><label>Date</label><input type="date" value="${item.due||''}" oninput="S.parsedItems[${i}].due=this.value"></div>
+          <div class="ext-field"><label>Time</label><input type="time" value="${item.time||''}" oninput="S.parsedItems[${i}].time=this.value"></div>
+          <div class="ext-field"><label>Owner/Who</label><select onchange="S.parsedItems[${i}].owner=this.value">${ownerOpts}</select></div>`;
+      } else if (cat === 'project') {
+        catFields = `
+          <div class="ext-field" style="grid-column:1/-1">
+            <label>Add to project</label>
+            <select onchange="S.parsedItems[${i}].projectId=this.value;S.parsedItems[${i}].newProject=this.value==='__new__'">
+              <option value="">— select existing —</option>
+              ${projOpts}
+              <option value="__new__">+ Create new project</option>
+            </select>
+          </div>
+          <div class="ext-field"><label>Owner</label><select onchange="S.parsedItems[${i}].owner=this.value">${ownerOpts}</select></div>
+          <div class="ext-field"><label>Due</label><input type="date" value="${item.due||''}" oninput="S.parsedItems[${i}].due=this.value"></div>`;
+      } else if (cat === 'nextmtg') {
+        const mtgTypeOpts = ['daily','weekly','biweekly','monthly','quarterly'].map(t=>`<option value="${t}" ${item.nextMtgType===t?'selected':''}>${{daily:'Daily',weekly:'Weekly',biweekly:'Biweekly',monthly:'Monthly',quarterly:'Quarterly'}[t]}</option>`).join('');
+        catFields = `
+          <div class="ext-field" style="grid-column:1/-1">
+            <label>Add to meeting</label>
+            <select onchange="S.parsedItems[${i}].targetMeetingId=this.value">
+              <option value="">— create new / schedule —</option>
+              ${mtgOpts}
+            </select>
+          </div>
+          <div class="ext-field"><label>Meeting type</label>
+            <select onchange="S.parsedItems[${i}].nextMtgType=this.value">${mtgTypeOpts}</select>
+          </div>
+          <div class="ext-field"><label>Scheduled date</label>
+            <input type="date" value="${item.due||''}" oninput="S.parsedItems[${i}].due=this.value">
+          </div>`;
+      }
+
+      return `<div class="extracted-item" id="ext-item-${i}" style="opacity:${item.confirmed===false?'.5':'1'}">
         <div class="ext-header">
-          <span class="badge ${isTask?'badge-p1':'badge-p3'}">${isTask?'TASK':'EVENT'}</span>
-          <input style="flex:1;margin:0 8px;font-weight:600;font-size:13px;border:none;background:transparent;color:var(--text)" value="${esc(item.title)}" oninput="S.parsedItems[${i}].title=this.value">
+          <input style="flex:1;margin:0 8px 0 0;font-weight:600;font-size:13px;border:none;background:transparent;color:var(--text)" value="${esc(item.title)}" oninput="S.parsedItems[${i}].title=this.value">
           <label style="display:flex;align-items:center;gap:4px;margin:0;cursor:pointer;font-size:12px;white-space:nowrap">
-            <input type="checkbox" ${item.confirmed!==false?'checked':''} onchange="S.parsedItems[${i}].confirmed=this.checked;this.closest('.extracted-item').style.opacity=this.checked?'1':'.5'"> Include
+            <input type="checkbox" ${item.confirmed!==false?'checked':''} onchange="S.parsedItems[${i}].confirmed=this.checked;document.getElementById('ext-item-${i}').style.opacity=this.checked?'1':'.5'"> Include
           </label>
         </div>
-        <div class="ext-body">
-          <div class="ext-field"><label>Owner</label>
-            <select onchange="S.parsedItems[${i}].owner=this.value">${ownerOpts}</select>
-          </div>
-          <div class="ext-field"><label>Due</label>
-            <input type="date" value="${item.due||''}" oninput="S.parsedItems[${i}].due=this.value">
-          </div>
-          ${isTask?`<div class="ext-field"><label>Priority</label>
-            <select onchange="S.parsedItems[${i}].priority=this.value">${prioSel}</select>
-          </div>`:''}
+        <div class="mtg-cat-chips" style="padding:6px 8px 0">${catChips}</div>
+        <div class="ext-body">${catFields}
           <div class="ext-field"><label>Confidence</label>
             <div class="conf-bar" style="flex:1"><div class="conf-fill" style="width:${item.confidence||0}%;background:${confColor}"></div></div>
             <span style="font-size:11px;color:var(--text3);min-width:28px">${item.confidence||0}%</span>
@@ -2504,6 +2631,12 @@ function renderExtractedItems() {
       </div>`;
     }).join('');
 }
+
+function setItemCat(i, cat) {
+  S.parsedItems[i].cat = cat;
+  renderExtractedItems();
+}
+
 
 async function saveMeeting() {
   const title = document.getElementById('m-title').value.trim();
@@ -2517,23 +2650,87 @@ async function saveMeeting() {
     rawNotes: document.getElementById('m-notes').value,
   };
   const confirmed = (S.parsedItems||[]).filter(i => i.confirmed !== false);
-  const tasks = confirmed.filter(i => (i.item_type||i.type) !== 'event');
-  const tempId = 'MTG-tmp-' + Date.now();
-  S.meetings = S.meetings || [];
-  S.meetings.unshift({ ...data, id: tempId, taskCount: tasks.length, doneCount: 0 });
-  renderMeetings();
+
+  // Split by category
+  const taskItems    = confirmed.filter(i => (i.cat||'task') === 'task');
+  const eventItems   = confirmed.filter(i => i.cat === 'event');
+  const projectItems = confirmed.filter(i => i.cat === 'project');
+  const nextMtgItems = confirmed.filter(i => i.cat === 'nextmtg');
+
   cancelMeetingForm();
   toast(`Saving meeting + ${confirmed.length} item(s)…`);
+
+  // Create or update the meeting record
+  const tempId = 'MTG-tmp-' + Date.now();
+  S.meetings = S.meetings || [];
+  S.meetings.unshift({ ...data, id: tempId, taskCount: taskItems.length, doneCount: 0 });
+  renderMeetings();
+
   const meeting = await api('createMeeting', {}, data);
-  if (meeting && meeting.id) {
-    if (confirmed.length) {
-      const result = await api('saveMeetingItems', {}, { meetingId: meeting.id, items: confirmed, department: data.department, requestedBy: data.attendees });
-      // update taskCount on meeting record
-      api('updateMeetingNote', {}, { id: meeting.id, taskCount: tasks.length, doneCount: 0 });
-    }
-    S._lastLoaded = 0;
-    loadData(true).then(() => { renderMeetings(); openMeeting(meeting.id); });
+  if (!meeting || !meeting.id) return;
+
+  const dept = data.department;
+  const reqBy = data.attendees;
+
+  // Tasks → saveMeetingItems (existing flow)
+  if (taskItems.length) {
+    await api('saveMeetingItems', {}, { meetingId: meeting.id, items: taskItems.map(i=>({...i,item_type:'task'})), department: dept, requestedBy: reqBy });
+    api('updateMeetingNote', {}, { id: meeting.id, taskCount: taskItems.length, doneCount: 0 });
   }
+
+  // Events → create calendar events
+  for (const item of eventItems) {
+    const ev = { title: item.title, date: item.due||data.date, time: item.time||'', department: dept, description: `From meeting: ${title}` };
+    const saved = await api('createEvent', {}, ev);
+    if (saved?.id) { S.events = S.events||[]; S.events.push({...ev, id: saved.id}); }
+    // also log as meeting item
+    await api('saveMeetingItems', {}, { meetingId: meeting.id, items: [{...item,item_type:'event'}], department: dept, requestedBy: reqBy });
+  }
+
+  // Project items → add as tasks linked to project, or create new project
+  for (const item of projectItems) {
+    if (item.projectId === '__new__') {
+      // Create a new project from this item
+      const proj = await api('createProject', {}, { title: item.title, description: `Created from meeting: ${title}`, owner: item.owner||reqBy, department: dept, status:'active', created: todayStr() });
+      if (proj?.id) { item.projectId = proj.id; S.projects = S.projects||[]; S.projects.push({id:proj.id,title:item.title}); }
+    }
+    // Create a task linked to the project
+    const taskData = { title: item.title, owner: item.owner||'', due: item.due||'', priority: item.priority||'P2', status:'todo', source:'meeting', department: dept, projectIds: item.projectId||'' };
+    await api('createTask', {}, taskData);
+    await api('saveMeetingItems', {}, { meetingId: meeting.id, items: [{...item,item_type:'project'}], department: dept, requestedBy: reqBy });
+  }
+
+  // Next-meeting items → add to existing meeting OR schedule a new one
+  const nextMtgGroups = {};
+  for (const item of nextMtgItems) {
+    const key = item.targetMeetingId || '__new__:' + (item.nextMtgType||'adhoc') + ':' + (item.due||'');
+    if (!nextMtgGroups[key]) nextMtgGroups[key] = { targetMeetingId: item.targetMeetingId, nextMtgType: item.nextMtgType||'adhoc', due: item.due, items: [] };
+    nextMtgGroups[key].items.push(item);
+  }
+  for (const [key, grp] of Object.entries(nextMtgGroups)) {
+    if (grp.targetMeetingId) {
+      // Add to existing meeting
+      await api('saveMeetingItems', {}, { meetingId: grp.targetMeetingId, items: grp.items.map(i=>({...i,item_type:'task'})), department: dept, requestedBy: reqBy });
+      // bump taskCount
+      const existing = S.meetings.find(m=>m.id===grp.targetMeetingId);
+      if (existing) { existing.taskCount = (parseInt(existing.taskCount)||0) + grp.items.length; api('updateMeetingNote', {}, { id: grp.targetMeetingId, taskCount: existing.taskCount }); }
+      toast(`${grp.items.length} item(s) added to existing meeting`);
+    } else {
+      // Create a scheduled meeting in advance
+      const mtgType = grp.nextMtgType||'adhoc';
+      const mtgDate = grp.due || '';
+      const newMtgData = { title: MTG_TITLES[mtgType] ? MTG_TITLES[mtgType](mtgDate||todayStr()) : `${mtgType} meeting`, type: mtgType, date: mtgDate, department: dept, attendees: '', rawNotes: `Carried from: ${title}` };
+      const newMtg = await api('createMeeting', {}, newMtgData);
+      if (newMtg?.id) {
+        S.meetings.unshift({...newMtgData, id: newMtg.id, taskCount: grp.items.length, doneCount: 0});
+        await api('saveMeetingItems', {}, { meetingId: newMtg.id, items: grp.items.map(i=>({...i,item_type:'task'})), department: dept, requestedBy: reqBy });
+        toast(`Scheduled ${mtgType} meeting on ${mtgDate||'TBD'} with ${grp.items.length} item(s)`);
+      }
+    }
+  }
+
+  S._lastLoaded = 0;
+  loadData(true).then(() => { renderMeetings(); openMeeting(meeting.id); });
 }
 
 async function openMeeting(id) {
