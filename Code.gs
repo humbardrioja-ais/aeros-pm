@@ -361,7 +361,7 @@ const SHEETS = {
   FootageVideoLink: ['id','footageId','videoId','notes','created'],
   VideoReviews: ['id','videoId','reviewer','status','comments','reviewedAt','created'],
   VideoPosts: ['id','videoId','platform','postUrl','scheduledDate','postedDate','status','metrics','created','updated'],
-  MeetingNotes: ['id','title','type','date','attendees','department','rawNotes','summary','status','taskCount','doneCount','pinned','created','updated'],
+  MeetingNotes: ['id','title','type','date','startTime','endTime','attendees','department','rawNotes','summary','status','taskCount','doneCount','pinned','created','updated'],
   MeetingAttendees: ['id','meetingId','memberId','memberName','role','created'],
   MeetingItems: ['id','meetingId','type','title','assignee','department','dueDate','priority','status','taskId','created'],
   Rules: ['id','name','trigger','conditions','actions','active','created','updated'],

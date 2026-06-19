@@ -551,7 +551,7 @@ select.sd-val{appearance:auto;cursor:pointer}
       <div class="nav-item" onclick="nav('seo')"><span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><span class="label">SEO</span></div>
       <div class="nav-item" onclick="nav('website')"><span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></span><span class="label">Website</span></div>
       <div class="nav-item" onclick="nav('social')"><span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span><span class="label">Social Hub</span></div>
-      <div class="nav-item" onclick="nav('meetings')"><span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span><span class="label">Meeting Notes</span></div>
+      <div class="nav-item" onclick="nav('meetings')"><span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span><span class="label">Meetings</span></div>
       <div class="nav-item" onclick="nav('media')"><span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></span><span class="label">Media</span></div>
     </div>
     <div class="nav-section">
@@ -770,7 +770,7 @@ select.sd-val{appearance:auto;cursor:pointer}
       <div id="view-meetings" class="hidden">
         <!-- Top bar -->
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
-          <span style="font-size:16px;font-weight:700">Meeting Notes</span>
+          <span style="font-size:16px;font-weight:700">Meetings</span>
           <div style="margin-left:auto;display:flex;gap:6px">
             <button class="btn btn-secondary btn-sm" onclick="showScheduleMeetingModal()">+ Schedule</button>
             <button class="btn btn-secondary btn-sm" onclick="newMeeting('daily')">+ Daily</button>
@@ -812,9 +812,13 @@ select.sd-val{appearance:auto;cursor:pointer}
                     <button class="mtg-type-btn" data-type="adhoc" onclick="selectMeetingType('adhoc',this)">Ad-hoc</button>
                   </div>
                 </div>
-                <div class="form-grid">
-                  <div class="form-row"><label>Title *</label><input id="m-title" placeholder="e.g. Q2 Marketing Sync"></div>
+                <div class="form-row"><label>Title *</label><input id="m-title" placeholder="e.g. Q2 Marketing Sync"></div>
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
                   <div class="form-row"><label>Date</label><input type="date" id="m-date"></div>
+                  <div class="form-row"><label>Start Time</label><input type="time" id="m-start-time"></div>
+                  <div class="form-row"><label>End Time</label><input type="time" id="m-end-time"></div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
                   <div class="form-row"><label>Department</label><input id="m-dept" placeholder="Department"></div>
                   <div class="form-row"><label>Attendees</label>
                     <input id="m-attendees" placeholder="Sara, Ben, ME" list="m-attendees-list" autocomplete="off">
@@ -1528,7 +1532,7 @@ function nav(view) {
   try { localStorage.setItem('aeros_last_view', view); } catch(_) {}
   const titles = { dashboard:'Dashboard',list:'Tasks',board:'Board',calendar:'Calendar',
     timeline:'Timeline',workload:'Workload',eisenhower:'Eisenhower',portfolio:'Portfolio',
-    mytasks:'My Tasks',inbox:'Inbox',projects:'Projects',meetings:'Meeting Notes',
+    mytasks:'My Tasks',inbox:'Inbox',projects:'Projects',meetings:'Meetings',
     media:'Media Production',missions:'Missions',cdo:'Change Day Off',leave:'Leave',
     team:'Team',settings:'Settings',
     campaigns:'Campaigns',designs:'Designs',publishing:'Publications',seo:'SEO',website:'Website',
@@ -2621,6 +2625,10 @@ function showScheduleMeetingModal() {
     </select>
     <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;color:var(--text2)">Date</label>
     <input id="sm-date" type="date" onchange="const tp=document.getElementById('sm-type').value,t=MTG_TITLES[tp];if(t)document.getElementById('sm-title').value=t(this.value)" style="margin-bottom:8px" value="${todayStr()}">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+      <div><label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;color:var(--text2)">Start Time</label><input id="sm-start-time" type="time" style="width:100%"></div>
+      <div><label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;color:var(--text2)">End Time</label><input id="sm-end-time" type="time" style="width:100%"></div>
+    </div>
     <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;color:var(--text2)">Title (auto-filled)</label>
     <input id="sm-title" type="text" style="margin-bottom:8px" placeholder="Leave blank to auto-generate">
     <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;color:var(--text2)">Department</label>
@@ -2644,7 +2652,9 @@ async function confirmScheduleMeeting() {
   const title = document.getElementById('sm-title').value || (MTG_TITLES[type] ? MTG_TITLES[type](date) : `${type} meeting`);
   const dept = document.getElementById('sm-dept').value;
   const attendees = document.getElementById('sm-attendees').value;
-  const body = { title, type, date, department: dept, attendees, rawNotes: '' };
+  const startTime=document.getElementById('sm-start-time')?.value||'';
+  const endTime=document.getElementById('sm-end-time')?.value||'';
+  const body = { title, type, date, department: dept, attendees, startTime, endTime, rawNotes: '' };
   closeModal();
   try {
     const res = await api('createMeeting', {}, body);
@@ -2666,6 +2676,8 @@ function newMeeting(type) {
   document.getElementById('m-title').value = MTG_TITLES[type] ? MTG_TITLES[type](today) : '';
   document.getElementById('m-notes').value = '';
   document.getElementById('m-attendees').value = '';
+  const st=document.getElementById('m-start-time');if(st)st.value='';
+  const et=document.getElementById('m-end-time');if(et)et.value='';
   document.getElementById('m-dept').value = S.myDept || '';
   document.getElementById('extracted-items').innerHTML = '';
   document.getElementById('parse-status').textContent = '';
@@ -2818,6 +2830,8 @@ async function saveMeeting() {
     department: document.getElementById('m-dept').value,
     attendees: document.getElementById('m-attendees').value,
     rawNotes: document.getElementById('m-notes').value,
+    startTime: document.getElementById('m-start-time')?.value||'',
+    endTime: document.getElementById('m-end-time')?.value||'',
   };
   const confirmed = (S.parsedItems||[]).filter(i => i.confirmed !== false);
 
@@ -2949,7 +2963,7 @@ async function openMeeting(id) {
         <div style="flex:1;min-width:0">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
             <span class="mtg-badge ${mtgTypeClass(meeting.type)}">${mtgTypeLabel(meeting.type)}</span>
-            <span style="font-size:11px;color:var(--text3)">${fmtDate(meeting.date)}</span>
+            <span style="font-size:11px;color:var(--text3)">${fmtDate(meeting.date)}${meeting.startTime||meeting.start_time?` · ${meeting.startTime||meeting.start_time}${meeting.endTime||meeting.end_time?'–'+(meeting.endTime||meeting.end_time):''}`:''}</span>
           </div>
           <div style="font-size:17px;font-weight:700;line-height:1.3;margin-bottom:4px">${esc(meeting.title)}</div>
           ${meeting.department?`<div style="font-size:12px;color:var(--text3)">${esc(meeting.department)}</div>`:''}
