@@ -1033,6 +1033,8 @@ select.sd-val{appearance:auto;cursor:pointer}
   <div class="tp-actionbar">
     <button class="btn btn-sm" id="tp-complete-btn" onclick="togglePanelDone()" style="display:flex;align-items:center;gap:5px;font-size:12px"></button>
     <div style="flex:1"></div>
+    <button class="btn btn-primary btn-sm" id="tp-save-btn" onclick="saveTaskPanel()" style="display:none;font-size:12px">Save</button>
+    <button class="btn btn-sm btn-danger" id="tp-delete-btn" onclick="deleteTaskFromPanel()" style="display:none;font-size:12px">Delete</button>
     <button class="btn btn-icon" onclick="closeTaskPanel()" title="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
   </div>
   <!-- Scrollable body -->
@@ -3787,6 +3789,9 @@ async function openTaskPanel(id) {
   populatePanelFields();
   renderSubtasks(); renderComments(); renderActivity();
   updateCompleteBtnState();
+  // Show save button for new tasks, delete for existing
+  document.getElementById('tp-save-btn').style.display = isNew ? '' : 'none';
+  document.getElementById('tp-delete-btn').style.display = isNew ? 'none' : '';
   // Bottom tab default
   tpBottomTab('comments', document.querySelector('.tp-tab'));
   if (!isNew) {
@@ -3795,27 +3800,18 @@ async function openTaskPanel(id) {
 }
 
 async function closeTaskPanel() {
-  // New task mode — create on close if title filled
+  // New task mode — prompt to save if title filled but not yet saved
   if (TP.taskId === null) {
     const title = document.getElementById('tp-title').value.trim();
     if (title) {
-      const data = { ...TP.task, title };
-      const tempId = 'T-tmp-' + Date.now();
-      S.tasks.unshift({ ...data, id: tempId, created: todayStr() });
-      renderViewNow(S.currentView);
-      toast('Task created!');
-      const saved = await api('createTask', {}, data);
-      if (saved?.id && TP.subtasks.length) {
-        await Promise.all(TP.subtasks.map(s => api('createSubtask', {}, { taskId: saved.id, title: s.title, done: false })));
-      }
-      S._lastLoaded = 0; loadData(true).then(() => renderViewNow(S.currentView));
+      await saveTaskPanel();
     }
   }
   closeSubtaskDrawer();
   document.getElementById('task-panel-overlay').classList.remove('open');
   document.getElementById('task-panel').classList.remove('open');
   document.body.style.overflow = '';
-  if (TP.taskId) { loadData().then(() => renderViewNow(S.currentView)); }
+  renderViewNow(S.currentView);
 }
 
 function setTaskStatus(s) {
@@ -3879,9 +3875,58 @@ function tpBottomTab(tab, el) {
 
 function savePanelField(field, value) {
   TP.task[field] = value;
-  if (!TP.taskId) return; // new task — collect locally, save all on close
+  if (!TP.taskId) return;
   logActivityLocal(field, value);
-  api('updateTask', {}, { id: TP.taskId, [field]: value });
+  api('updateTask', {}, { id: TP.taskId, [field]: value, updated: nowIso() });
+}
+
+async function saveTaskPanel() {
+  const title = document.getElementById('tp-title').value.trim();
+  if (!title) { toast('Task name is required'); return; }
+  TP.task.title = title;
+  TP.task.details = document.getElementById('tp-details').value;
+  TP.task.due = document.getElementById('tp-due').value;
+  TP.task.owner = document.getElementById('tp-owner').value;
+  TP.task.department = document.getElementById('tp-dept').value;
+  TP.task.followup = document.getElementById('tp-followup').value;
+  TP.task.source = document.getElementById('tp-source').value;
+  TP.task.repeat = document.getElementById('tp-repeat').value;
+  const br = document.getElementById('tp-blocked-reason');
+  if (br) TP.task.blocked_reason = br.value;
+  if (TP.taskId) {
+    const t = S.tasks.find(x => x.id === TP.taskId);
+    if (t) Object.assign(t, TP.task);
+    renderViewNow(S.currentView);
+    await api('updateTask', {}, { ...TP.task, id: TP.taskId, updated: nowIso() });
+    toast('Task saved');
+  } else {
+    const data = { ...TP.task };
+    const saved = await api('createTask', {}, data);
+    if (saved && saved.id) {
+      S.tasks.unshift({ ...data, id: saved.id, created: todayStr() });
+      TP.taskId = saved.id;
+      document.getElementById('tp-save-btn').style.display = 'none';
+      document.getElementById('tp-delete-btn').style.display = '';
+      if (TP.subtasks.length) {
+        await Promise.all(TP.subtasks.map(s => api('createSubtask', {}, { taskId: saved.id, title: s.title, done: false })));
+      }
+      toast('Task created!');
+    } else {
+      S.tasks.unshift({ ...data, id: 'T-tmp-' + Date.now(), created: todayStr() });
+      toast('Task created locally');
+    }
+    renderViewNow(S.currentView);
+  }
+}
+
+async function deleteTaskFromPanel() {
+  if (!TP.taskId) return;
+  if (!confirm('Delete this task?')) return;
+  S.tasks = S.tasks.filter(t => t.id !== TP.taskId);
+  closeTaskPanel();
+  renderViewNow(S.currentView);
+  await api('deleteTask', { id: TP.taskId });
+  toast('Task deleted');
 }
 
 function togglePanelDone() {
