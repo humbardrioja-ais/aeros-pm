@@ -1841,7 +1841,7 @@ function renderBoard() {
   document.getElementById('board-cols').innerHTML = cols.map(col => {
     const tasks = filteredTasks().filter(t => t.status === col);
     const cards = tasks.map(t => `
-      <div class="board-card" onclick="editTask('${t.id}')">
+      <div class="board-card" draggable="true" ondragstart="boardDragStart(event,'${t.id}')" onclick="editTask('${t.id}')">
         <div class="board-card-title">${esc(t.title)}</div>
         <div class="board-card-meta">
           ${t.priority ? `<span class="badge badge-${t.priority.toLowerCase()}">${t.priority}</span>` : ''}
@@ -1849,7 +1849,7 @@ function renderBoard() {
           ${t.owner ? avatarHtml(t.owner, 22) : ''}
         </div>
       </div>`).join('');
-    return `<div class="board-col">
+    return `<div class="board-col" ondragover="event.preventDefault();this.style.background='var(--brand-light)'" ondragleave="this.style.background=''" ondrop="boardDrop(event,'${col}');this.style.background=''">
       <div class="board-col-header">
         <span style="color:${colors[col]}">${labels[col]}</span>
         <span class="badge" style="background:var(--surface2)">${tasks.length}</span>
@@ -1857,6 +1857,16 @@ function renderBoard() {
       ${cards || '<div class="text-sm text-muted" style="padding:8px">No tasks</div>'}
     </div>`;
   }).join('');
+}
+let _boardDragId=null;
+function boardDragStart(e,id){_boardDragId=id;e.dataTransfer.effectAllowed='move';}
+async function boardDrop(e,newStatus){
+  e.preventDefault();if(!_boardDragId)return;
+  const t=S.tasks.find(x=>x.id===_boardDragId);_boardDragId=null;
+  if(!t||t.status===newStatus)return;
+  t.status=newStatus;t.updated=nowIso();renderBoard();
+  await api('updateTask',{},{id:t.id,status:newStatus,updated:t.updated});
+  toast(`Task moved to ${newStatus}`);
 }
 
 // ===================== CALENDAR VIEW =====================
@@ -2357,7 +2367,7 @@ function renderWorkload() {
   document.getElementById('workload-body').innerHTML = Object.entries(counts)
     .sort((a,b) => b[1]-a[1])
     .map(([name, count]) => `
-      <div class="workload-row">
+      <div class="workload-row" onclick="S._viewMemberFilter='';nav('list');document.getElementById('list-filter-owner').value='${esc(name)}';renderList()" style="cursor:pointer">
         <div class="workload-name">${esc(name)}</div>
         <div class="workload-bar-wrap">
           <div class="workload-bar ${count > 8 ? 'overload' : ''}" style="width:${count/max*100}%"></div>
@@ -2482,7 +2492,7 @@ function renderProjects() {
         const tc = getProjectTasks(p.id).length;
         const exp = S._projExpanded[p.id];
         return `<div class="proj-list-row" onclick="toggleProjExpand('${p.id}')" style="border-left:3px solid ${p.color||'var(--brand)'}">
-          <span style="font-weight:600">${esc(p.title)}</span>
+          <span style="font-weight:600;cursor:pointer" onclick="event.stopPropagation();showProjectModal('${p.id}')">${esc(p.title)}</span>
           <span>${esc(p.owner||'—')}</span>
           <span><span class="approval-pill ap-${p.status==='on-track'?'approved':p.status==='at-risk'?'pending':'rejected'}">${p.status||'—'}</span></span>
           <span>${esc(p.department||'')}</span>
@@ -3383,7 +3393,22 @@ function toggleDone(id) {
 }
 
 // ===================== PROJECT CRUD =====================
-function showProjectModal() { openModal('project-modal'); }
+S._editProjectId=null;
+function showProjectModal(id) {
+  const p=id?(S.projects||[]).find(x=>x.id===id):null;
+  S._editProjectId=id||null;
+  document.getElementById('pr-title').value=p?p.title:'';
+  document.getElementById('pr-desc').value=p?p.description||'':'';
+  document.getElementById('pr-status').value=p?p.status||'on-track':'on-track';
+  document.getElementById('pr-start').value=p?p.start||'':'';
+  document.getElementById('pr-end').value=p?p.end||'':'';
+  document.getElementById('pr-dept').value=p?p.department||'':S.myDept||'';
+  document.getElementById('pr-color').value=p?p.color||'#1a73e8':'#1a73e8';
+  populateOwnerSelects();
+  const ownerSel=document.getElementById('pr-owner');
+  if(ownerSel&&p)ownerSel.value=p.owner||'';
+  openModal('project-modal');
+}
 
 async function saveProject() {
   const title = document.getElementById('pr-title').value;
@@ -3397,12 +3422,22 @@ async function saveProject() {
     department: document.getElementById('pr-dept').value || S.myDept,
     color: document.getElementById('pr-color').value,
   };
-  S.projects.unshift({ ...data, id: 'P-tmp-' + Date.now() });
-  closeModal('project-modal');
-  toast('Project created!');
-  renderProjects();
-  await api('createProject', {}, data);
-  S._lastLoaded = 0; loadData(true).then(renderProjects);
+  if(S._editProjectId){
+    const p=(S.projects||[]).find(x=>x.id===S._editProjectId);
+    if(p)Object.assign(p,data);
+    closeModal('project-modal');
+    toast('Project updated!');
+    renderProjects();
+    await api('updateProject',{},{id:S._editProjectId,...data});
+  } else {
+    S.projects.unshift({ ...data, id: 'P-tmp-' + Date.now() });
+    closeModal('project-modal');
+    toast('Project created!');
+    renderProjects();
+    await api('createProject', {}, data);
+    S._lastLoaded = 0; loadData(true).then(renderProjects);
+  }
+  S._editProjectId=null;
 }
 
 // ===================== MISSION / LEAVE / CDO CRUD =====================
@@ -3684,7 +3719,7 @@ function populateOwnerSelects() {
     const sel = document.getElementById(id);
     if (!sel) return;
     const cur = sel.value;
-    sel.innerHTML = names.map(n => `<option>${esc(n)}</option>`).join('');
+    sel.innerHTML = '<option value="">-- Anyone --</option>' + names.map(n => `<option>${esc(n)}</option>`).join('');
     if (cur) sel.value = cur;
   });
   const ownerFilter = document.getElementById('list-filter-owner');
@@ -3695,7 +3730,7 @@ function populateSelect(id) {
   const sel = document.getElementById(id);
   if (!sel) return;
   const names = [S.myName, ...S.team.map(m => m.name)].filter(Boolean);
-  sel.innerHTML = names.map(n => `<option>${esc(n)}</option>`).join('');
+  sel.innerHTML = '<option value="">-- Anyone --</option>' + names.map(n => `<option>${esc(n)}</option>`).join('');
 }
 
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
