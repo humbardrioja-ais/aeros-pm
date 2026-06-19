@@ -681,7 +681,7 @@ select.sd-val{appearance:auto;cursor:pointer}
           </div>
         </div>
         <!-- Layer toggles -->
-        <div id="cal-layer-chips" style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px"></div>
+        <div id="cal-layer-chips" style="display:flex;gap:5px;flex-wrap:wrap;padding:8px 0;position:sticky;top:0;z-index:10;background:var(--bg)"></div>
         <!-- Body: calendar + sidebar -->
         <div style="display:grid;grid-template-columns:1fr 220px;gap:16px;align-items:start">
           <div id="cal-months-wrap" style="min-width:0"></div>
@@ -689,16 +689,7 @@ select.sd-val{appearance:auto;cursor:pointer}
           <div style="position:sticky;top:60px;display:flex;flex-direction:column;gap:10px">
             <!-- Mini calendar -->
             <div id="cal-mini-wrap" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px"></div>
-            <!-- Color Legend (collapsed by default) -->
-            <div id="cal-color-legend-wrap" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px">
-              <div onclick="document.getElementById('cal-color-legend-body').classList.toggle('hidden')" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer">
-                <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em">Color Legend</div>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-              </div>
-              <div id="cal-color-legend-body" class="hidden" style="margin-top:8px">
-                <div id="cal-color-legend"></div>
-              </div>
-            </div>
+            <div id="cal-color-legend" style="display:none"></div>
             <!-- Feed toggles -->
             <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px">
               <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">Calendars</div>
@@ -4239,10 +4230,49 @@ function toggleCalLayer(key){
 }
 function renderCalLayerChips(){
   const w=document.getElementById('cal-layer-chips');if(!w)return;
-  w.innerHTML=CAL_LAYERS.map(({key,label})=>{
+  const isAdmin=S.myRole==='admin';
+  const chips=CAL_LAYERS.map(({key,label})=>{
     const on=S.calLayers[key]!==false;
-    return`<button onclick="toggleCalLayer('${key}')" style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid var(--border);background:${on?'var(--brand)':'var(--surface)'};color:${on?'#fff':'var(--text2)'};cursor:pointer">${label}</button>`;
+    const hex=key==='ical'?'#888':(S.calColors&&S.calColors[key])||'#7baaf7';
+    return`<button onclick="toggleCalLayer('${key}')" style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid ${on?'transparent':'var(--border)'};background:${on?hex:'var(--surface)'};color:${on?'#fff':'var(--text2)'};cursor:pointer;display:flex;align-items:center;gap:4px">
+      ${on?'':`<span style="width:8px;height:8px;border-radius:50%;background:${hex};flex-shrink:0"></span>`}${label}
+    </button>`;
   }).join('');
+  const paletteBtn=isAdmin?`<button onclick="showCalColorEditor()" style="padding:3px 8px;border-radius:20px;font-size:11px;border:1px solid var(--border);background:var(--surface);cursor:pointer;display:flex;align-items:center" title="Edit colors"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg></button>`:'';
+  w.innerHTML=chips+paletteBtn;
+}
+
+function showCalColorEditor(){
+  const isAdmin=S.myRole==='admin';
+  if(!isAdmin){toast('Only admin can edit colors');return;}
+  const layers=[
+    {key:'task',label:'Tasks'},{key:'blocked',label:'Blocked'},
+    {key:'event',label:'Events'},{key:'shoot',label:'Shoots'},
+    {key:'leave',label:'Leave'},{key:'mission',label:'Missions'},
+    {key:'pub',label:'Publishing'},{key:'campaign',label:'Campaigns'}
+  ];
+  const feedRows=(S.feeds||[]).map(f=>{
+    const hex=(S.calColors&&S.calColors.ical&&S.calColors.ical[f.id])||f.color||'#d4edda';
+    return`<div style="display:flex;align-items:center;gap:8px;padding:4px 0">
+      <div style="width:28px;height:18px;border-radius:4px;background:${hex};border:.5px solid rgba(0,0,0,.1);position:relative;overflow:hidden;flex-shrink:0"><input type="color" value="${hex}" oninput="livePreviewIcalColor('${f.id}',this.value)" style="position:absolute;inset:-4px;width:calc(100%+8px);height:calc(100%+8px);opacity:0;cursor:pointer"></div>
+      <span style="font-size:12px">${esc(f.name)}</span>
+    </div>`;
+  }).join('');
+  showModal(`<div style="padding:1.5rem;min-width:320px">
+    <h3 style="margin:0 0 1rem">Calendar Colors</h3>
+    ${layers.map(({key,label})=>{
+      const hex=S.calColors&&S.calColors[key]||'#ccc';
+      return`<div style="display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:.5px solid var(--border)">
+        <div style="width:28px;height:18px;border-radius:4px;background:${hex};border:.5px solid rgba(0,0,0,.1);position:relative;overflow:hidden;flex-shrink:0"><input type="color" value="${hex}" oninput="livePreviewCalColor('${key}',this.value)" style="position:absolute;inset:-4px;width:calc(100%+8px);height:calc(100%+8px);opacity:0;cursor:pointer"></div>
+        <span style="font-size:13px;flex:1">${label}</span>
+      </div>`;
+    }).join('')}
+    ${feedRows?`<div style="margin-top:12px;padding-top:8px;border-top:1px solid var(--border)"><div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:6px">iCal Feeds</div>${feedRows}</div>`:''}
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCalendarColors();closeModal()">Save</button>
+    </div>
+  </div>`);
 }
 
 /* ===================== CALENDAR PILL RENDERER ===================== */
@@ -4390,7 +4420,7 @@ function renderCalendar(){
     const el=document.getElementById(`cm-${y}-${String(m+1).padStart(2,'0')}`);
     if(el)el.scrollIntoView({behavior:'instant',block:'start'});
   },50);
-  renderCalLayerChips();renderColorLegend();
+  renderCalLayerChips();
   renderCalSidebar(y,m,todayStr());
 }
 
@@ -4523,7 +4553,7 @@ function _buildDayCell(ds,d,isToday){
 /* ===================== CALENDAR SIDEBAR UPDATE ===================== */
 function renderCalSidebarFull(y,m,today){
   renderCalSidebar(y,m,today);
-  renderColorLegend();
+  
 }
 
 /* ===================== CAMPAIGNS ===================== */
