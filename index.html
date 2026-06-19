@@ -866,7 +866,7 @@ select.sd-val{appearance:auto;cursor:pointer}
         <div id="media-videos" class="hidden">
           <div class="flex items-center justify-between mb-12">
             <span class="font-bold">Video Deliverables</span>
-            <button class="btn btn-primary" onclick="showVideoModal()">+ New Video</button>
+            <button class="btn btn-primary" onclick="openItemDrawer('video','new')">+ New Video</button>
           </div>
           <div id="videos-list"></div>
         </div>
@@ -891,7 +891,7 @@ select.sd-val{appearance:auto;cursor:pointer}
         <div class="cdo-balance" id="cdo-balance"></div>
         <div class="flex items-center justify-between mb-12">
           <span class="font-bold">CDO Ledger</span>
-          <button class="btn btn-primary" onclick="showCDOModal()">+ Redeem CDO</button>
+          <button class="btn btn-primary" onclick="openItemDrawer('cdo','new')">+ Redeem CDO</button>
         </div>
         <div id="cdo-list"></div>
       </div>
@@ -994,7 +994,7 @@ select.sd-val{appearance:auto;cursor:pointer}
       <div id="view-rules" class="hidden">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
           <div style="font-size:18px;font-weight:700">Rules & Guidelines</div>
-          <button class="btn btn-primary" id="btn-new-rule" onclick="showRuleModal()">+ Add</button>
+          <button class="btn btn-primary" id="btn-new-rule" onclick="openItemDrawer('rule','new')">+ Add</button>
         </div>
         <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap" id="rules-filters">
           <button class="btn btn-secondary btn-sm rules-filter-btn active" data-filter="all" onclick="rulesFilter('all')">All</button>
@@ -3557,7 +3557,8 @@ async function saveLeave() {
   S._lastLoaded = 0; loadData(true).then(renderLeave);
 }
 
-function showCDOModal() {
+function showCDOModal() { openItemDrawer('cdo','new'); return; // old code below unused
+function _oldCDOModal() {
   populateSelect('cdo-employee');
   document.getElementById('cdo-date').value = todayStr();
   openModal('cdo-modal');
@@ -4891,7 +4892,7 @@ function renderSocial(){
   const records=(S.socialData[S._selectedPage]||[]).slice().sort((a,b)=>b.date_from.localeCompare(a.date_from));
   content.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
     <div style="font-size:16px;font-weight:700">${esc(S._selectedPage)}</div>
-    <button class="btn btn-primary" onclick="showSocialRecordModal()">+ Record</button>
+    <button class="btn btn-primary" onclick="openItemDrawer('social','new')">+ Record</button>
   </div>
   ${records.length?`<table class="data-table"><thead><tr><th>Period</th><th>Reach</th><th>Engagement</th><th>Followers</th><th>Posts</th><th>Notes</th><th></th></tr></thead><tbody>
   ${records.map((r,i)=>`<tr>
@@ -4960,7 +4961,7 @@ function renderRules(){
   if(S._rulesFilter&&S._rulesFilter!=='all') items=items.filter(r=>r.type===S._rulesFilter);
   if(q) items=items.filter(r=>(r.title+r.body+r.department).toLowerCase().includes(q.toLowerCase()));
   if(!items.length){w.innerHTML='<div style="color:var(--text3);padding:32px;text-align:center">No rules or guidelines found.</div>';return;}
-  w.innerHTML=items.map(r=>`<div onclick="showRuleModal('${r.id}')" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:10px;cursor:pointer;display:flex;align-items:flex-start;gap:12px">
+  w.innerHTML=items.map(r=>`<div onclick=\"openItemDrawer('rule','${r.id}')\" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:10px;cursor:pointer;display:flex;align-items:flex-start;gap:12px">
     <div style="flex-shrink:0;margin-top:2px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
     <div style="flex:1;min-width:0">
       <div style="font-weight:600;margin-bottom:4px">${esc(r.title)}</div>
@@ -5305,6 +5306,49 @@ const ID_CONFIGS = {
       {key:'start',label:'Start Date',type:'date'},{key:'end',label:'End Date',type:'date'},
       {key:'department',label:'Department',type:'text',default:'myDept'},
       {key:'color',label:'Color',type:'color',default:'#1a73e8'}
+    ]
+  },
+  cdo: {
+    label:'Change Day Off', color:'#78909c', collection:'cdoRedemptions',
+    apiCreate:'createCDORedemption', apiUpdate:'updateCDORedemption', apiDelete:'deleteCDORedemption',
+    idPrefix:'CDO', fields:[
+      {key:'employee',label:'Employee',type:'member',required:true},
+      {key:'duration',label:'Duration',type:'select',options:['Full Day','Half Day']},
+      {key:'date',label:'Date Off',type:'date'},
+      {key:'notes',label:'Notes',type:'textarea'}
+    ]
+  },
+  social: {
+    label:'Social Record', color:'#e57373', collection:'_socialTmp',
+    apiCreate:'createSocialRecord', apiUpdate:'updateSocialRecord', apiDelete:'deleteSocialRecord',
+    idPrefix:'SR', fields:[
+      {key:'page',label:'Page',type:'text',required:true},
+      {key:'date_from',label:'From',type:'date'},{key:'date_to',label:'To',type:'date'},
+      {key:'reach',label:'Reach',type:'number'},{key:'engagement',label:'Engagement',type:'number'},
+      {key:'followers',label:'Followers',type:'number'},{key:'posts',label:'Posts',type:'number'},
+      {key:'notes',label:'Notes',type:'textarea'}
+    ]
+  },
+  rule: {
+    label:'Rule / Guideline', color:'#a1887f', collection:'rules',
+    apiCreate:'createRule', apiUpdate:'updateRule', apiDelete:'deleteRule',
+    idPrefix:'RL', fields:[
+      {key:'title',label:'Title',type:'text',required:true,full:true},
+      {key:'category',label:'Category',type:'select',options:['guideline','rule','policy','procedure']},
+      {key:'department',label:'Department',type:'text'},
+      {key:'content',label:'Content',type:'textarea'},
+      {key:'notes',label:'Notes',type:'textarea'}
+    ]
+  },
+  video: {
+    label:'Video', color:'#ef5350', collection:'videos',
+    apiCreate:'createVideo', apiUpdate:'updateVideo', apiDelete:'deleteVideo',
+    idPrefix:'VD', fields:[
+      {key:'title',label:'Title',type:'text',required:true,full:true},
+      {key:'status',label:'Status',type:'select',options:['Planning','Shooting','Editing','Review','Published']},
+      {key:'assigned',label:'Assigned To',type:'member'},{key:'due',label:'Due Date',type:'date'},
+      {key:'platform',label:'Platform',type:'text'},{key:'url',label:'URL',type:'text'},
+      {key:'notes',label:'Notes',type:'textarea'}
     ]
   }
 };
