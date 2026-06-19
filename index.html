@@ -358,7 +358,7 @@ label{font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bot
 .ic svg{stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 
 @media(max-width:768px){
-  #view-calendar>div[style*="grid-template-columns"]{grid-template-columns:1fr!important}
+  #view-calendar div[style*="grid-template-columns:1fr 220px"]{grid-template-columns:1fr!important}
   #view-meetings>div[style*="grid-template-columns:280px"]{grid-template-columns:1fr!important}
   .proj-expand-row{grid-template-columns:1fr!important;gap:2px}
   .proj-list-row{grid-template-columns:1fr 80px 70px!important}
@@ -680,17 +680,25 @@ select.sd-val{appearance:auto;cursor:pointer}
             <button class="btn btn-primary btn-sm" onclick="openTaskPanel('new')">+ Task</button>
           </div>
         </div>
-        <!-- Body: grid + sidebar -->
-        <div style="display:grid;grid-template-columns:1fr 210px;gap:16px;align-items:start">
-          <!-- Layer toggles -->
-          <div id="cal-layer-chips" style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;grid-column:1/-1"></div>
-          <div id="cal-months-wrap"></div>
-          <!-- Sidebar -->
+        <!-- Layer toggles -->
+        <div id="cal-layer-chips" style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px"></div>
+        <!-- Body: calendar + sidebar -->
+        <div style="display:grid;grid-template-columns:1fr 220px;gap:16px;align-items:start">
+          <div id="cal-months-wrap" style="min-width:0"></div>
+          <!-- Sidebar (RIGHT) -->
           <div style="position:sticky;top:60px;display:flex;flex-direction:column;gap:10px">
             <!-- Mini calendar -->
             <div id="cal-mini-wrap" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px"></div>
-            <!-- Color Legend -->
-            <div id="cal-color-legend" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px"></div>
+            <!-- Color Legend (collapsed by default) -->
+            <div id="cal-color-legend-wrap" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px">
+              <div onclick="document.getElementById('cal-color-legend-body').classList.toggle('hidden')" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer">
+                <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em">Color Legend</div>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </div>
+              <div id="cal-color-legend-body" class="hidden" style="margin-top:8px">
+                <div id="cal-color-legend"></div>
+              </div>
+            </div>
             <!-- Feed toggles -->
             <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px">
               <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">Calendars</div>
@@ -2270,14 +2278,23 @@ async function autoLoadFeeds() {
   const enabled = (S.feeds||[]).filter(f => f.enabled !== 'false');
   if (!enabled.length) return;
   loadFeedCache();
-  // Fetch all unloaded feeds in parallel in background
+  // Only load feeds not yet fetched
   const unloaded = enabled.filter(f => !(S.feedEvents||[]).some(e => e._feedId === f.id));
   if (!unloaded.length) return;
+  // Fetch all feeds, then filter to show only current+2 months initially
   await Promise.all(unloaded.map(feed => fetchFeedEvents(feed)));
   saveFeedCache();
   renderFeedList();
-  // Re-render calendar once after feeds loaded (safe — autoLoadFeeds is not called from renderCalendar)
   renderCalendar();
+}
+
+function feedEventsInRange(startDate, endDate) {
+  return (S.feedEvents||[]).filter(e => {
+    const fd = (S.feeds||[]).find(f=>f.id===e._feedId&&String(f.enabled)!=='false');
+    if (!fd) return false;
+    const eEnd = e.end_date || e.date;
+    return eEnd >= startDate && e.date <= endDate;
+  });
 }
 
 async function refreshAllFeeds() {
@@ -4158,9 +4175,14 @@ function calPillHtml(item,type,clickJs){
   let bg=`var(--cal-${type},hsl(210,15%,91%))`;
   let av=`var(--cal-${type}-av,hsl(210,15%,73%))`;
   let avt=`var(--cal-${type}-avt,hsl(210,25%,22%))`;
-  if(isIcal&&item._feedId&&S.calColors&&S.calColors.ical&&S.calColors.ical[item._feedId]){
-    const[h,s]=hexToHslParts(S.calColors.ical[item._feedId]);
-    bg=`hsl(${h},${s+5}%,91%)`;av=`hsl(${h},${s+10}%,73%)`;avt=`hsl(${h},${s+20}%,22%)`;
+  if(isIcal&&item._feedId){
+    let feedHex=null;
+    if(S.calColors&&S.calColors.ical&&S.calColors.ical[item._feedId]) feedHex=S.calColors.ical[item._feedId];
+    else if(item._feedColor) feedHex=item._feedColor;
+    if(feedHex&&feedHex.startsWith('#')){
+      const[h,s]=hexToHslParts(feedHex);
+      bg=`hsl(${h},${Math.min(s+5,65)}%,91%)`;av=`hsl(${h},${Math.min(s+10,70)}%,73%)`;avt=`hsl(${h},${Math.min(s+20,80)}%,22%)`;
+    }
   }
   const time=item.time?`<span style="font-size:9px;color:rgba(0,0,0,.45);margin-left:auto;padding-left:4px;flex-shrink:0">${item.time.slice(0,5)}</span>`:'';
   const checkSvg=isDone?`<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg>`:'';
@@ -4263,7 +4285,11 @@ function renderCalendar(){
   (S.shoots||[]).forEach(s=>{if(!s.date)return;if(!S._calCache.shootsByDate[s.date])S._calCache.shootsByDate[s.date]=[];S._calCache.shootsByDate[s.date].push(s);});
   (S.missions||[]).filter(m=>m.status==='approved').forEach(m=>{if(!m.date)return;if(!S._calCache.missionsByDate[m.date])S._calCache.missionsByDate[m.date]=[];S._calCache.missionsByDate[m.date].push(m);});
   (S.events||[]).forEach(e=>{if(!e.date)return;const end=e.end_date||e.date;let d=new Date(e.date+'T00:00:00');const endD=new Date(end+'T00:00:00');while(d<=endD){const k=d.toISOString().slice(0,10);if(!S._calCache.eventsByDate[k])S._calCache.eventsByDate[k]=[];S._calCache.eventsByDate[k].push(e);d.setDate(d.getDate()+1);}});
-  (S.feedEvents||[]).forEach(e=>{if(!S._calCache.enabledFeeds.has(e._feedId))return;if(!e.date)return;const end=e.end_date||e.date;let d=new Date(e.date+'T00:00:00');const endD=new Date(end+'T00:00:00');while(d<=endD){const k=d.toISOString().slice(0,10);if(!S._calCache.feedByDate[k])S._calCache.feedByDate[k]=[];S._calCache.feedByDate[k].push(e);d.setDate(d.getDate()+1);}});
+  // Only index feed events within 3-month window for performance
+  const calStart=`${y}-${String(m+1).padStart(2,'0')}-01`;
+  const calEndM=m+3>12?m+3-12:m+3;const calEndY=m+3>12?y+1:y;
+  const calEnd=`${calEndY}-${String(calEndM).padStart(2,'0')}-28`;
+  (S.feedEvents||[]).forEach(e=>{if(!S._calCache.enabledFeeds.has(e._feedId))return;if(!e.date)return;const eEnd=e.end_date||e.date;if(eEnd<calStart||e.date>calEnd)return;const end=eEnd>calEnd?calEnd:eEnd;const start=e.date<calStart?calStart:e.date;let d=new Date(start+'T00:00:00');const endD=new Date(end+'T00:00:00');while(d<=endD){const k=d.toISOString().slice(0,10);if(!S._calCache.feedByDate[k])S._calCache.feedByDate[k]=[];S._calCache.feedByDate[k].push(e);d.setDate(d.getDate()+1);}});
   const w=document.getElementById('cal-months-wrap');
   if(!w){renderCalendarLegacy();return;}
   w.innerHTML='';
@@ -4304,6 +4330,24 @@ function _loadNextCalMonth(){
   const last=keys[keys.length-1];
   let[y,m]=last.split('-').map(Number);
   m++;if(m>11){m=0;y++;}
+  // Index feed events for this new month into the cache
+  if(S._calCache){
+    const ms=String(m+1).padStart(2,'0');
+    const mStart=`${y}-${ms}-01`;
+    const daysInM=new Date(y,m+1,0).getDate();
+    const mEnd=`${y}-${ms}-${daysInM}`;
+    (S.feedEvents||[]).forEach(e=>{
+      if(!S._calCache.enabledFeeds.has(e._feedId))return;
+      if(!e.date)return;const eEnd=e.end_date||e.date;
+      if(eEnd<mStart||e.date>mEnd)return;
+      const start=e.date<mStart?mStart:e.date;
+      const end=eEnd>mEnd?mEnd:eEnd;
+      let d=new Date(start+'T00:00:00');const endD=new Date(end+'T00:00:00');
+      while(d<=endD){const k=d.toISOString().slice(0,10);if(!S._calCache.feedByDate[k])S._calCache.feedByDate[k]=[];
+        if(!S._calCache.feedByDate[k].some(x=>x.id===e.id))S._calCache.feedByDate[k].push(e);
+        d.setDate(d.getDate()+1);}
+    });
+  }
   _appendMonthBlock(y,m);
 }
 
