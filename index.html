@@ -112,7 +112,7 @@ label{font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bot
 .data-table tr:last-child td{border-bottom:none}
 .data-table tr:hover td{background:var(--surface2)}
 .data-table .actions{display:flex;gap:4px;opacity:0;transition:opacity .15s}
-.data-table tr:hover .actions{opacity:1}
+.data-table tr:hover .actions,.data-table tr:focus-within .actions{opacity:1}
 
 /* ===================== FORMS & MODALS ===================== */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px}
@@ -356,6 +356,13 @@ label{font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bot
 .empty-state .icon svg{width:36px;height:36px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
 .ic{display:inline-flex;align-items:center;vertical-align:middle}
 .ic svg{stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+@media(max-width:768px){
+  #view-calendar>div[style*="grid-template-columns"]{grid-template-columns:1fr!important}
+  #view-meetings>div[style*="grid-template-columns:280px"]{grid-template-columns:1fr!important}
+  .proj-expand-row{grid-template-columns:1fr!important;gap:2px}
+  .proj-list-row{grid-template-columns:1fr 80px 70px!important}
+}
 @media(max-width:768px){
   #sidebar{display:none}
   #bottom-nav{display:block}
@@ -569,7 +576,7 @@ select.sd-val{appearance:auto;cursor:pointer}
       <span class="topbar-title" id="page-title">Dashboard</span>
       <div class="topbar-search">
         <span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
-        <input type="search" placeholder="Search tasks, projects..." id="global-search" oninput="globalSearch(this.value)">
+        <input type="search" placeholder="Search tasks, projects..." id="global-search" oninput="_debouncedGlobalSearch(this.value)">
       </div>
       <button class="btn btn-primary" onclick="showQuickAdd()">+ New Task</button>
       <button class="btn btn-icon" onclick="toggleDark()" title="Dark mode" id="dark-toggle"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
@@ -596,7 +603,7 @@ select.sd-val{appearance:auto;cursor:pointer}
       <div id="view-list" class="hidden">
         <!-- Toolbar -->
         <div class="list-toolbar">
-          <input class="list-search" id="list-search" placeholder="Search tasks..." oninput="renderList()">
+          <input class="list-search" id="list-search" placeholder="Search tasks..." oninput="_debouncedRenderList()">
           <div class="list-filter-chip" id="lfc-status">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
             <select id="list-filter-status" onchange="renderList()">
@@ -676,7 +683,7 @@ select.sd-val{appearance:auto;cursor:pointer}
         <!-- Body: grid + sidebar -->
         <div style="display:grid;grid-template-columns:1fr 210px;gap:16px;align-items:start">
           <!-- Layer toggles -->
-          <div id="cal-layer-chips" style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px"></div>
+          <div id="cal-layer-chips" style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;grid-column:1/-1"></div>
           <div id="cal-months-wrap"></div>
           <!-- Sidebar -->
           <div style="position:sticky;top:60px;display:flex;flex-direction:column;gap:10px">
@@ -785,7 +792,7 @@ select.sd-val{appearance:auto;cursor:pointer}
               <button class="mtg-filter-chip" onclick="filterMeetingType(this,'quarterly')">Quarterly</button>
               <button class="mtg-filter-chip" onclick="filterMeetingType(this,'adhoc')">Ad-hoc</button>
             </div>
-            <input type="search" id="meeting-search" placeholder="Search meetings..." oninput="filterMeetings(this.value)" style="font-size:12px">
+            <input type="search" id="meeting-search" placeholder="Search meetings..." oninput="_debouncedFilterMeetings(this.value)" style="font-size:12px">
             <div style="overflow-y:auto;flex:1;border:1px solid var(--border);border-radius:var(--radius-lg);overflow-x:hidden" id="meeting-history-list"></div>
           </div>
           <!-- Right: detail / new form -->
@@ -990,7 +997,7 @@ select.sd-val{appearance:auto;cursor:pointer}
           <button class="btn btn-secondary btn-sm rules-filter-btn" data-filter="rule" onclick="rulesFilter('rule')">Rules</button>
           <button class="btn btn-secondary btn-sm rules-filter-btn" data-filter="guideline" onclick="rulesFilter('guideline')">Guidelines</button>
         </div>
-        <input type="search" id="rules-search" placeholder="Search rules and guidelines..." oninput="renderRules()" style="max-width:360px;margin-bottom:16px">
+        <input type="search" id="rules-search" placeholder="Search rules and guidelines..." oninput="_debouncedRenderRules()" style="max-width:360px;margin-bottom:16px">
         <div id="rules-list"></div>
       </div>
     </div>
@@ -1497,6 +1504,11 @@ async function api(action, params={}, body=null) {
 }
 
 // ===================== NAVIGATION =====================
+function _debounce(fn,ms){let t;return function(...a){clearTimeout(t);t=setTimeout(()=>fn.apply(this,a),ms);};}
+const _debouncedRenderList=_debounce(()=>renderList(),150);
+const _debouncedGlobalSearch=_debounce((v)=>globalSearch(v),150);
+const _debouncedFilterMeetings=_debounce((v)=>filterMeetings(v),150);
+const _debouncedRenderRules=_debounce(()=>renderRules(),150);
 function nav(view) {
   S._viewMemberFilter = '';
   document.querySelectorAll('[id^=view-]').forEach(el => el.classList.add('hidden'));
@@ -1594,6 +1606,8 @@ function applyData(d) {
   if (d.campaigns)      S.campaigns      = d.campaigns;
   if (d.designs)        S.designs        = d.designs;
   if (d.publishing)     S.publishing     = d.publishing;
+  if (d.seoProjects)    S.seoProjects    = d.seoProjects;
+  if (d.websiteProjects) S.websiteProjects = d.websiteProjects;
   if (d.rules)          S.rules          = d.rules;
   if (d.socialRecords) {
     S.socialData = {};
@@ -1643,7 +1657,7 @@ function renderDashboard() {
     statCard(t.filter(x=>x.status!=='done').length,'Open Tasks',''),
     statCard(S.projects.length,'Projects',''),
     statCard((S.campaigns||[]).filter(c=>c.status==='Active').length,'Active Campaigns',''),
-    statCard((S.designs||[]).filter(d=>d.stage==='For Review').length,'Designs for Review',(S.designs||[]).filter(d=>d.stage==='For Review').length>0?'warn':''),
+    statCard((S.designs||[]).filter(d=>d.stage==='For Review').length,'Designs for Review',(S.designs||[]).some(d=>d.stage==='For Review')?'warn':''),
     statCard((S.publishing||[]).filter(p=>p.deadline&&p.deadline<=addDays(today,7)&&p.status!=='Published'&&p.status!=='Distributed').length,'Publications Due Soon',''),
   ].join('');
   document.getElementById('dash-overdue').innerHTML = overdue.length
@@ -2563,8 +2577,8 @@ function showScheduleMeetingModal() {
   const mtgOpts = (S.meetings||[]).map(m=>`<option value="${esc(m.id)}">${esc(m.title||m.date)}</option>`).join('');
   showModal(`<div style="padding:1.5rem;min-width:340px">
     <h3 style="margin:0 0 1rem">Schedule a Meeting</h3>
-    <label class="form-label">Type</label>
-    <select id="sm-type" class="form-control mb-2">
+    <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;color:var(--text2)">Type</label>
+    <select id="sm-type" onchange="const d=document.getElementById('sm-date').value,t=MTG_TITLES[this.value];if(t&&d)document.getElementById('sm-title').value=t(d)" style="margin-bottom:8px">
       <option value="daily">Daily Standup</option>
       <option value="weekly">Weekly Sync</option>
       <option value="biweekly" selected>Biweekly Sync</option>
@@ -2572,29 +2586,19 @@ function showScheduleMeetingModal() {
       <option value="quarterly">Quarterly Review</option>
       <option value="adhoc">Ad Hoc</option>
     </select>
-    <label class="form-label">Date</label>
-    <input id="sm-date" type="date" class="form-control mb-2" value="${todayStr()}">
-    <label class="form-label">Title (auto-filled)</label>
-    <input id="sm-title" type="text" class="form-control mb-2" placeholder="Leave blank to auto-generate">
-    <label class="form-label">Department</label>
-    <input id="sm-dept" type="text" class="form-control mb-2" value="${esc(S.myDept||'')}">
-    <label class="form-label">Attendees</label>
-    <input id="sm-attendees" type="text" class="form-control mb-3" placeholder="comma separated names">
+    <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;color:var(--text2)">Date</label>
+    <input id="sm-date" type="date" onchange="const tp=document.getElementById('sm-type').value,t=MTG_TITLES[tp];if(t)document.getElementById('sm-title').value=t(this.value)" style="margin-bottom:8px" value="${todayStr()}">
+    <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;color:var(--text2)">Title (auto-filled)</label>
+    <input id="sm-title" type="text" style="margin-bottom:8px" placeholder="Leave blank to auto-generate">
+    <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;color:var(--text2)">Department</label>
+    <input id="sm-dept" type="text" style="margin-bottom:8px" value="${esc(S.myDept||'')}">
+    <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;color:var(--text2)">Attendees</label>
+    <input id="sm-attendees" type="text" style="margin-bottom:12px" placeholder="comma separated names">
     <div style="display:flex;gap:.5rem;justify-content:flex-end">
       <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
       <button class="btn btn-primary" onclick="confirmScheduleMeeting()">Schedule</button>
     </div>
   </div>`);
-  document.getElementById('sm-type').addEventListener('change', function() {
-    const d = document.getElementById('sm-date').value;
-    const t = MTG_TITLES[this.value];
-    if (t && d) document.getElementById('sm-title').value = t(d);
-  });
-  document.getElementById('sm-date').addEventListener('change', function() {
-    const type = document.getElementById('sm-type').value;
-    const t = MTG_TITLES[type];
-    if (t) document.getElementById('sm-title').value = t(this.value);
-  });
   // init title
   const initType = document.getElementById('sm-type').value;
   const initDate = document.getElementById('sm-date').value;
@@ -3622,6 +3626,7 @@ function closeModal(id) {
   }
 }
 
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){const m=document.getElementById('generic-modal');if(m)closeModal();}});
 function showModal(html) {
   const existing = document.getElementById('generic-modal');
   if (existing) existing.remove();
@@ -3658,7 +3663,7 @@ function toast(msg, type='ok') {
 
 function populateOwnerSelects() {
   const names = [S.myName, ...S.team.map(m => m.name)].filter(Boolean);
-  ['t-owner','pr-owner'].forEach(id => {
+  ['tp-owner','pr-owner'].forEach(id => {
     const sel = document.getElementById(id);
     if (!sel) return;
     const cur = sel.value;
@@ -4194,16 +4199,18 @@ async function calDrop(e,ds){
     showUndoToast(`Event moved to ${ds}`,async()=>{ev.date=prev;await api('updateEvent',{},{id,date:prev});renderCalendar();});
   } else if(type==='shoot'){
     const s=(S.shoots||[]).find(x=>x.id===id);if(!s)return;
-    s.date=ds;renderCalendar();await api('updateShoot',{},{id,date:ds});
+    s.date=ds;renderCalendar();await api('updateShootSession',{},{id,scheduledDate:ds});
   }
 }
 let _undoTimer=null;
+window._undoAction=null;
 function showUndoToast(msg,undoFn){
   const t=document.getElementById('toast');if(!t)return;
-  t.innerHTML=`${esc(msg)} <button onclick="(${undoFn.toString()})();this.closest('#toast').classList.remove('show')" style="margin-left:8px;color:#93c5fd;font-weight:700;background:none;border:none;cursor:pointer;font-size:13px">Undo</button>`;
+  window._undoAction=undoFn;
+  t.innerHTML=`${esc(msg)} <button onclick="if(window._undoAction){window._undoAction();window._undoAction=null;}this.closest('#toast').classList.remove('show')" style="margin-left:8px;color:#93c5fd;font-weight:700;background:none;border:none;cursor:pointer;font-size:13px">Undo</button>`;
   t.classList.add('show');
   if(_undoTimer)clearTimeout(_undoTimer);
-  _undoTimer=setTimeout(()=>t.classList.remove('show'),6000);
+  _undoTimer=setTimeout(()=>{t.classList.remove('show');window._undoAction=null;},6000);
 }
 
 /* ===================== CALENDAR COLOR LEGEND ===================== */
@@ -4601,7 +4608,7 @@ async function deletePublishing(id){
 S.socialData=S.socialData||{};
 S._selectedPage=S._selectedPage||null;
 
-const FB_PAGES=['AIS Central','SR','TAK','Alumni'];
+const FB_PAGES=(S.config&&S.config.facebook_pages)||['AIS Central','SR','TAK','Alumni'];
 
 function renderSocial(){
   const pagesList=document.getElementById('social-pages-list');

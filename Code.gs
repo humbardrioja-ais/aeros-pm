@@ -678,12 +678,12 @@ function saveMeetingItems(ss, body) {
       const task = createRow(ss, 'Tasks', {
         title: item.title, owner: item.assignee, department: item.department || body.department,
         due: item.dueDate, source: 'meeting', status: 'inbox', priority: item.priority || 'P2',
-        requested_by: body.requestedBy || ''
+        requestedBy: body.requestedBy || ''
       });
       updateRow(ss, 'MeetingItems', { id: row.id, taskId: task.id });
       row.taskId = task.id;
     } else if (item.type === 'event') {
-      createRow(ss, 'Events', {
+      createRow(ss, 'CalEvents', {
         title: item.title, date: item.dueDate, department: item.department || body.department,
         description: 'Extracted from meeting notes'
       });
