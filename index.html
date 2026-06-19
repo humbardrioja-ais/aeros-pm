@@ -4030,8 +4030,6 @@ function _buildDayCell(ds,d,isToday){
   return numHtml+pills+`<div class="cal-add-hint" style="font-size:9px;color:var(--text3);opacity:0;transition:opacity .15s" onmouseenter="this.style.opacity=1" onmouseleave="this.style.opacity=0">+ add</div>`;
 }
 
-function calDayClick(ds){showQuickAdd&&showQuickAdd(ds);}
-
 /* ===================== CALENDAR SIDEBAR UPDATE ===================== */
 function renderCalSidebarFull(y,m,today){
   renderCalSidebar(y,m,today);
@@ -4478,8 +4476,8 @@ function switchMyTasksTab(tab){S._myTasksTab=tab;renderMyTasks();}
       <div id="cal-sidebar-wrap" style="width:240px;flex-shrink:0;border-left:1px solid var(--border);overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:12px">
         <div id="cal-mini-wrap"></div>
         <div id="cal-color-legend" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px"></div>
-        <div id="cal-feed-wrap"></div>
-        <div id="cal-upcoming-wrap"></div>
+        <div id="cal-feed-toggles"></div>
+        <div id="cal-upcoming"></div>
       </div>
     </div>`;
 })();
