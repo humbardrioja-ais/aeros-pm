@@ -1632,7 +1632,7 @@ function normDate(v){
   if(typeof v==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(v))return v;
   if(typeof v==='string'&&/^\d{4}-\d{2}-\d{2}T/.test(v))return v.slice(0,10);
   if(typeof v==='string'&&/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(v)){const p=v.split('/');return p[2]+'-'+p[0].padStart(2,'0')+'-'+p[1].padStart(2,'0');}
-  const d2=new Date(v);if(!isNaN(d2))return d2.toISOString().slice(0,10);
+  const d2=new Date(v);if(!isNaN(d2))return d2.getFullYear()+'-'+String(d2.getMonth()+1).padStart(2,'0')+'-'+String(d2.getDate()).padStart(2,'0');
   return String(v);
 }
 function normDates(arr,fields){
@@ -2294,7 +2294,7 @@ function buildIcalEvent(cur, feedId) {
     const parts = endDate.split('-');
     const d = new Date(Date.UTC(+parts[0], +parts[1]-1, +parts[2]));
     d.setUTCDate(d.getUTCDate() - 1);
-    endDate = d.toISOString().slice(0,10);
+    endDate = d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0');
   }
   return {
     id: 'feed-' + (cur['UID'] || Math.random()),
@@ -2328,7 +2328,7 @@ function parseIcalDtClient(s) {
   return null;
 }
 
-const _FEED_CACHE_VER = 3;
+const _FEED_CACHE_VER = 4;
 function loadFeedCache() {
   try {
     const raw = localStorage.getItem('aeros_feed_events');
@@ -4490,6 +4490,7 @@ function renderColorLegend(){
 function pBadge(p) { return p ? ` <span style="font-size:10px;font-weight:600;color:${p==='P0'?'var(--danger)':p==='P1'?'var(--brand)':'var(--text3)'}">${p}</span>` : ''; }
 function statusDot(s) { const colors={todo:'var(--text3)',doing:'var(--brand)',blocked:'var(--danger)',done:'var(--ok)',inbox:'var(--text3)'};return s?`<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${colors[s]||'var(--text3)'}" title="${s}"></span>`:''; }
 
+function _localDateStr(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 /* ===================== CALENDAR REBUILD ===================== */
 function renderCalendar(){
   const mf=document.getElementById('cal-member-filter');if(mf)mf.innerHTML=memberFilterHtml();
@@ -4505,10 +4506,10 @@ function renderCalendar(){
   };
   // DEBUG: log task data to console
   ft.forEach(t=>{if(!t.due)return;const k=t.due;if(t.status==='done'){if(!S._calCache.doneByDate[k])S._calCache.doneByDate[k]=[];S._calCache.doneByDate[k].push(t);}else{if(!S._calCache.tasksByDate[k])S._calCache.tasksByDate[k]=[];S._calCache.tasksByDate[k].push(t);}});
-  (S.leaves||[]).filter(l=>l.status==='approved').forEach(l=>{const s=l.from_date,e=l.to_date;if(s){let d=new Date(s+'T00:00:00');const end=e?new Date(e+'T00:00:00'):d;while(d<=end){const k=d.toISOString().slice(0,10);if(!S._calCache.leavesByDate[k])S._calCache.leavesByDate[k]=[];S._calCache.leavesByDate[k].push(l);d.setDate(d.getDate()+1);}}});
+  (S.leaves||[]).filter(l=>l.status==='approved').forEach(l=>{const s=l.from_date,e=l.to_date;if(s){let d=new Date(s+'T00:00:00');const end=e?new Date(e+'T00:00:00'):d;while(d<=end){const k=_localDateStr(d);if(!S._calCache.leavesByDate[k])S._calCache.leavesByDate[k]=[];S._calCache.leavesByDate[k].push(l);d.setDate(d.getDate()+1);}}});
   (S.shoots||[]).forEach(s=>{if(!s.date)return;if(!S._calCache.shootsByDate[s.date])S._calCache.shootsByDate[s.date]=[];S._calCache.shootsByDate[s.date].push(s);});
   (S.missions||[]).filter(m=>m.status==='approved').forEach(m=>{if(!m.date)return;if(!S._calCache.missionsByDate[m.date])S._calCache.missionsByDate[m.date]=[];S._calCache.missionsByDate[m.date].push(m);});
-  (S.events||[]).forEach(e=>{if(!e.date)return;const end=e.end_date||e.date;let d=new Date(e.date+'T00:00:00');const endD=new Date(end+'T00:00:00');while(d<=endD){const k=d.toISOString().slice(0,10);if(!S._calCache.eventsByDate[k])S._calCache.eventsByDate[k]=[];S._calCache.eventsByDate[k].push(e);d.setDate(d.getDate()+1);}});
+  (S.events||[]).forEach(e=>{if(!e.date)return;const end=e.end_date||e.date;let d=new Date(e.date+'T00:00:00');const endD=new Date(end+'T00:00:00');while(d<=endD){const k=_localDateStr(d);if(!S._calCache.eventsByDate[k])S._calCache.eventsByDate[k]=[];S._calCache.eventsByDate[k].push(e);d.setDate(d.getDate()+1);}});
   const w=document.getElementById('cal-months-wrap');
   if(!w){renderCalendarLegacy();return;}
   w.innerHTML='';
@@ -4517,7 +4518,7 @@ function renderCalendar(){
   const y=S.calYear||today.getFullYear();
   const m=S.calMonth!==undefined?S.calMonth:today.getMonth();
   // Index campaigns by start/end date
-  (S.campaigns||[]).forEach(cm=>{const s=cm.start||cm.created;if(!s)return;const e=cm.end||s;let d=new Date(s+'T00:00:00');const endD=new Date(e+'T00:00:00');while(d<=endD){const k=d.toISOString().slice(0,10);if(!S._calCache.campaignsByDate[k])S._calCache.campaignsByDate[k]=[];S._calCache.campaignsByDate[k].push(cm);d.setDate(d.getDate()+1);}});
+  (S.campaigns||[]).forEach(cm=>{const s=cm.start||cm.created;if(!s)return;const e=cm.end||s;let d=new Date(s+'T00:00:00');const endD=new Date(e+'T00:00:00');while(d<=endD){const k=_localDateStr(d);if(!S._calCache.campaignsByDate[k])S._calCache.campaignsByDate[k]=[];S._calCache.campaignsByDate[k].push(cm);d.setDate(d.getDate()+1);}});
   // Index designs by due date
   (S.designs||[]).forEach(ds2=>{const dd=ds2.due||ds2.publish_date;if(!dd)return;if(!S._calCache.designsByDate[dd])S._calCache.designsByDate[dd]=[];S._calCache.designsByDate[dd].push(ds2);});
   // Index publications by deadline and target_release
@@ -4532,7 +4533,7 @@ function renderCalendar(){
   const calStart=`${y}-${String(m+1).padStart(2,'0')}-01`;
   const calEndM=m+3>12?m+3-12:m+3;const calEndY=m+3>12?y+1:y;
   const calEnd=`${calEndY}-${String(calEndM).padStart(2,'0')}-28`;
-  (S.feedEvents||[]).forEach(e=>{if(S._calCache.enabledFeeds&&!S._calCache.enabledFeeds.has(e._feedId))return;if(!e.date)return;const eEnd=e.end_date||e.date;if(eEnd<calStart||e.date>calEnd)return;const end=eEnd>calEnd?calEnd:eEnd;const start=e.date<calStart?calStart:e.date;let d=new Date(start+'T00:00:00');const endD=new Date(end+'T00:00:00');while(d<=endD){const k=d.toISOString().slice(0,10);if(!S._calCache.feedByDate[k])S._calCache.feedByDate[k]=[];S._calCache.feedByDate[k].push(e);d.setDate(d.getDate()+1);}});
+  (S.feedEvents||[]).forEach(e=>{if(S._calCache.enabledFeeds&&!S._calCache.enabledFeeds.has(e._feedId))return;if(!e.date)return;const eEnd=e.end_date||e.date;if(eEnd<calStart||e.date>calEnd)return;const end=eEnd>calEnd?calEnd:eEnd;const start=e.date<calStart?calStart:e.date;let d=new Date(start+'T00:00:00');const endD=new Date(end+'T00:00:00');while(d<=endD){const k=_localDateStr(d);if(!S._calCache.feedByDate[k])S._calCache.feedByDate[k]=[];S._calCache.feedByDate[k].push(e);d.setDate(d.getDate()+1);}});
   document.getElementById('cal-month-label').textContent=_MON[m]+' '+y;
   _appendMonthBlock(y,m);
   const nm=m===11?0:m+1,ny=m===11?y+1:y;
@@ -4580,7 +4581,7 @@ function _loadNextCalMonth(){
       const start=e.date<mStart?mStart:e.date;
       const end=eEnd>mEnd?mEnd:eEnd;
       let d=new Date(start+'T00:00:00');const endD=new Date(end+'T00:00:00');
-      while(d<=endD){const k=d.toISOString().slice(0,10);if(!S._calCache.feedByDate[k])S._calCache.feedByDate[k]=[];
+      while(d<=endD){const k=_localDateStr(d);if(!S._calCache.feedByDate[k])S._calCache.feedByDate[k]=[];
         if(!S._calCache.feedByDate[k].some(x=>x.id===e.id))S._calCache.feedByDate[k].push(e);
         d.setDate(d.getDate()+1);}
     });
