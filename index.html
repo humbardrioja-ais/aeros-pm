@@ -2328,26 +2328,31 @@ function parseIcalDtClient(s) {
   return null;
 }
 
+const _FEED_CACHE_VER = 3;
 function loadFeedCache() {
   try {
-    const cached = localStorage.getItem('aeros_feed_events');
-    if (cached) S.feedEvents = JSON.parse(cached);
-  } catch(_) {}
+    const raw = localStorage.getItem('aeros_feed_events');
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    if (parsed._ver !== _FEED_CACHE_VER) {
+      localStorage.removeItem('aeros_feed_events');
+      return;
+    }
+    S.feedEvents = parsed.events || [];
+  } catch(_) { localStorage.removeItem('aeros_feed_events'); }
 }
 
 function saveFeedCache() {
-  try { localStorage.setItem('aeros_feed_events', JSON.stringify(S.feedEvents)); } catch(_) {}
+  try { localStorage.setItem('aeros_feed_events', JSON.stringify({ _ver: _FEED_CACHE_VER, events: S.feedEvents })); } catch(_) {}
 }
 
 async function autoLoadFeeds() {
   const enabled = (S.feeds||[]).filter(f => f.enabled !== 'false');
   if (!enabled.length) return;
-  const hadEvents = (S.feedEvents||[]).length;
   loadFeedCache();
   const unloaded = enabled.filter(f => !(S.feedEvents||[]).some(e => e._feedId === f.id));
   if (!unloaded.length) {
-    // Cache had all feeds — re-render calendar if events were loaded
-    if ((S.feedEvents||[]).length > hadEvents) renderCalendar();
+    if ((S.feedEvents||[]).length) renderCalendar();
     return;
   }
   await Promise.all(unloaded.map(feed => fetchFeedEvents(feed)));

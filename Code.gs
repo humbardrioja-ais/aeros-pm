@@ -906,6 +906,7 @@ function parseIcal(text, feedId) {
     const key     = keyFull.split(';')[0].toUpperCase();
     const val     = line.substring(ci + 1);
     cur[key] = val;
+    if (key === 'DTSTART' || key === 'DTEND') cur[key + '_PARAMS'] = keyFull;
   }
   return events;
 }
@@ -916,8 +917,10 @@ function buildEvents(cur, feedId) {
 
   const startRaw = cur['DTSTART'] || '';
   const endRaw   = cur['DTEND']   || cur['DTSTART'] || '';
-  const start    = parseIcalDt(startRaw);
-  const end      = parseIcalDt(endRaw);
+  const startParams = cur['DTSTART_PARAMS'] || '';
+  const endParams   = cur['DTEND_PARAMS'] || startParams;
+  const start    = parseIcalDt(startRaw, startParams);
+  const end      = parseIcalDt(endRaw, endParams);
   if (!start) return null;
 
   const uid = cur['UID'] || (feedId + '-' + Math.random().toString(36).slice(2));
@@ -947,27 +950,43 @@ function buildEvents(cur, feedId) {
   return [base];
 }
 
-function parseIcalDt(s) {
+function parseIcalDt(s, params) {
   if (!s) return null;
   s = s.trim();
+  const sheetTz = SpreadsheetApp.getActiveSpreadsheet().getSpreadsheetTimeZone();
+
   if (s.length === 8) {           // DATE only: 20260601
     return { date: s.slice(0,4)+'-'+s.slice(4,6)+'-'+s.slice(6,8), time: '' };
   }
   if (s.length >= 15) {           // DATETIME: 20260601T090000 or 20260601T090000Z
     const isUtc = s.endsWith('Z');
     const raw = s.replace('Z','');
+    const y=+raw.slice(0,4),mo=+raw.slice(4,6)-1,d=+raw.slice(6,8);
+    const h=+raw.slice(9,11),mi=+raw.slice(11,13);
+
     if (isUtc) {
-      // Convert UTC to spreadsheet timezone
-      const y=+raw.slice(0,4),mo=+raw.slice(4,6)-1,d=+raw.slice(6,8);
-      const h=+raw.slice(9,11),mi=+raw.slice(11,13);
       const utc = new Date(Date.UTC(y,mo,d,h,mi));
-      const tz = SpreadsheetApp.getActiveSpreadsheet().getSpreadsheetTimeZone();
-      const localDate = Utilities.formatDate(utc, tz, 'yyyy-MM-dd');
-      const localTime = Utilities.formatDate(utc, tz, 'HH:mm');
-      return { date: localDate, time: localTime };
+      return { date: Utilities.formatDate(utc, sheetTz, 'yyyy-MM-dd'), time: Utilities.formatDate(utc, sheetTz, 'HH:mm') };
     }
-    return { date: raw.slice(0,4)+'-'+raw.slice(4,6)+'-'+raw.slice(6,8),
-             time: raw.slice(9,11)+':'+raw.slice(11,13) };
+
+    // Check for TZID parameter
+    const tzMatch = (params||'').match(/TZID=([^;:]+)/i);
+    if (tzMatch) {
+      const srcTz = tzMatch[1];
+      const srcDate = Utilities.formatDate(new Date(y,mo,d,h,mi), srcTz, "yyyy-MM-dd'T'HH:mm:ss");
+      const parsed = new Date(srcDate);
+      // Convert from source timezone to sheet timezone
+      try {
+        const inSrcTz = Utilities.parseDate(y+'-'+(mo+1).toString().padStart(2,'0')+'-'+d.toString().padStart(2,'0')+' '+h.toString().padStart(2,'0')+':'+mi.toString().padStart(2,'0')+':00', srcTz, 'yyyy-MM-dd HH:mm:ss');
+        return { date: Utilities.formatDate(inSrcTz, sheetTz, 'yyyy-MM-dd'), time: Utilities.formatDate(inSrcTz, sheetTz, 'HH:mm') };
+      } catch(_) {
+        // Fallback: treat as local
+        return { date: raw.slice(0,4)+'-'+raw.slice(4,6)+'-'+raw.slice(6,8), time: raw.slice(9,11)+':'+raw.slice(11,13) };
+      }
+    }
+
+    // No timezone info — treat as sheet-local
+    return { date: raw.slice(0,4)+'-'+raw.slice(4,6)+'-'+raw.slice(6,8), time: raw.slice(9,11)+':'+raw.slice(11,13) };
   }
   return null;
 }
