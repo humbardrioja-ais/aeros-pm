@@ -953,7 +953,7 @@ function buildEvents(cur, feedId) {
 function parseIcalDt(s, params) {
   if (!s) return null;
   s = s.trim();
-  const sheetTz = SpreadsheetApp.getActiveSpreadsheet().getSpreadsheetTimeZone();
+  const sheetTz = SpreadsheetApp.openById(SPREADSHEET_ID).getSpreadsheetTimeZone();
 
   if (s.length === 8) {           // DATE only: 20260601
     return { date: s.slice(0,4)+'-'+s.slice(4,6)+'-'+s.slice(6,8), time: '' };
