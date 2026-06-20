@@ -1647,7 +1647,7 @@ function applyData(d) {
   if (d.meetings)       { normDates(d.meetings,['date']); S.meetings = d.meetings; }
   if (d.missions)       { normDates(d.missions,['date']); S.missions = d.missions; }
   if (d.leaves)         { normDates(d.leaves,['from_date','to_date','startDate','endDate']); S.leaves = d.leaves; }
-  if (d.shoots)         { normDates(d.shoots,['date','scheduledDate']); S.shoots = d.shoots; }
+  if (d.shoots)         { normDates(d.shoots,['scheduledDate','date']); S.shoots = d.shoots; }
   if (d.videos)         S.videos         = d.videos;
   if (d.notifs)         S.notifications  = d.notifs;
   if (d.cdoBalances)    S.cdoBalances    = d.cdoBalances;
@@ -3841,8 +3841,8 @@ function avatarHtml(name, size=18) {
   return `<div class="cal-av" style="width:${size}px;height:${size}px;font-size:${Math.round(size*0.5)}px;background:${color}">${lbl}</div>`;
 }
 
-function todayStr() { return new Date().toISOString().split('T')[0]; }
-function addDays(d, n) { const dt = new Date(d); dt.setDate(dt.getDate()+n); return dt.toISOString().split('T')[0]; }
+function todayStr() { return _localDateStr(new Date()); }
+function addDays(d, n) { const dt = new Date(d+'T00:00:00'); dt.setDate(dt.getDate()+n); return _localDateStr(dt); }
 function daysBetween(a, b) { return Math.round((new Date(b)-new Date(a))/86400000)+1; }
 
 function priorityColor(p) {
@@ -4507,7 +4507,7 @@ function renderCalendar(){
   // DEBUG: log task data to console
   ft.forEach(t=>{if(!t.due)return;const k=t.due;if(t.status==='done'){if(!S._calCache.doneByDate[k])S._calCache.doneByDate[k]=[];S._calCache.doneByDate[k].push(t);}else{if(!S._calCache.tasksByDate[k])S._calCache.tasksByDate[k]=[];S._calCache.tasksByDate[k].push(t);}});
   (S.leaves||[]).filter(l=>l.status==='approved').forEach(l=>{const s=l.from_date,e=l.to_date;if(s){let d=new Date(s+'T00:00:00');const end=e?new Date(e+'T00:00:00'):d;while(d<=end){const k=_localDateStr(d);if(!S._calCache.leavesByDate[k])S._calCache.leavesByDate[k]=[];S._calCache.leavesByDate[k].push(l);d.setDate(d.getDate()+1);}}});
-  (S.shoots||[]).forEach(s=>{if(!s.date)return;if(!S._calCache.shootsByDate[s.date])S._calCache.shootsByDate[s.date]=[];S._calCache.shootsByDate[s.date].push(s);});
+  (S.shoots||[]).forEach(s=>{const sd=s.scheduledDate||s.date;if(!sd)return;if(!S._calCache.shootsByDate[sd])S._calCache.shootsByDate[sd]=[];S._calCache.shootsByDate[sd].push(s);});
   (S.missions||[]).filter(m=>m.status==='approved').forEach(m=>{if(!m.date)return;if(!S._calCache.missionsByDate[m.date])S._calCache.missionsByDate[m.date]=[];S._calCache.missionsByDate[m.date].push(m);});
   (S.events||[]).forEach(e=>{if(!e.date)return;const end=e.end_date||e.date;let d=new Date(e.date+'T00:00:00');const endD=new Date(end+'T00:00:00');while(d<=endD){const k=_localDateStr(d);if(!S._calCache.eventsByDate[k])S._calCache.eventsByDate[k]=[];S._calCache.eventsByDate[k].push(e);d.setDate(d.getDate()+1);}});
   const w=document.getElementById('cal-months-wrap');
@@ -5001,7 +5001,7 @@ function showRuleModal(id){
   if(!isAdmin&&!isEdit)return;
   showModal(`<div class="modal-header">${isEdit?'Edit':'New'} Rule / Guideline</div>
   <div class="modal-body">
-    <div class="form-row"><label>Title</label><input id="rl-title" value="${esc(r.title||'')}" ${!isAdmin?'readonly':''}></div>
+    <div class="form-row"><label>Title</label><input id="rl-title" value="${esc(r.name||r.title||'')}" ${!isAdmin?'readonly':''}></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       <div class="form-row"><label>Type</label><select id="rl-type" ${!isAdmin?'disabled':''}><option value="rule" ${r.type==='rule'?'selected':''}>Rule</option><option value="guideline" ${r.type==='guideline'||!r.type?'selected':''}>Guideline</option></select></div>
       <div class="form-row"><label>Department</label><select id="rl-dept" ${!isAdmin?'disabled':''}><option value="">All</option>${depts.map(d=>`<option ${r.department===d?'selected':''}>${d}</option>`).join('')}</select></div>
@@ -5247,7 +5247,7 @@ const ID_CONFIGS = {
     idPrefix:'CM', fields:[
       {key:'title',label:'Title',type:'text',required:true,full:true},
       {key:'status',label:'Status',type:'select',options:['Draft','Active','Paused','Complete']},
-      {key:'start',label:'Start Date',type:'date'},{key:'end',label:'End Date',type:'date'},
+      {key:'startDate',label:'Start Date',type:'date'},{key:'dueDate',label:'End Date',type:'date'},
       {key:'description',label:'Description',type:'textarea'},
       {key:'projects',label:'Linked Projects',type:'text'},
       {key:'milestones',label:'Milestones',type:'textarea'}
@@ -5309,8 +5309,9 @@ const ID_CONFIGS = {
     apiCreate:'createShootSession', apiUpdate:'updateShootSession', apiDelete:'deleteShootSession',
     idPrefix:'SH', fields:[
       {key:'title',label:'Title',type:'text',full:true},
-      {key:'date',label:'Date',type:'date'},{key:'time',label:'Time',type:'time'},
-      {key:'photographer',label:'Photographer',type:'member'},{key:'location',label:'Location',type:'text'},
+      {key:'scheduledDate',label:'Date',type:'date'},{key:'time',label:'Time',type:'time'},
+      {key:'director',label:'Director',type:'member'},{key:'videographer',label:'Videographer',type:'member'},
+      {key:'location',label:'Location',type:'text'},
       {key:'status',label:'Status',type:'select',options:['Scheduled','In Progress','Complete','Cancelled']},
       {key:'notes',label:'Notes',type:'textarea'}
     ]
@@ -5352,11 +5353,11 @@ const ID_CONFIGS = {
     label:'Rule / Guideline', color:'#a1887f', collection:'rules',
     apiCreate:'createRule', apiUpdate:'updateRule', apiDelete:'deleteRule',
     idPrefix:'RL', fields:[
-      {key:'title',label:'Title',type:'text',required:true,full:true},
+      {key:'name',label:'Title',type:'text',required:true,full:true},
       {key:'category',label:'Category',type:'select',options:['guideline','rule','policy','procedure']},
       {key:'department',label:'Department',type:'text'},
       {key:'content',label:'Content',type:'textarea'},
-      {key:'notes',label:'Notes',type:'textarea'}
+      {key:'active',label:'Active',type:'select',options:['true','false']}
     ]
   },
   video: {
@@ -5364,10 +5365,10 @@ const ID_CONFIGS = {
     apiCreate:'createVideo', apiUpdate:'updateVideo', apiDelete:'deleteVideo',
     idPrefix:'VD', fields:[
       {key:'title',label:'Title',type:'text',required:true,full:true},
+      {key:'description',label:'Description',type:'textarea'},
+      {key:'department',label:'Department',type:'text',default:'myDept'},
       {key:'status',label:'Status',type:'select',options:['Planning','Shooting','Editing','Review','Published']},
-      {key:'assigned',label:'Assigned To',type:'member'},{key:'due',label:'Due Date',type:'date'},
-      {key:'platform',label:'Platform',type:'text'},{key:'url',label:'URL',type:'text'},
-      {key:'notes',label:'Notes',type:'textarea'}
+      {key:'platforms',label:'Platforms',type:'text'},{key:'targetPostDate',label:'Target Post Date',type:'date'}
     ]
   }
 };
@@ -5487,6 +5488,10 @@ async function saveItemDrawer() {
   }
   const col = S[cfg.collection] = S[cfg.collection] || [];
   if (_idIsNew) {
+    if (data.memberName && !data.memberId) {
+      const member = (S.team||[]).find(m => m.name === data.memberName);
+      if (member) { data.memberId = member.id; data.department = data.department || member.department; }
+    }
     const id = cfg.idPrefix + '-tmp-' + Date.now();
     col.unshift({ ...data, id, created: todayStr() });
     closeItemDrawer();
@@ -5498,6 +5503,10 @@ async function saveItemDrawer() {
       if (idx >= 0) col[idx].id = saved.id;
     }
   } else {
+    if (data.memberName && !data.memberId) {
+      const member = (S.team||[]).find(m => m.name === data.memberName);
+      if (member) { data.memberId = member.id; data.department = data.department || member.department; }
+    }
     Object.assign(_idItem, data);
     _idItem.updated = nowIso();
     closeItemDrawer();
