@@ -1642,11 +1642,11 @@ function normDates(arr,fields){
 function applyData(d) {
   if (!d) return;
   if (d.tasks)          { normDates(d.tasks,['due','created','updated','followup']); S.tasks = d.tasks; }
-  if (d.projects)       { normDates(d.projects,['start','end']); S.projects = d.projects; }
+  if (d.projects)       { normDates(d.projects,['start','end','startDate','dueDate']); S.projects = d.projects; }
   if (d.team)           S.team           = d.team;
   if (d.meetings)       { normDates(d.meetings,['date']); S.meetings = d.meetings; }
   if (d.missions)       { normDates(d.missions,['date']); S.missions = d.missions; }
-  if (d.leaves)         { normDates(d.leaves,['from_date','to_date']); S.leaves = d.leaves; }
+  if (d.leaves)         { normDates(d.leaves,['from_date','to_date','startDate','endDate']); S.leaves = d.leaves; }
   if (d.shoots)         { normDates(d.shoots,['date','scheduledDate']); S.shoots = d.shoots; }
   if (d.videos)         S.videos         = d.videos;
   if (d.notifs)         S.notifications  = d.notifs;
@@ -2459,7 +2459,7 @@ function renderPortfolio() {
     return `<div class="card mb-12">
       <div class="flex items-center gap-8 mb-8">
         <div style="width:12px;height:12px;border-radius:50%;background:${p.color||'#1a73e8'};flex-shrink:0"></div>
-        <span class="font-bold">${esc(p.title)}</span>
+        <span class="font-bold">${esc(p.name||p.title)}</span>
         <span class="badge ap-${p.status==='on-track'?'approved':p.status==='at-risk'?'pending':'rejected'}" style="margin-left:auto">${p.status||'—'}</span>
       </div>
       <div class="text-sm text-muted mb-8">${esc(p.description||'')}</div>
@@ -2555,7 +2555,7 @@ function renderProjects() {
         const tc = getProjectTasks(p.id).length;
         const exp = S._projExpanded[p.id];
         return `<div class="proj-list-row" onclick="toggleProjExpand('${p.id}')" style="border-left:3px solid ${p.color||'var(--brand)'}">
-          <span style="font-weight:600;cursor:pointer" onclick="event.stopPropagation();showProjectModal('${p.id}')">${esc(p.title)}</span>
+          <span style="font-weight:600;cursor:pointer" onclick="event.stopPropagation();showProjectModal('${p.id}')">${esc(p.name||p.title)}</span>
           <span>${esc(p.owner||'—')}</span>
           <span><span class="approval-pill ap-${p.status==='on-track'?'approved':p.status==='at-risk'?'pending':'rejected'}">${p.status||'—'}</span></span>
           <span>${esc(p.department||'')}</span>
@@ -2572,7 +2572,7 @@ function renderProjects() {
         return `<div class="proj-card" onclick="toggleProjExpand('${p.id}')">
           <div class="proj-card-top" style="border-top-color:${p.color||'var(--brand)'}">
             <div class="flex items-center gap-8">
-              <span class="font-bold">${esc(p.title)}</span>
+              <span class="font-bold">${esc(p.name||p.title)}</span>
               <span class="approval-pill ap-${p.status==='on-track'?'approved':p.status==='at-risk'?'pending':'rejected'}" style="margin-left:auto">${p.status||'—'}</span>
             </div>
           </div>
@@ -4897,6 +4897,7 @@ async function deletePublishing(id){
 
 /* ===================== SOCIAL HUB ===================== */
 S.socialData=S.socialData||{};
+S._socialFlat=Object.values(S.socialData).flat();
 S._selectedPage=S._selectedPage||null;
 
 const FB_PAGES=(S.config&&S.config.facebook_pages)||['AIS Central','SR','TAK','Alumni'];
@@ -5220,22 +5221,22 @@ const ID_CONFIGS = {
   mission: {
     label:'Mission', color:'var(--cal-mission,#81c995)', collection:'missions',
     apiCreate:'createMission', apiUpdate:'updateMission', apiDelete:'deleteMission',
-    idPrefix:'MS', approvable:true, fields:[
-      {key:'title',label:'Title',type:'text',full:true},
-      {key:'employee',label:'Employee',type:'member'},{key:'date',label:'Date',type:'date'},
-      {key:'destination',label:'Destination',type:'text'},{key:'purpose',label:'Purpose',type:'text'},
-      {key:'status',label:'Status',type:'select',options:['pending','approved','rejected']},
-      {key:'notes',label:'Notes',type:'textarea'}
+    idPrefix:'MS', approvable:true, approveAction:'approveMission', rejectAction:'rejectMission', fields:[
+      {key:'memberName',label:'Employee',type:'member'},{key:'date',label:'Date',type:'date'},
+      {key:'duration',label:'Duration',type:'select',options:['Full Day','Half Day','AM','PM']},
+      {key:'type',label:'Type',type:'select',options:['Official','Personal','Training','Conference']},
+      {key:'details',label:'Details',type:'textarea'},
+      {key:'status',label:'Status',type:'select',options:['pending','approved','rejected']}
     ]
   },
   leave: {
     label:'Leave Request', color:'var(--cal-leave,#b39ddb)', collection:'leaves',
-    apiCreate:'createLeave', apiUpdate:'updateLeave', apiDelete:'deleteLeave',
-    idPrefix:'LV', approvable:true, fields:[
-      {key:'employee',label:'Employee',type:'member'},
-      {key:'leave_type',label:'Type',type:'select',options:['Annual','Sick','Personal','Maternity','Unpaid']},
-      {key:'from_date',label:'From',type:'date'},{key:'to_date',label:'To',type:'date'},
-      {key:'days',label:'Days',type:'number'},{key:'half_period',label:'Period',type:'select',options:['Full Day','AM','PM']},
+    apiCreate:'createLeaveRequest', apiUpdate:'updateLeave', apiDelete:'deleteLeave',
+    idPrefix:'LV', approvable:true, approveAction:'approveLeave', rejectAction:'rejectLeave', fields:[
+      {key:'memberName',label:'Employee',type:'member'},
+      {key:'leaveType',label:'Type',type:'select',options:['Annual','Sick','Personal','Maternity','Unpaid']},
+      {key:'startDate',label:'From',type:'date'},{key:'endDate',label:'To',type:'date'},
+      {key:'duration',label:'Days',type:'number'},{key:'period',label:'Period',type:'select',options:['Full Day','AM','PM']},
       {key:'status',label:'Status',type:'select',options:['pending','approved','rejected']},
       {key:'reason',label:'Reason',type:'textarea'}
     ]
@@ -5318,10 +5319,10 @@ const ID_CONFIGS = {
     label:'Project', color:'var(--brand)', collection:'projects',
     apiCreate:'createProject', apiUpdate:'updateProject', apiDelete:'deleteProject',
     idPrefix:'P', fields:[
-      {key:'title',label:'Project Name',type:'text',required:true,full:true},
+      {key:'name',label:'Project Name',type:'text',required:true,full:true},
       {key:'description',label:'Description',type:'textarea'},
       {key:'owner',label:'Owner',type:'member'},{key:'status',label:'Status',type:'select',options:['on-track','at-risk','off-track']},
-      {key:'start',label:'Start Date',type:'date'},{key:'end',label:'End Date',type:'date'},
+      {key:'startDate',label:'Start Date',type:'date'},{key:'dueDate',label:'End Date',type:'date'},
       {key:'department',label:'Department',type:'text',default:'myDept'},
       {key:'color',label:'Color',type:'color',default:'#1a73e8'}
     ]
@@ -5330,14 +5331,14 @@ const ID_CONFIGS = {
     label:'Change Day Off', color:'#78909c', collection:'cdoRedemptions',
     apiCreate:'createCDORedemption', apiUpdate:'updateCDORedemption', apiDelete:'deleteCDORedemption',
     idPrefix:'CDO', fields:[
-      {key:'employee',label:'Employee',type:'member',required:true},
+      {key:'memberName',label:'Employee',type:'member',required:true},
       {key:'duration',label:'Duration',type:'select',options:['Full Day','Half Day']},
-      {key:'date_off',label:'Date Off',type:'date'},
-      {key:'notes',label:'Notes',type:'textarea'}
+      {key:'date',label:'Date Off',type:'date'},
+      {key:'reason',label:'Reason',type:'textarea'}
     ]
   },
   social: {
-    label:'Social Record', color:'#e57373', collection:'_socialTmp',
+    label:'Social Record', color:'#e57373', collection:'_socialFlat',
     apiCreate:'createSocialRecord', apiUpdate:'updateSocialRecord', apiDelete:'deleteSocialRecord',
     idPrefix:'SR', fields:[
       {key:'page',label:'Page',type:'text',required:true,default:'_selectedPage'},
@@ -5521,11 +5522,12 @@ async function deleteItemDrawer() {
 async function approveItemDrawer(decision) {
   const cfg = ID_CONFIGS[_idType];
   if (!cfg) return;
+  const action = decision === 'approved' ? (cfg.approveAction || cfg.apiUpdate) : (cfg.rejectAction || cfg.apiUpdate);
   _idItem.status = decision;
   _idItem.updated = nowIso();
   renderViewNow(S.currentView);
   toast(cfg.label + ' ' + decision);
-  await api(cfg.apiUpdate, {}, { id: _idItem.id, status: decision, updated: _idItem.updated });
+  await api(action, {}, { id: _idItem.id, status: decision, updated: _idItem.updated });
   openItemDrawer(_idType, _idItem.id);
 }
 
