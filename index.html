@@ -1275,6 +1275,27 @@ select.sd-val{appearance:auto;cursor:pointer}
 
     <!-- Updates / Notes -->
     <div class="td-section">
+      
+      <!-- Relations -->
+      <div class="td-section-hd" style="margin-top:12px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> Relations</div>
+      <div id="tp-relations" style="margin-bottom:8px"></div>
+      <div style="display:flex;gap:6px;margin-bottom:12px">
+        <select id="tp-relation-type" style="font-size:12px;padding:3px 6px;border-radius:4px;border:1px solid var(--border)">
+          <option value="blocks">Blocks</option>
+          <option value="blocked_by">Blocked by</option>
+          <option value="related">Related to</option>
+        </select>
+        <input id="tp-relation-search" placeholder="Search task to link..." style="flex:1;font-size:12px;padding:3px 8px;border-radius:4px;border:1px solid var(--border)" oninput="searchRelationTasks(this.value)">
+      </div>
+      <div id="tp-relation-results" style="max-height:120px;overflow-y:auto;margin-bottom:8px"></div>
+
+      <!-- Tags -->
+      <div class="td-section-hd"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg> Tags</div>
+      <div id="tp-tags" style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px"></div>
+      <div style="display:flex;gap:4px;margin-bottom:12px">
+        <input id="tp-tag-input" placeholder="Add tag..." style="flex:1;font-size:12px;padding:3px 8px;border-radius:4px;border:1px solid var(--border)" onkeydown="if(event.key==='Enter'){addTaskTag();event.preventDefault()}">
+        <button class="btn btn-secondary btn-sm" onclick="addTaskTag()" style="font-size:11px;padding:2px 8px">Add</button>
+      </div>
       <div class="td-section-hd"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Updates</div>
       <div id="tp-notes-list" style="margin-bottom:8px"></div>
       <div style="display:flex;gap:8px">
@@ -2154,7 +2175,7 @@ function calDayClick(dateStr) {
   document.body.style.overflow = 'hidden';
   document.querySelector('.tp-body').scrollTop = 0;
   populatePanelFields();
-  renderSubtasks(); renderComments(); renderActivity();
+  renderSubtasks(); renderRelations(); renderTags(); renderComments(); renderActivity();
   updateCompleteBtnState();
   tpBottomTab('comments', document.querySelector('.tp-tab'));
 }
@@ -4378,7 +4399,7 @@ async function openTaskPanel(id) {
   // Reset scroll
   document.querySelector('.tp-body').scrollTop = 0;
   populatePanelFields();
-  renderSubtasks(); renderComments(); renderActivity();
+  renderSubtasks(); renderRelations(); renderTags(); renderComments(); renderActivity();
   updateCompleteBtnState();
   // Show save button for new tasks, delete for existing
   document.getElementById('tp-save-btn').style.display = isNew ? '' : 'none';
@@ -6500,6 +6521,116 @@ async function bulkDelete() {
   renderViewNow(S.currentView);
   toast(`Deleted ${cnt} tasks`, 'warn');
 }
+/* ===================== TASK RELATIONS ===================== */
+function renderRelations() {
+  const w = document.getElementById('tp-relations');
+  if (!w || !TP.taskId) { if(w) w.innerHTML=''; return; }
+  const t = TP.task;
+  const relations = t.relations ? (typeof t.relations === 'string' ? JSON.parse(t.relations||'[]') : t.relations) : [];
+  if (!relations.length) { w.innerHTML = '<div style="font-size:12px;color:var(--text3);padding:4px 0">No relations</div>'; return; }
+  w.innerHTML = relations.map((r, i) => {
+    const linked = S.tasks.find(x => x.id === r.taskId);
+    const label = r.type === 'blocks' ? 'Blocks' : r.type === 'blocked_by' ? 'Blocked by' : 'Related to';
+    return `<div style="display:flex;align-items:center;gap:6px;padding:4px 0;font-size:12px;border-bottom:1px solid var(--border)">
+      <span style="color:var(--text3);font-size:11px;min-width:70px">${label}</span>
+      <span onclick="openTaskPanel('${r.taskId}')" style="cursor:pointer;color:var(--brand);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(linked?linked.title:r.taskId)}</span>
+      <span style="font-size:11px;color:var(--text3)">${linked?linked.status:''}</span>
+      <button onclick="removeRelation(${i})" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:14px;padding:0 4px">x</button>
+    </div>`;
+  }).join('');
+}
+
+function searchRelationTasks(q) {
+  const w = document.getElementById('tp-relation-results');
+  if (!w) return;
+  if (!q || q.length < 2) { w.innerHTML = ''; return; }
+  const results = S.tasks.filter(t => t.id !== TP.taskId && (t.title||'').toLowerCase().includes(q.toLowerCase())).slice(0, 5);
+  w.innerHTML = results.map(t => `<div onclick="addRelation('${t.id}')" style="padding:4px 8px;font-size:12px;cursor:pointer;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px" onmouseenter="this.style.background='var(--surface2)'" onmouseleave="this.style.background=''">
+    <span class="badge badge-${(t.priority||'p3').toLowerCase()}" style="font-size:10px">${t.priority||'P3'}</span>
+    <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.title)}</span>
+    <span style="font-size:11px;color:var(--text3)">${t.owner||''}</span>
+  </div>`).join('');
+}
+
+function addRelation(targetId) {
+  const type = document.getElementById('tp-relation-type').value;
+  const t = TP.task;
+  if (!t.relations) t.relations = [];
+  if (typeof t.relations === 'string') t.relations = JSON.parse(t.relations||'[]');
+  if (t.relations.some(r => r.taskId === targetId)) { toast('Already linked'); return; }
+  t.relations.push({ type, taskId: targetId });
+  // Also add reverse relation on the target
+  const target = S.tasks.find(x => x.id === targetId);
+  if (target) {
+    if (!target.relations) target.relations = [];
+    if (typeof target.relations === 'string') target.relations = JSON.parse(target.relations||'[]');
+    const reverseType = type === 'blocks' ? 'blocked_by' : type === 'blocked_by' ? 'blocks' : 'related';
+    if (!target.relations.some(r => r.taskId === TP.taskId)) {
+      target.relations.push({ type: reverseType, taskId: TP.taskId });
+      api('updateTask', {}, { id: targetId, relations: JSON.stringify(target.relations), updated: nowIso() });
+    }
+  }
+  savePanelField('relations', JSON.stringify(t.relations));
+  document.getElementById('tp-relation-search').value = '';
+  document.getElementById('tp-relation-results').innerHTML = '';
+  renderRelations();
+  toast('Relation added');
+}
+
+function removeRelation(idx) {
+  const t = TP.task;
+  if (typeof t.relations === 'string') t.relations = JSON.parse(t.relations||'[]');
+  const removed = t.relations.splice(idx, 1)[0];
+  savePanelField('relations', JSON.stringify(t.relations));
+  // Remove reverse relation
+  if (removed) {
+    const target = S.tasks.find(x => x.id === removed.taskId);
+    if (target && target.relations) {
+      if (typeof target.relations === 'string') target.relations = JSON.parse(target.relations||'[]');
+      target.relations = target.relations.filter(r => r.taskId !== TP.taskId);
+      api('updateTask', {}, { id: removed.taskId, relations: JSON.stringify(target.relations), updated: nowIso() });
+    }
+  }
+  renderRelations();
+}
+
+/* ===================== TASK TAGS ===================== */
+const TAG_COLORS = ['#e3f2fd','#fce4ec','#e8f5e9','#fff3e0','#f3e5f5','#e0f7fa','#fbe9e7','#f1f8e9'];
+
+function renderTags() {
+  const w = document.getElementById('tp-tags');
+  if (!w) return;
+  const t = TP.task;
+  const tags = t.tags ? (typeof t.tags === 'string' ? t.tags.split(',').filter(Boolean) : t.tags) : [];
+  w.innerHTML = tags.map((tag, i) => `<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;background:${TAG_COLORS[i%TAG_COLORS.length]};color:#333">
+    ${esc(tag.trim())}
+    <span onclick="removeTag(${i})" style="cursor:pointer;font-size:14px;line-height:1;color:#999">x</span>
+  </span>`).join('');
+}
+
+function addTaskTag() {
+  const input = document.getElementById('tp-tag-input');
+  const tag = (input.value||'').trim();
+  if (!tag) return;
+  const t = TP.task;
+  let tags = t.tags ? (typeof t.tags === 'string' ? t.tags.split(',').filter(Boolean) : [...t.tags]) : [];
+  if (tags.includes(tag)) { toast('Tag exists'); return; }
+  tags.push(tag);
+  t.tags = tags;
+  savePanelField('tags', tags.join(','));
+  input.value = '';
+  renderTags();
+}
+
+function removeTag(idx) {
+  const t = TP.task;
+  let tags = typeof t.tags === 'string' ? t.tags.split(',').filter(Boolean) : [...(t.tags||[])];
+  tags.splice(idx, 1);
+  t.tags = tags;
+  savePanelField('tags', tags.join(','));
+  renderTags();
+}
+
 </script>
 <!-- ===== COMMAND PALETTE ===== -->
 <div id="cmd-palette" class="cmd-overlay hidden" onclick="if(event.target===this)closeCmdPalette()">
