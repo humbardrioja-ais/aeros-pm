@@ -391,6 +391,18 @@ label{font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bot
 .ic{display:inline-flex;align-items:center;vertical-align:middle}
 .ic svg{stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 
+<div class="list-header" style="grid-template-columns:30px 26px 1fr 68px 90px 120px 90px 100px">
+  <div style="display:flex;align-items:center;justify-content:center">
+    <input type="checkbox" id="bulk-select-all" onchange="toggleSelectAll(this.checked)" style="width:15px;height:15px;cursor:pointer">
+  </div>
+  <div></div>
+  <div class="list-col-hd" onclick="listSort('title')" id="lhd-title">Task <span class="sort-arrow" id="lsa-title"></span></div>
+  <div class="list-col-hd" onclick="listSort('priority')" id="lhd-priority">Priority <span class="sort-arrow" id="lsa-priority"></span></div>
+  <div class="list-col-hd" onclick="listSort('status')" id="lhd-status">Status <span class="sort-arrow" id="lsa-status"></span></div>
+  <div class="list-col-hd" onclick="listSort('owner')" id="lhd-owner">Owner <span class="sort-arrow" id="lsa-owner"></span></div>
+  <div class="list-col-hd" onclick="listSort('due')" id="lhd-due">Due <span class="sort-arrow" id="lsa-due"></span></div>
+  <div class="list-col-hd" onclick="listSort('department')" id="lhd-dept">Team <span class="sort-arrow" id="lsa-dept"></span></div>
+</div>
 @media(max-width:768px){
   #view-calendar div[style*="grid-template-columns:1fr 220px"]{grid-template-columns:1fr!important}
   #view-meetings>div[style*="grid-template-columns:280px"]{grid-template-columns:1fr!important}
@@ -6179,6 +6191,376 @@ function renderTeamSchedule() {
     </div>`;
 }
 
+// =====================================================================
+//  FEATURE 1: COMMAND PALETTE (Cmd+K)
+// =====================================================================
+
+let _cmdActiveIndex = -1;
+
+function openCmdPalette() {
+  const el = document.getElementById('cmd-palette');
+  el.classList.remove('hidden');
+  const input = document.getElementById('cmd-input');
+  input.value = '';
+  document.getElementById('cmd-results').innerHTML = '';
+  _cmdActiveIndex = -1;
+  setTimeout(() => input.focus(), 50);
+}
+
+function closeCmdPalette() {
+  document.getElementById('cmd-palette').classList.add('hidden');
+  _cmdActiveIndex = -1;
+}
+
+const _debouncedCmdSearch = _debounce(function(query) { searchCmdPalette(query); }, 100);
+
+function searchCmdPalette(query) {
+  const results = [];
+  const q = (query || '').toLowerCase().trim();
+  if (!q) { document.getElementById('cmd-results').innerHTML = ''; _cmdActiveIndex = -1; return; }
+
+  // Views
+  const views = [
+    { id:'dashboard', label:'Dashboard', icon:'grid' },
+    { id:'list', label:'Tasks / List', icon:'list' },
+    { id:'board', label:'Board', icon:'columns' },
+    { id:'calendar', label:'Calendar', icon:'calendar' },
+    { id:'projects', label:'Projects', icon:'folder' },
+    { id:'meetings', label:'Meetings', icon:'users' },
+    { id:'timeline', label:'Timeline', icon:'bar-chart' },
+    { id:'workload', label:'Workload', icon:'activity' },
+    { id:'eisenhower', label:'Eisenhower', icon:'grid' },
+    { id:'settings', label:'Settings', icon:'settings' },
+  ];
+  views.forEach(v => {
+    if (v.label.toLowerCase().includes(q) || v.id.includes(q))
+      results.push({ type:'view', id:v.id, title:v.label, meta:'View', icon:v.icon });
+  });
+
+  // Actions
+  const actions = [
+    { id:'create-task', label:'Create task', icon:'plus', fn:"openTaskPanel('new')" },
+    { id:'create-project', label:'Create project', icon:'plus', fn:"openProjectDrawer('new')" },
+    { id:'dark-mode', label:'Toggle dark mode', icon:'moon', fn:'toggleDark()' },
+    { id:'settings', label:'Open settings', icon:'settings', fn:"nav('settings')" },
+  ];
+  actions.forEach(a => {
+    if (a.label.toLowerCase().includes(q))
+      results.push({ type:'action', id:a.id, title:a.label, meta:'Action', icon:a.icon, fn:a.fn });
+  });
+
+  // Tasks
+  (S.tasks || []).forEach(t => {
+    if ((t.title||'').toLowerCase().includes(q) || (t.id||'').toLowerCase().includes(q))
+      results.push({ type:'task', id:t.id, title:t.title, meta:`${t.owner||'—'} · ${t.priority||'—'} · ${t.status||'—'}`, icon:'check-square' });
+  });
+
+  // Projects
+  (S.projects || []).forEach(p => {
+    if ((p.name||p.title||'').toLowerCase().includes(q))
+      results.push({ type:'project', id:p.id, title:p.name||p.title, meta:`${p.type||'—'} · ${p.status||'—'}`, icon:'folder' });
+  });
+
+  // Team
+  (S.team || []).forEach(m => {
+    if ((m.name||'').toLowerCase().includes(q))
+      results.push({ type:'member', id:m.name, title:m.name, meta:m.department||'—', icon:'user' });
+  });
+
+  // Cap at 20
+  const capped = results.slice(0, 20);
+  _cmdActiveIndex = capped.length ? 0 : -1;
+  renderCmdResults(capped);
+}
+
+function renderCmdResults(results) {
+  const icons = {
+    grid:     '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>',
+    list:     '<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>',
+    columns:  '<rect x="4" y="4" width="6" height="16" rx="1"/><rect x="14" y="4" width="6" height="12" rx="1"/>',
+    calendar: '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
+    folder:   '<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>',
+    users:    '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+    user:     '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+    plus:     '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+    moon:     '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>',
+    settings: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
+    'check-square': '<polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
+    activity: '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
+    'bar-chart': '<line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/>',
+  };
+  const svgWrap = (name) => `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${icons[name]||icons.grid}</svg>`;
+
+  document.getElementById('cmd-results').innerHTML = results.map((r, i) =>
+    `<div class="cmd-result${i === _cmdActiveIndex ? ' active' : ''}" data-idx="${i}"
+          onmouseenter="_cmdActiveIndex=${i};highlightCmdResult()"
+          onclick="executeCmdResult(${i})">
+      <div class="cmd-icon">${svgWrap(r.icon)}</div>
+      <div class="cmd-title">${esc(r.title)}</div>
+      <div class="cmd-meta">${esc(r.meta)}</div>
+    </div>`
+  ).join('');
+  window._cmdResults = results;
+}
+
+function highlightCmdResult() {
+  document.querySelectorAll('.cmd-result').forEach((el, i) => {
+    el.classList.toggle('active', i === _cmdActiveIndex);
+  });
+}
+
+function executeCmdResult(idx) {
+  const r = (window._cmdResults || [])[idx];
+  if (!r) return;
+  closeCmdPalette();
+  if (r.type === 'view')    nav(r.id);
+  else if (r.type === 'action') { try { eval(r.fn); } catch(_) {} }
+  else if (r.type === 'task')   editTask(r.id);
+  else if (r.type === 'project') openItemDrawer('project', r.id);
+  else if (r.type === 'member') { S._viewMemberFilter = r.id; nav('list'); }
+}
+
+// Cmd+K global binding + palette keyboard nav
+document.addEventListener('keydown', function(e) {
+  // Cmd/Ctrl+K
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+    e.preventDefault();
+    const pal = document.getElementById('cmd-palette');
+    if (pal.classList.contains('hidden')) openCmdPalette(); else closeCmdPalette();
+    return;
+  }
+
+  // When palette is open, handle Escape / arrows / Enter
+  if (!document.getElementById('cmd-palette').classList.contains('hidden')) {
+    if (e.key === 'Escape') { closeCmdPalette(); e.preventDefault(); return; }
+    const items = document.querySelectorAll('.cmd-result');
+    if (e.key === 'ArrowDown') { e.preventDefault(); _cmdActiveIndex = Math.min(_cmdActiveIndex + 1, items.length - 1); highlightCmdResult(); return; }
+    if (e.key === 'ArrowUp')   { e.preventDefault(); _cmdActiveIndex = Math.max(_cmdActiveIndex - 1, 0); highlightCmdResult(); return; }
+    if (e.key === 'Enter' && _cmdActiveIndex >= 0) { e.preventDefault(); executeCmdResult(_cmdActiveIndex); return; }
+  }
+});
+
+
+// =====================================================================
+//  FEATURE 2: KEYBOARD SHORTCUTS
+// =====================================================================
+
+let _gPrefix = false;
+let _gTimeout = null;
+
+document.addEventListener('keydown', function(e) {
+  // Skip if command palette is open
+  if (!document.getElementById('cmd-palette').classList.contains('hidden')) return;
+  // Skip if focus is in an input/textarea/select
+  const tag = (document.activeElement || {}).tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+  // Skip if modifier keys (except for Cmd+K handled above)
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+  const key = e.key;
+
+  // G-prefix sequences
+  if (_gPrefix) {
+    _gPrefix = false;
+    clearTimeout(_gTimeout);
+    const gMap = { d:'dashboard', l:'list', b:'board', c:'calendar', p:'projects', m:'meetings' };
+    if (gMap[key]) { e.preventDefault(); nav(gMap[key]); return; }
+  }
+
+  if (key === 'g') {
+    _gPrefix = true;
+    _gTimeout = setTimeout(() => { _gPrefix = false; }, 500);
+    return;
+  }
+
+  // C = create task
+  if (key === 'c') { e.preventDefault(); openTaskPanel('new'); return; }
+
+  // ? = shortcuts help
+  if (key === '?') { e.preventDefault(); document.getElementById('shortcuts-modal').classList.toggle('hidden'); return; }
+
+  // 1-4 = set priority on selected/last-opened task
+  if (['1','2','3','4'].includes(key)) {
+    const pMap = { '1':'P0', '2':'P1', '3':'P2', '4':'P3' };
+    if (S._lastEditedTaskId) {
+      const t = (S.tasks||[]).find(x => x.id === S._lastEditedTaskId);
+      if (t) {
+        t.priority = pMap[key];
+        t.updated = new Date().toISOString().slice(0,16);
+        api('updateTask', {}, t);
+        renderViewNow(S.currentView);
+        toast(`${t.id} set to ${pMap[key]}`);
+      }
+    }
+    return;
+  }
+});
+
+
+// =====================================================================
+//  FEATURE 3: BULK ACTIONS IN LIST VIEW
+// =====================================================================
+
+S._selectedTaskIds = new Set();
+
+function toggleTaskSelect(id, checked) {
+  if (checked) S._selectedTaskIds.add(id);
+  else S._selectedTaskIds.delete(id);
+  renderBulkBar();
+  // Highlight row
+  const rows = document.querySelectorAll('.task-row-bulk');
+  rows.forEach(r => {
+    const rid = r.getAttribute('data-id');
+    if (rid) r.classList.toggle('selected', S._selectedTaskIds.has(rid));
+  });
+}
+
+function toggleSelectAll(checked) {
+  // Get currently visible task ids
+  const rows = document.querySelectorAll('.task-row-bulk');
+  rows.forEach(r => {
+    const id = r.getAttribute('data-id');
+    if (id) {
+      if (checked) S._selectedTaskIds.add(id); else S._selectedTaskIds.delete(id);
+      const cb = r.querySelector('.bulk-check');
+      if (cb) cb.checked = checked;
+      r.classList.toggle('selected', checked);
+    }
+  });
+  renderBulkBar();
+}
+
+function renderBulkBar() {
+  const bar = document.getElementById('bulk-bar');
+  const count = S._selectedTaskIds.size;
+  if (!count) { bar.classList.add('hidden'); return; }
+  bar.classList.remove('hidden');
+  document.getElementById('bulk-count').textContent = count + ' selected';
+  // Populate owner dropdown
+  const ownerSel = document.getElementById('bulk-owner');
+  const currentOpts = ownerSel.options.length;
+  if (currentOpts <= 1) {
+    (S.team || []).forEach(m => {
+      const o = document.createElement('option');
+      o.value = m.name; o.textContent = m.name;
+      ownerSel.appendChild(o);
+    });
+  }
+}
+
+function clearBulkSelection() {
+  S._selectedTaskIds.clear();
+  renderBulkBar();
+  const allCb = document.getElementById('bulk-select-all');
+  if (allCb) allCb.checked = false;
+  document.querySelectorAll('.bulk-check').forEach(cb => cb.checked = false);
+  document.querySelectorAll('.task-row-bulk').forEach(r => r.classList.remove('selected'));
+}
+
+async function bulkChangeStatus(status) {
+  for (const id of S._selectedTaskIds) {
+    const t = (S.tasks||[]).find(x => x.id === id);
+    if (t) { t.status = status; t.updated = new Date().toISOString().slice(0,16); api('updateTask', {}, t); }
+  }
+  clearBulkSelection();
+  renderViewNow(S.currentView);
+  toast(`Updated ${S._selectedTaskIds.size || 'selected'} tasks to ${status}`);
+}
+
+async function bulkChangePriority(p) {
+  for (const id of S._selectedTaskIds) {
+    const t = (S.tasks||[]).find(x => x.id === id);
+    if (t) { t.priority = p; t.updated = new Date().toISOString().slice(0,16); api('updateTask', {}, t); }
+  }
+  const cnt = S._selectedTaskIds.size;
+  clearBulkSelection();
+  renderViewNow(S.currentView);
+  toast(`Updated ${cnt} tasks to ${p}`);
+}
+
+async function bulkChangeOwner(name) {
+  for (const id of S._selectedTaskIds) {
+    const t = (S.tasks||[]).find(x => x.id === id);
+    if (t) { t.owner = name; t.updated = new Date().toISOString().slice(0,16); api('updateTask', {}, t); }
+  }
+  const cnt = S._selectedTaskIds.size;
+  clearBulkSelection();
+  renderViewNow(S.currentView);
+  toast(`Assigned ${cnt} tasks to ${name}`);
+}
+
+async function bulkDelete() {
+  if (!confirm(`Delete ${S._selectedTaskIds.size} task(s)? This cannot be undone.`)) return;
+  for (const id of S._selectedTaskIds) {
+    S.tasks = (S.tasks||[]).filter(x => x.id !== id);
+    api('deleteTask', { id });
+  }
+  const cnt = S._selectedTaskIds.size;
+  clearBulkSelection();
+  renderViewNow(S.currentView);
+  toast(`Deleted ${cnt} tasks`, 'warn');
+}
 </script>
+<!-- ===== COMMAND PALETTE ===== -->
+<div id="cmd-palette" class="cmd-overlay hidden" onclick="if(event.target===this)closeCmdPalette()">
+  <div class="cmd-box">
+    <div class="cmd-input-wrap">
+      <svg class="cmd-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="cmd-input" class="cmd-input" placeholder="Search tasks, projects, people, views..." autocomplete="off" oninput="_debouncedCmdSearch(this.value)">
+      <kbd class="cmd-kbd">esc</kbd>
+    </div>
+    <div id="cmd-results" class="cmd-results"></div>
+  </div>
+</div>
+
+<!-- ===== KEYBOARD SHORTCUTS HELP ===== -->
+<div id="shortcuts-modal" class="modal-overlay hidden" onclick="if(event.target===this)this.classList.add('hidden')">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M6 12h.01M10 12h.01M14 12h.01M18 12h.01M6 16h12"/></svg>
+      Keyboard Shortcuts
+      <div style="flex:1"></div>
+      <button class="btn btn-icon btn-secondary" onclick="document.getElementById('shortcuts-modal').classList.add('hidden')" style="width:28px;height:28px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" style="padding:16px 20px">
+      <table class="shortcuts-table">
+        <tr><td><kbd>Cmd/Ctrl + K</kbd></td><td>Command palette</td></tr>
+        <tr><td><kbd>C</kbd></td><td>Create new task</td></tr>
+        <tr><td><kbd>G</kbd> then <kbd>D</kbd></td><td>Go to Dashboard</td></tr>
+        <tr><td><kbd>G</kbd> then <kbd>L</kbd></td><td>Go to List</td></tr>
+        <tr><td><kbd>G</kbd> then <kbd>B</kbd></td><td>Go to Board</td></tr>
+        <tr><td><kbd>G</kbd> then <kbd>C</kbd></td><td>Go to Calendar</td></tr>
+        <tr><td><kbd>G</kbd> then <kbd>P</kbd></td><td>Go to Projects</td></tr>
+        <tr><td><kbd>G</kbd> then <kbd>M</kbd></td><td>Go to Meetings</td></tr>
+        <tr><td><kbd>1</kbd> – <kbd>4</kbd></td><td>Set selected task priority P0–P3</td></tr>
+        <tr><td><kbd>?</kbd></td><td>Show this help</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ===== BULK ACTION BAR ===== -->
+<div id="bulk-bar" class="bulk-bar hidden">
+  <span id="bulk-count" style="font-weight:700"></span>
+  <select id="bulk-status" onchange="if(this.value){bulkChangeStatus(this.value);this.value=''}">
+    <option value="">Status...</option>
+    <option value="inbox">Inbox</option><option value="todo">To do</option>
+    <option value="doing">Doing</option><option value="blocked">Blocked</option><option value="done">Done</option>
+  </select>
+  <select id="bulk-priority" onchange="if(this.value){bulkChangePriority(this.value);this.value=''}">
+    <option value="">Priority...</option>
+    <option value="P0">P0</option><option value="P1">P1</option><option value="P2">P2</option><option value="P3">P3</option>
+  </select>
+  <select id="bulk-owner" onchange="if(this.value){bulkChangeOwner(this.value);this.value=''}">
+    <option value="">Assign to...</option>
+  </select>
+  <button class="btn btn-danger btn-sm" onclick="bulkDelete()">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+    Delete
+  </button>
+  <button class="btn btn-secondary btn-sm" onclick="clearBulkSelection()">Clear</button>
+</div>
 </body>
 </html>
