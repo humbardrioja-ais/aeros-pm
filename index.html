@@ -877,11 +877,40 @@ select.sd-val{appearance:auto;cursor:pointer}
       <!-- MEDIA -->
       <div id="view-media" class="hidden">
         <div style="display:flex;gap:10px;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:10px">
-          <button class="btn btn-secondary active-tab" onclick="mediaTab('shoots',this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Shoots</button>
+          <button class="btn btn-secondary active-tab" onclick="mediaTab('content',this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Content</button>
+          <button class="btn btn-secondary" onclick="mediaTab('shoots',this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Shoots</button>
           <button class="btn btn-secondary" onclick="mediaTab('videos',this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg> Videos</button>
-          <button class="btn btn-secondary" onclick="mediaTab('posts',this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Posts</button>
+          <button class="btn btn-secondary" onclick="mediaTab('team-schedule',this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Team Schedule</button>
         </div>
-        <div id="media-shoots">
+        <div id="media-content">
+          <div class="flex items-center justify-between mb-12">
+            <span class="font-bold">Content Production</span>
+            <div style="display:flex;gap:6px;align-items:center">
+              <select id="content-campaign-filter" onchange="renderContentProduction()" style="font-size:12px;padding:4px 8px;border-radius:6px;border:1px solid var(--border)">
+                <option value="">All Campaigns</option>
+                <option>CEN Marketing</option><option>LOCAL Marketing</option><option>Event</option><option>AIS Event</option><option>TEDx</option>
+              </select>
+              <select id="content-status-filter" onchange="renderContentProduction()" style="font-size:12px;padding:4px 8px;border-radius:6px;border:1px solid var(--border)">
+                <option value="">All Status</option>
+                <option>Pre-Production</option><option>Shooting</option><option>Rough Cut</option><option>In Progress</option><option>Published</option>
+              </select>
+              <button class="btn btn-primary btn-sm" onclick="openItemDrawer('content','new')">+ New Content</button>
+            </div>
+          </div>
+          <div id="content-list"></div>
+        </div>
+        <div id="media-team-schedule" class="hidden">
+          <div class="flex items-center justify-between mb-12">
+            <span class="font-bold">Team Schedule</span>
+            <div style="display:flex;gap:6px;align-items:center">
+              <button class="btn btn-secondary btn-sm" onclick="teamScheduleShift(-1)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
+              <span id="team-schedule-month" style="font-weight:600;font-size:14px"></span>
+              <button class="btn btn-secondary btn-sm" onclick="teamScheduleShift(1)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></button>
+            </div>
+          </div>
+          <div id="team-schedule-grid" style="overflow-x:auto"></div>
+        </div>
+        <div id="media-shoots" class="hidden">
           <div class="flex items-center justify-between mb-12">
             <span class="font-bold">Shoot Sessions</span>
             <button class="btn btn-primary" onclick="openItemDrawer('shoot','new')">+ New Shoot</button>
@@ -895,7 +924,7 @@ select.sd-val{appearance:auto;cursor:pointer}
           </div>
           <div id="videos-list"></div>
         </div>
-        <div id="media-posts" class="hidden">
+        <div id="media-posts" class="hidden" style="display:none">
           <div class="font-bold mb-12">Platform Posts</div>
           <div id="posts-list"></div>
         </div>
@@ -1518,7 +1547,7 @@ const S = {
   tasks: [], projects: [], team: [], meetings: [], missions: [],
   leaves: [], shoots: [], videos: [], notifications: [], events: [],
   cdoBalances: [], cdoRedemptions: [], feeds: [], feedEvents: [],
-  campaigns: [], designs: [], publishing: [], seoProjects: [], websiteProjects: [], rules: [],
+  campaigns: [], designs: [], publishing: [], contentItems: [], seoProjects: [], websiteProjects: [], rules: [],
   socialData: {}, config: JSON.parse(localStorage.getItem('aeros_config')||'{}'),
   currentView: 'dashboard',
   calYear: new Date().getFullYear(),
@@ -1660,6 +1689,7 @@ function applyData(d) {
   if (d.cdoRedemptions) S.cdoRedemptions = d.cdoRedemptions;
   if (d.events)         { normDates(d.events,['date','end_date']); S.events = d.events; }
   if (d.feeds)          S.feeds          = d.feeds;
+  if (d.contentItems)  { normDates(d.contentItems,['scheduledDate','postDate']); S.contentItems = d.contentItems; }
   if (d.campaigns)      { normDates(d.campaigns,['start','end']); S.campaigns = d.campaigns; }
   if (d.designs)        { normDates(d.designs,['due','publish_date']); S.designs = d.designs; }
   if (d.publishing)     { normDates(d.publishing,['deadline','target_release']); S.publishing = d.publishing; }
@@ -3113,16 +3143,17 @@ function filterMeetings(q) {
 }
 
 // ===================== MEDIA =====================
-function renderMedia() { renderShoots(); }
+function renderMedia() { renderContentProduction(); }
 
 function mediaTab(tab, btn) {
-  ['shoots','videos','posts'].forEach(t => document.getElementById('media-'+t).classList.add('hidden'));
+  ['content','shoots','videos','team-schedule'].forEach(t => {const el=document.getElementById('media-'+t);if(el)el.classList.add('hidden');});
   document.getElementById('media-'+tab).classList.remove('hidden');
   document.querySelectorAll('#view-media .btn').forEach(b => b.classList.remove('active-tab'));
   btn.classList.add('active-tab');
+  if (tab === 'content') renderContentProduction();
   if (tab === 'shoots') renderShoots();
   if (tab === 'videos') renderVideos();
-  if (tab === 'posts')  renderPosts();
+  if (tab === 'team-schedule') renderTeamSchedule();
 }
 
 function renderShoots() {
@@ -5366,6 +5397,21 @@ const ID_CONFIGS = {
       {key:'active',label:'Active',type:'select',options:['true','false']}
     ]
   },
+  content: {
+    label:'Content', color:'#ef6c00', collection:'contentItems',
+    apiCreate:'createContent', apiUpdate:'updateContent', apiDelete:'deleteContent',
+    idPrefix:'CT', fields:[
+      {key:'title',label:'Content Title',type:'text',required:true,full:true},
+      {key:'campaign',label:'Campaign',type:'select',options:['CEN Marketing','LOCAL Marketing','Event','AIS Event','TEDx']},
+      {key:'details',label:'Details / Campus',type:'text',full:true},
+      {key:'status',label:'Status',type:'select',options:['Pre-Production','Shooting','Rough Cut','In Progress','Published']},
+      {key:'scheduledDate',label:'Schedule Date',type:'date'},{key:'postDate',label:'Post Date',type:'date'},
+      {key:'assigned',label:'Assigned',type:'member'},{key:'cameraman',label:'Cameraman',type:'member'},
+      {key:'editor',label:'Editor',type:'member'},
+      {key:'postLink',label:'Post Link',type:'text',full:true},
+      {key:'notes',label:'Notes',type:'textarea'}
+    ]
+  },
   video: {
     label:'Video', color:'#ef5350', collection:'videos',
     apiCreate:'createVideo', apiUpdate:'updateVideo', apiDelete:'deleteVideo',
@@ -5557,6 +5603,130 @@ function showSeoModal(id){openItemDrawer('seo',id||'new');}
 function showWebsiteModal(id){openItemDrawer('website',id||'new');}
 function showEventModal(id){openItemDrawer('event',id||'new');}
 function showProjectModal(id){openItemDrawer('project',id||'new');}
+
+/* ===================== CONTENT PRODUCTION ===================== */
+const CONTENT_STATUS_COLORS = {'Pre-Production':'#9e9e9e','Shooting':'#e37400','Rough Cut':'#1967d2','In Progress':'#7b1fa2','Published':'#137333'};
+
+function renderContentProduction() {
+  const w = document.getElementById('content-list');
+  if (!w) return;
+  const campFilter = (document.getElementById('content-campaign-filter')||{}).value || '';
+  const statFilter = (document.getElementById('content-status-filter')||{}).value || '';
+  let items = S.contentItems || [];
+  if (campFilter) items = items.filter(c => c.campaign === campFilter);
+  if (statFilter) items = items.filter(c => c.status === statFilter);
+  items = [...items].sort((a,b) => (b.scheduledDate||'').localeCompare(a.scheduledDate||''));
+  
+  if (!items.length) {
+    w.innerHTML = '<div style="color:var(--text3);padding:32px;text-align:center">No content items. Click + New Content to add your first.</div>';
+    return;
+  }
+  
+  w.innerHTML = `<table class="data-table"><thead><tr><th>Date</th><th>Campaign</th><th>Content</th><th>Assigned</th><th>Status</th><th>Post Date</th><th>Link</th></tr></thead><tbody>
+    ${items.map(c => `<tr onclick="openItemDrawer('content','${c.id}')" style="cursor:pointer">
+      <td>${c.scheduledDate||'—'}</td>
+      <td><span class="tag">${esc(c.campaign||'')}</span></td>
+      <td style="font-weight:600;max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(c.title)}</td>
+      <td>${esc(c.assigned||c.cameraman||'')}</td>
+      <td><span class="badge" style="background:${CONTENT_STATUS_COLORS[c.status]||'var(--surface2)'};color:#fff;font-size:11px">${c.status||'—'}</span></td>
+      <td>${c.postDate||'—'}</td>
+      <td>${c.postLink?`<a href="${esc(c.postLink)}" target="_blank" onclick="event.stopPropagation()" style="color:var(--brand);font-size:12px">View</a>`:''}</td>
+    </tr>`).join('')}
+  </tbody></table>`;
+}
+
+/* ===================== TEAM SCHEDULE ===================== */
+S._tsYear = S._tsYear || new Date().getFullYear();
+S._tsMonth = S._tsMonth || new Date().getMonth();
+const _TS_MON = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const _TS_COLORS = {shoot:'#e3f2fd',mission:'#e8f5e9',leave:'#fce4ec',dayoff:'#fff3e0'};
+
+function teamScheduleShift(dir) {
+  S._tsMonth += dir;
+  if (S._tsMonth > 11) { S._tsMonth = 0; S._tsYear++; }
+  if (S._tsMonth < 0)  { S._tsMonth = 11; S._tsYear--; }
+  renderTeamSchedule();
+}
+
+function renderTeamSchedule() {
+  const w = document.getElementById('team-schedule-grid');
+  const label = document.getElementById('team-schedule-month');
+  if (!w || !label) return;
+  const y = S._tsYear, m = S._tsMonth;
+  label.textContent = `${_TS_MON[m]} ${y}`;
+  
+  const members = (S.team||[]).map(t => t.name).filter(Boolean);
+  const daysInMonth = new Date(y, m+1, 0).getDate();
+  
+  // Build lookup maps
+  const shootsByMemberDate = {};
+  const missionsByMemberDate = {};
+  const leavesByMemberDate = {};
+  const cdoByMemberDate = {};
+  
+  (S.shoots||[]).forEach(s => {
+    const d = s.scheduledDate || s.date;
+    const who = s.director || s.videographer || s.assigned || '';
+    if (d && who) { const k = who+'|'+d; shootsByMemberDate[k] = (shootsByMemberDate[k]||0)+1; }
+  });
+  
+  (S.missions||[]).forEach(ms => {
+    const who = ms.memberName || ms.employee || '';
+    if (ms.date && who) { const k = who+'|'+ms.date; missionsByMemberDate[k] = ms; }
+  });
+  
+  (S.leaves||[]).forEach(l => {
+    const who = l.memberName || l.employee || '';
+    const start = l.startDate || l.from_date;
+    const end = l.endDate || l.to_date || start;
+    if (!start || !who) return;
+    let d = new Date(start+'T00:00:00');
+    const endD = new Date(end+'T00:00:00');
+    while (d <= endD) {
+      const ds = _localDateStr(d);
+      leavesByMemberDate[who+'|'+ds] = l;
+      d.setDate(d.getDate()+1);
+    }
+  });
+  
+  (S.cdoRedemptions||[]).forEach(r => {
+    const who = r.memberName || r.employee || '';
+    if (r.date && who && r.status === 'approved') { cdoByMemberDate[who+'|'+r.date] = r; }
+  });
+  
+  // Build grid
+  let header = '<th style="position:sticky;left:0;background:var(--surface);z-index:2;min-width:120px">Team</th>';
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dow = new Date(ds+'T00:00:00').getDay();
+    const isWE = dow === 0 || dow === 6;
+    header += `<th style="min-width:32px;text-align:center;font-size:10px;padding:4px 2px;${isWE?'background:#f5f5f5;color:var(--text3)':''}">${d}</th>`;
+  }
+  
+  let rows = '';
+  members.forEach(name => {
+    let cells = `<td style="position:sticky;left:0;background:var(--surface);z-index:1;font-weight:600;font-size:12px;white-space:nowrap;padding:6px 8px">${esc(name)}</td>`;
+    for (let d = 1; d <= daysInMonth; d++) {
+      const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const key = name+'|'+ds;
+      let bg = '', icon = '', title = '';
+      if (shootsByMemberDate[key]) { bg = _TS_COLORS.shoot; icon = 'S'; title = 'Shooting'; }
+      if (missionsByMemberDate[key]) { bg = _TS_COLORS.mission; icon = 'M'; title = 'Mission'; }
+      if (leavesByMemberDate[key]) { bg = _TS_COLORS.leave; icon = 'L'; title = (leavesByMemberDate[key].leaveType||leavesByMemberDate[key].leave_type||'Leave'); }
+      if (cdoByMemberDate[key]) { bg = _TS_COLORS.dayoff; icon = 'D'; title = 'Day Off'; }
+      cells += `<td style="text-align:center;font-size:10px;font-weight:700;padding:4px 2px;${bg?'background:'+bg:''}" title="${title}">${icon}</td>`;
+    }
+    rows += `<tr>${cells}</tr>`;
+  });
+  
+  w.innerHTML = `<table class="data-table" style="font-size:12px"><thead><tr>${header}</tr></thead><tbody>${rows}</tbody></table>
+    <div style="display:flex;gap:12px;margin-top:10px;font-size:11px;color:var(--text2)">
+      <span><span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:${_TS_COLORS.shoot};vertical-align:middle;margin-right:4px"></span>Shooting</span>
+      <span><span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:${_TS_COLORS.mission};vertical-align:middle;margin-right:4px"></span>Mission</span>
+      <span><span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:${_TS_COLORS.leave};vertical-align:middle;margin-right:4px"></span>Leave</span>
+      <span><span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:${_TS_COLORS.dayoff};vertical-align:middle;margin-right:4px"></span>Day Off</span>
+    </div>`;
+}
 
 </script>
 </body>

@@ -284,6 +284,12 @@ function route(method, action, p, body) {
     case 'updateSeo':         return updateRow(ss, 'SeoProjects', body);
     case 'deleteSeo':         return deleteRow(ss, 'SeoProjects', p.id || body?.id);
 
+    // ── Content Production ──
+    case 'getContent':        return getRows(ss, 'ContentItems');
+    case 'createContent':     return createRow(ss, 'ContentItems', body);
+    case 'updateContent':     return updateRow(ss, 'ContentItems', body);
+    case 'deleteContent':     return deleteRow(ss, 'ContentItems', p.id || body?.id);
+
     // ── Website ──
     case 'getWebsite':        return getRows(ss, 'WebsiteProjects');
     case 'createWebsite':     return createRow(ss, 'WebsiteProjects', body);
@@ -323,6 +329,7 @@ function getAllData(ss, p) {
     publishing:     getRows(ss, 'Publishing'),
     seoProjects:    getRows(ss, 'SeoProjects'),
     websiteProjects: getRows(ss, 'WebsiteProjects'),
+    contentItems:   getRows(ss, 'ContentItems'),
     socialRecords:  getRows(ss, 'SocialRecords'),
     rules:          getRows(ss, 'Rules'),
   };
@@ -377,6 +384,7 @@ const SHEETS = {
   Publishing:    ['id','title','pub_type','edition','status','deadline','target_release','lead','page_count','sections','notes','created','updated'],
   SeoProjects:   ['id','title','target_url','keywords','status','lead','due','metrics','notes','created','updated'],
   WebsiteProjects: ['id','title','web_type','url','status','lead','launch_date','tech_stack','pages','notes','created','updated'],
+  ContentItems:  ['id','title','campaign','details','status','scheduledDate','postDate','assigned','cameraman','editor','postLink','notes','created','updated'],
   SocialRecords: ['id','page','date_from','date_to','reach','engagement','followers','posts','notes','created'],
 };
 
