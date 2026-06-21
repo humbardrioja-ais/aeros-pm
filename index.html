@@ -48,6 +48,36 @@ label{font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bot
 #main{flex:1;display:flex;flex-direction:column;overflow:hidden}
 
 
+/* ===================== PROJECT DETAIL ===================== */
+.pd-tab{padding:8px 18px;font-size:13px;font-weight:600;color:var(--text2);border:none;background:none;border-bottom:2px solid transparent;margin-bottom:-2px;cursor:pointer;transition:all .15s}
+.pd-tab:hover{color:var(--text)}
+.pd-tab.active{color:var(--brand);border-bottom-color:var(--brand)}
+.pd-section{margin-bottom:18px;border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+.pd-section-hd{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--surface2);font-weight:700;font-size:13px;cursor:pointer;user-select:none}
+.pd-section-hd:hover{background:var(--border)}
+.pd-section-body{padding:0}
+.pd-task-row{display:grid;grid-template-columns:28px 1fr 60px 100px 90px;align-items:center;gap:4px;padding:6px 14px;border-bottom:1px solid var(--border);font-size:13px;min-height:38px}
+.pd-task-row:last-child{border-bottom:none}
+.pd-task-row:hover{background:var(--surface2)}
+.pd-task-title{cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pd-task-title:hover{color:var(--brand)}
+.pd-add-input{border:none;background:transparent;padding:6px 14px;width:100%;font-size:13px;outline:none;color:var(--text2)}
+.pd-add-input::placeholder{color:var(--text3)}
+.pd-milestone-row{display:grid;grid-template-columns:28px 1fr 120px;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid var(--border);font-size:13px}
+.pd-milestone-row:last-child{border-bottom:none}
+.pd-milestone-row:hover{background:var(--surface2)}
+.pd-link-search{position:relative}
+.pd-link-search .pd-link-results{position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);max-height:200px;overflow-y:auto;z-index:50;box-shadow:var(--shadow)}
+.pd-link-results .pd-link-item{padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border)}
+.pd-link-results .pd-link-item:hover{background:var(--surface2)}
+.proj-type-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;background:var(--surface2);color:var(--text2)}
+.proj-status-pill{font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px}
+.proj-status-pill.on-track{background:#e6f4ea;color:#137333}
+.proj-status-pill.at-risk{background:#fef7e0;color:#e37400}
+.proj-status-pill.off-track{background:#fce8e6;color:#c5221f}
+.proj-status-pill.archived{background:#f1f3f4;color:#5f6368}
+.proj-progress-bar{height:6px;background:var(--surface2);border-radius:3px;overflow:hidden;margin-top:4px}
+.proj-progress-fill{height:100%;background:var(--ok);border-radius:3px;transition:width .3s}
 .proj-card{border:1px solid var(--border);border-radius:10px;padding:16px;background:var(--surface);cursor:pointer;transition:box-shadow .15s}
 .proj-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.08)}
 .proj-card-top{border-top:3px solid var(--brand);border-radius:10px 10px 0 0;margin:-16px -16px 12px;padding:14px 16px 0}
@@ -564,7 +594,7 @@ select.sd-val{appearance:auto;cursor:pointer}
     <div class="nav-section">
       <div class="nav-section-label">PROJECTS</div>
       <div class="nav-item" onclick="nav('projects')"><span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span><span class="label">Projects</span></div>
-      <div class="nav-item" onclick="nav('campaigns')"><span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg></span><span class="label">Campaigns</span></div>
+
     </div>
     <div class="nav-section">
       <div class="nav-section-label">MEDIA & CONTENT</div>
@@ -777,19 +807,76 @@ select.sd-val{appearance:auto;cursor:pointer}
       </div>
 
       <div id="view-projects" class="hidden">
-        <div class="flex items-center justify-between mb-16">
-          <span class="font-bold" style="font-size:16px">Projects</span>
-          <div style="display:flex;gap:6px;align-items:center">
-            <span id="projects-member-filter"></span>
-            <div style="display:flex;border:1px solid var(--border);border-radius:6px;overflow:hidden">
-              <button class="btn btn-sm" id="proj-view-cards" onclick="setProjView('cards')" style="border:0;border-radius:0;padding:4px 10px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></button>
-              <button class="btn btn-sm" id="proj-view-list" onclick="setProjView('list')" style="border:0;border-radius:0;padding:4px 10px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></button>
-            </div>
-            <button class="btn btn-primary" onclick="openItemDrawer('project','new')">+ Project</button>
+  <!-- Project List/Cards View -->
+  <div id="projects-list-view">
+    <div class="flex items-center justify-between mb-16">
+      <span class="font-bold" style="font-size:16px">Projects</span>
+      <div style="display:flex;gap:6px;align-items:center">
+        <select id="proj-type-filter" onchange="S._projTypeFilter=this.value;renderProjects()" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);font-size:12px">
+          <option value="">All Types</option>
+          <option>Campaign</option><option>Initiative</option><option>Program</option><option>One-off</option>
+        </select>
+        <select id="proj-status-filter" onchange="S._projStatusFilter=this.value;renderProjects()" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);font-size:12px">
+          <option value="">All Status</option>
+          <option value="active">Active</option><option value="archived">Archived</option>
+        </select>
+        <span id="projects-member-filter"></span>
+        <div style="display:flex;border:1px solid var(--border);border-radius:6px;overflow:hidden">
+          <button class="btn btn-sm proj-view-toggle" id="proj-view-cards" onclick="setProjView('cards')" style="border:0;border-radius:0;padding:4px 10px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></button>
+          <button class="btn btn-sm proj-view-toggle" id="proj-view-list" onclick="setProjView('list')" style="border:0;border-radius:0;padding:4px 10px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></button>
+        </div>
+        <button class="btn btn-primary" onclick="openItemDrawer('project','new')">+ Project</button>
+      </div>
+    </div>
+    <div id="projects-container"></div>
+  </div>
+
+  <!-- Project Detail Page (hidden by default) -->
+  <div id="project-detail-page" class="hidden">
+    <div style="margin-bottom:16px">
+      <button class="btn btn-secondary btn-sm" onclick="closeProjectDetail()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Back to Projects
+      </button>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <div style="display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap">
+        <div style="flex:1;min-width:200px">
+          <input id="pd-name" class="pd-inline-edit" placeholder="Project name" onblur="updateProjectField('name',this.value)" style="font-size:20px;font-weight:700;border:none;background:transparent;padding:0;width:100%">
+          <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;align-items:center">
+            <select id="pd-type" onchange="updateProjectField('type',this.value)" style="font-size:12px;padding:3px 8px;border-radius:6px;border:1px solid var(--border)">
+              <option value="">No Type</option><option>Campaign</option><option>Initiative</option><option>Program</option><option>One-off</option>
+            </select>
+            <select id="pd-status" onchange="updateProjectField('status',this.value)" style="font-size:12px;padding:3px 8px;border-radius:6px;border:1px solid var(--border)">
+              <option value="on-track">On Track</option><option value="at-risk">At Risk</option><option value="off-track">Off Track</option><option value="archived">Archived</option>
+            </select>
+            <select id="pd-owner" onchange="updateProjectField('owner',this.value)" style="font-size:12px;padding:3px 8px;border-radius:6px;border:1px solid var(--border)"></select>
+            <input id="pd-department" placeholder="Department" onblur="updateProjectField('department',this.value)" style="font-size:12px;padding:3px 8px;border-radius:6px;border:1px solid var(--border);width:120px">
+          </div>
+          <div style="display:flex;gap:10px;margin-top:8px;align-items:center">
+            <label style="margin:0;font-size:11px">Start</label>
+            <input type="date" id="pd-start" onchange="updateProjectField('startDate',this.value)" style="font-size:12px;padding:3px 8px;border-radius:6px;width:auto">
+            <label style="margin:0;font-size:11px">End</label>
+            <input type="date" id="pd-due" onchange="updateProjectField('dueDate',this.value)" style="font-size:12px;padding:3px 8px;border-radius:6px;width:auto">
           </div>
         </div>
-        <div id="projects-container"></div>
+        <div id="pd-progress-wrap" style="min-width:160px;text-align:right"></div>
       </div>
+    </div>
+
+    <!-- Tabs -->
+    <div style="display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:16px">
+      <button class="pd-tab active" onclick="switchPdTab('tasks',this)">Tasks</button>
+      <button class="pd-tab" onclick="switchPdTab('milestones',this)">Milestones</button>
+      <button class="pd-tab" onclick="switchPdTab('overview',this)">Overview</button>
+    </div>
+
+    <div id="pd-tab-tasks"></div>
+    <div id="pd-tab-milestones" class="hidden"></div>
+    <div id="pd-tab-overview" class="hidden"></div>
+  </div>
+</div>
 
       <!-- MEETING NOTES -->
       <div id="view-meetings" class="hidden">
@@ -2531,16 +2618,17 @@ async function markAllRead() {
 }
 
 // ===================== PROJECTS =====================
+// ===================== PROJECTS (REBUILT) =====================
 S._projView = S._projView || 'cards';
-S._projExpanded = S._projExpanded || {};
+S._projTypeFilter = '';
+S._projStatusFilter = '';
+S._projDetailId = null;
+S._projSections = [];
+S._projMilestones = [];
+S._projLinkSearch = false;
 
 function setProjView(v) {
   S._projView = v;
-  renderProjects();
-}
-
-function toggleProjExpand(id) {
-  S._projExpanded[id] = !S._projExpanded[id];
   renderProjects();
 }
 
@@ -2553,72 +2641,434 @@ function getProjectTasks(projId) {
   });
 }
 
-function projTaskRows(projId) {
+function _projFiltered() {
+  let list = (S.projects || []).slice();
+  if (S._projTypeFilter) list = list.filter(p => (p.type||'') === S._projTypeFilter);
+  if (S._projStatusFilter === 'active') list = list.filter(p => p.status !== 'archived');
+  else if (S._projStatusFilter === 'archived') list = list.filter(p => p.status === 'archived');
+  const mf = S._viewMemberFilter;
+  if (mf) list = list.filter(p => (p.owner||'') === mf);
+  return list;
+}
+
+function _projStatusClass(s) {
+  return {'on-track':'on-track','at-risk':'at-risk','off-track':'off-track','archived':'archived'}[s] || 'on-track';
+}
+
+function _projProgressHtml(projId, width) {
   const tasks = getProjectTasks(projId);
-  if (!tasks.length) return '<div class="text-sm text-muted" style="padding:8px 0">No tasks linked to this project</div>';
-  return `<div class="proj-expand-row header"><span>Task</span><span>Owner</span><span>Pri</span><span>Status</span><span>Due</span></div>` +
-    tasks.map(t => `<div class="proj-expand-row" onclick="event.stopPropagation();openTaskPanel('${t.id}')">
-      <span>${esc(t.title)}</span>
-      <span>${esc(t.owner||'')}</span>
-      <span>${t.priority||''}</span>
-      <span><span class="badge" style="font-size:11px">${t.status||''}</span></span>
-      <span>${t.due||'—'}</span>
-    </div>`).join('');
+  const total = tasks.length;
+  const done = tasks.filter(t => t.status === 'done').length;
+  const pct = total ? Math.round(done/total*100) : 0;
+  return `<div style="width:${width||'100%'}">
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-bottom:2px">
+      <span>${done}/${total} tasks</span><span>${pct}%</span>
+    </div>
+    <div class="proj-progress-bar"><div class="proj-progress-fill" style="width:${pct}%"></div></div>
+  </div>`;
 }
 
 function renderProjects() {
-  const mf=document.getElementById('projects-member-filter');if(mf)mf.innerHTML=memberFilterHtml();
+  // If detail page is showing, don't re-render list
+  if (S._projDetailId) return;
+
+  const mf = document.getElementById('projects-member-filter');
+  if (mf) mf.innerHTML = memberFilterHtml();
+
+  // Sync filter dropdowns
+  const tf = document.getElementById('proj-type-filter');
+  if (tf) tf.value = S._projTypeFilter || '';
+  const sf = document.getElementById('proj-status-filter');
+  if (sf) sf.value = S._projStatusFilter || '';
+
+  // Toggle active state on view buttons
+  const cb = document.getElementById('proj-view-cards');
+  const lb = document.getElementById('proj-view-list');
+  if (cb) { cb.classList.toggle('active', S._projView === 'cards'); }
+  if (lb) { lb.classList.toggle('active', S._projView === 'list'); }
+
   const container = document.getElementById('projects-container');
   if (!container) return;
 
-  // toggle active state
-  const cb = document.getElementById('proj-view-cards');
-  const lb = document.getElementById('proj-view-list');
-  if (cb) { cb.classList.toggle('proj-view-toggle', true); cb.classList.toggle('active', S._projView==='cards'); }
-  if (lb) { lb.classList.toggle('proj-view-toggle', true); lb.classList.toggle('active', S._projView==='list'); }
-
-  const projects = S.projects || [];
+  const projects = _projFiltered();
   if (!projects.length) {
-    container.innerHTML = '<div class="empty-state"><div class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div><p>No projects yet. Create one!</p></div>';
+    container.innerHTML = '<div class="empty-state"><div class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div><p>No projects match your filters.</p></div>';
     return;
   }
 
   if (S._projView === 'list') {
-    const chevron = (id) => `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transition:transform .2s;transform:rotate(${S._projExpanded[id]?'90':'0'}deg)"><polyline points="9 18 15 12 9 6"/></svg>`;
     container.innerHTML = `<div style="border:1px solid var(--border);border-radius:8px;overflow:hidden">
-      <div class="proj-list-row header"><span>Project</span><span>Owner</span><span>Status</span><span>Department</span><span>Tasks</span><span></span></div>
+      <div class="proj-list-row header"><span>Name</span><span>Type</span><span>Status</span><span>Owner</span><span>Dates</span><span>Progress</span></div>
       ${projects.map(p => {
-        const tc = getProjectTasks(p.id).length;
-        const exp = S._projExpanded[p.id];
-        return `<div class="proj-list-row" onclick="toggleProjExpand('${p.id}')" style="border-left:3px solid ${p.color||'var(--brand)'}">
-          <span style="font-weight:600;cursor:pointer" onclick="event.stopPropagation();showProjectModal('${p.id}')">${esc(p.name||p.title)}</span>
-          <span>${esc(p.owner||'—')}</span>
-          <span><span class="approval-pill ap-${p.status==='on-track'?'approved':p.status==='at-risk'?'pending':'rejected'}">${p.status||'—'}</span></span>
-          <span>${esc(p.department||'')}</span>
-          <span>${tc}</span>
-          <span>${chevron(p.id)}</span>
-        </div>${exp ? `<div style="padding:4px 16px 12px;background:var(--surface2)">${projTaskRows(p.id)}</div>` : ''}`;
+        const tasks = getProjectTasks(p.id);
+        const total = tasks.length;
+        const done = tasks.filter(t=>t.status==='done').length;
+        const pct = total ? Math.round(done/total*100) : 0;
+        const dates = [p.startDate, p.dueDate].filter(Boolean).join(' - ') || '';
+        return `<div class="proj-list-row" onclick="openProjectDetail('${p.id}')" style="border-left:3px solid ${p.color||'var(--brand)'}">
+          <span style="font-weight:600">${esc(p.name||p.title)}</span>
+          <span>${p.type ? '<span class="proj-type-badge">'+esc(p.type)+'</span>' : ''}</span>
+          <span><span class="proj-status-pill ${_projStatusClass(p.status)}">${p.status||'on-track'}</span></span>
+          <span style="display:flex;align-items:center;gap:4px">${avatarHtml(p.owner||'',18)} ${esc(p.owner||'')}</span>
+          <span style="font-size:11px;color:var(--text2)">${dates}</span>
+          <span style="font-size:11px">${done}/${total} (${pct}%)</span>
+        </div>`;
       }).join('')}
     </div>`;
   } else {
     container.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px">
       ${projects.map(p => {
-        const tc = getProjectTasks(p.id).length;
-        const exp = S._projExpanded[p.id];
-        return `<div class="proj-card" onclick="toggleProjExpand('${p.id}')">
+        const tasks = getProjectTasks(p.id);
+        const total = tasks.length;
+        const done = tasks.filter(t=>t.status==='done').length;
+        const pct = total ? Math.round(done/total*100) : 0;
+        const dates = [p.startDate, p.dueDate].filter(Boolean).join(' - ') || '';
+        return `<div class="proj-card" onclick="openProjectDetail('${p.id}')">
           <div class="proj-card-top" style="border-top-color:${p.color||'var(--brand)'}">
-            <div class="flex items-center gap-8">
-              <span class="font-bold">${esc(p.name||p.title)}</span>
-              <span class="approval-pill ap-${p.status==='on-track'?'approved':p.status==='at-risk'?'pending':'rejected'}" style="margin-left:auto">${p.status||'—'}</span>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-weight:700;flex:1">${esc(p.name||p.title)}</span>
+              <span class="proj-status-pill ${_projStatusClass(p.status)}">${p.status||'on-track'}</span>
             </div>
+            ${p.type ? '<div style="margin-top:6px"><span class="proj-type-badge">'+esc(p.type)+'</span></div>' : ''}
           </div>
-          <div class="text-sm text-muted mb-8">${esc(p.description||'')}</div>
-          <div class="text-xs text-muted">Owner: ${esc(p.owner||'—')} · ${p.department||''} · ${tc} task${tc!==1?'s':''}</div>
-          ${exp ? `<div class="proj-expand">${projTaskRows(p.id)}</div>` : ''}
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+            ${avatarHtml(p.owner||'',20)}
+            <span style="font-size:12px;font-weight:600">${esc(p.owner||'Unassigned')}</span>
+            <span style="font-size:11px;color:var(--text3);margin-left:auto">${esc(p.department||'')}</span>
+          </div>
+          ${dates ? '<div style="font-size:11px;color:var(--text2);margin-bottom:6px">'+dates+'</div>' : ''}
+          ${p.description ? '<div style="font-size:12px;color:var(--text2);margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">'+esc(p.description)+'</div>' : ''}
+          ${_projProgressHtml(p.id, '100%')}
         </div>`;
       }).join('')}
     </div>`;
   }
+}
+
+// ── Project Detail ──
+
+async function openProjectDetail(id) {
+  S._projDetailId = id;
+  document.getElementById('projects-list-view').classList.add('hidden');
+  document.getElementById('project-detail-page').classList.remove('hidden');
+
+  const p = (S.projects||[]).find(x => x.id === id);
+  if (!p) return;
+
+  // Populate header fields
+  document.getElementById('pd-name').value = p.name || p.title || '';
+  document.getElementById('pd-type').value = p.type || '';
+  document.getElementById('pd-status').value = p.status || 'on-track';
+  document.getElementById('pd-department').value = p.department || '';
+
+  // Owner dropdown
+  const ownerSel = document.getElementById('pd-owner');
+  ownerSel.innerHTML = '<option value="">Unassigned</option>' +
+    (S.team||[]).map(m => `<option value="${esc(m.name)}" ${m.name===p.owner?'selected':''}>${esc(m.name)}</option>`).join('');
+
+  document.getElementById('pd-start').value = p.startDate || '';
+  document.getElementById('pd-due').value = p.dueDate || '';
+
+  // Progress
+  document.getElementById('pd-progress-wrap').innerHTML = _projProgressHtml(id, '160px');
+
+  // Load sections and milestones
+  const [secRes, msRes] = await Promise.all([
+    api('getSections', {projectId: id}),
+    api('getMilestones', {projectId: id})
+  ]);
+  S._projSections = Array.isArray(secRes) ? secRes : [];
+  S._projMilestones = Array.isArray(msRes) ? msRes : [];
+
+  // Default to tasks tab
+  switchPdTab('tasks', document.querySelector('.pd-tab'));
+}
+
+function closeProjectDetail() {
+  S._projDetailId = null;
+  S._projSections = [];
+  S._projMilestones = [];
+  S._projLinkSearch = false;
+  document.getElementById('project-detail-page').classList.add('hidden');
+  document.getElementById('projects-list-view').classList.remove('hidden');
+  renderProjects();
+}
+
+function switchPdTab(tab, btn) {
+  document.querySelectorAll('.pd-tab').forEach(t => t.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  ['tasks','milestones','overview'].forEach(t => {
+    const el = document.getElementById('pd-tab-'+t);
+    if (el) el.classList.toggle('hidden', t !== tab);
+  });
+  if (tab === 'tasks') renderPdTasks();
+  if (tab === 'milestones') renderPdMilestones();
+  if (tab === 'overview') renderPdOverview();
+}
+
+function renderPdTasks() {
+  const id = S._projDetailId;
+  const el = document.getElementById('pd-tab-tasks');
+  if (!el || !id) return;
+
+  const allTasks = getProjectTasks(id);
+  const sections = S._projSections.sort((a,b) => (a.order||0)-(b.order||0));
+
+  // Group tasks by sectionId
+  const tasksBySection = {};
+  const unsectioned = [];
+  allTasks.forEach(t => {
+    const sid = t.sectionId || '';
+    if (sid && sections.find(s => s.id === sid)) {
+      (tasksBySection[sid] = tasksBySection[sid] || []).push(t);
+    } else {
+      unsectioned.push(t);
+    }
+  });
+
+  let html = '';
+
+  // Unsectioned tasks
+  if (unsectioned.length || !sections.length) {
+    html += _pdSectionHtml('', 'Unsectioned', unsectioned, id);
+  }
+
+  // Each section
+  sections.forEach(sec => {
+    html += _pdSectionHtml(sec.id, sec.name, tasksBySection[sec.id] || [], id);
+  });
+
+  // Add section button + link existing
+  html += `<div style="display:flex;gap:8px;margin-top:12px">
+    <button class="btn btn-secondary btn-sm" onclick="_promptAddSection()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Section
+    </button>
+    <button class="btn btn-secondary btn-sm" onclick="_toggleLinkSearch()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+      Link Existing Task
+    </button>
+  </div>`;
+
+  // Link search overlay
+  if (S._projLinkSearch) {
+    html += `<div class="pd-link-search" style="margin-top:8px">
+      <input type="text" id="pd-link-input" placeholder="Search tasks to link..." oninput="_filterLinkResults(this.value)" style="font-size:13px">
+      <div class="pd-link-results" id="pd-link-results"></div>
+    </div>`;
+  }
+
+  el.innerHTML = html;
+
+  if (S._projLinkSearch) {
+    const inp = document.getElementById('pd-link-input');
+    if (inp) { inp.focus(); _filterLinkResults(''); }
+  }
+}
+
+function _pdSectionHtml(sectionId, name, tasks, projectId) {
+  const taskRows = tasks.map(t => {
+    const isDone = t.status === 'done';
+    return `<div class="pd-task-row">
+      <div class="task-check ${isDone?'done':''}" onclick="event.stopPropagation();_pdToggleTask('${t.id}','${isDone?'todo':'done'}')">
+        ${isDone ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+      </div>
+      <span class="pd-task-title ${isDone?'done':''}" onclick="openTaskPanel('${t.id}')" style="${isDone?'text-decoration:line-through;color:var(--text2)':''}">${esc(t.title)}</span>
+      <span><span class="badge badge-${(t.priority||'p2').toLowerCase()}" style="font-size:10px">${t.priority||''}</span></span>
+      <span style="display:flex;align-items:center;gap:4px;font-size:12px">${avatarHtml(t.owner||'',16)} ${esc(t.owner||'')}</span>
+      <span class="due-${_dueClass(t.due)}" style="font-size:12px">${t.due||''}</span>
+    </div>`;
+  }).join('');
+
+  return `<div class="pd-section">
+    <div class="pd-section-hd">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      <span style="flex:1">${esc(name)}</span>
+      <span style="font-size:11px;font-weight:400;color:var(--text3)">${tasks.length} task${tasks.length!==1?'s':''}</span>
+    </div>
+    <div class="pd-section-body">
+      ${taskRows}
+      <div style="border-top:${tasks.length?'1px solid var(--border)':'none'}">
+        <input class="pd-add-input" placeholder="+ Add task" onkeydown="if(event.key==='Enter'&&this.value.trim()){addProjectTask('${projectId}','${sectionId}',this.value.trim());this.value=''}">
+      </div>
+    </div>
+  </div>`;
+}
+
+function _dueClass(due) {
+  if (!due) return 'normal';
+  const today = todayStr();
+  if (due < today) return 'overdue';
+  if (due === today) return 'today';
+  const soon = addDays(today, 3);
+  if (due <= soon) return 'soon';
+  return 'normal';
+}
+
+async function _pdToggleTask(taskId, newStatus) {
+  await api('updateTask', {}, {id: taskId, status: newStatus});
+  const t = (S.tasks||[]).find(x => x.id === taskId);
+  if (t) t.status = newStatus;
+  renderPdTasks();
+  document.getElementById('pd-progress-wrap').innerHTML = _projProgressHtml(S._projDetailId, '160px');
+}
+
+async function addProjectTask(projectId, sectionId, title) {
+  const p = (S.projects||[]).find(x => x.id === projectId);
+  const task = await api('createTask', {}, {
+    title,
+    projectIds: projectId,
+    sectionId: sectionId || '',
+    owner: '',
+    status: 'todo',
+    priority: 'P2',
+    department: p?.department || '',
+    source: 'ad-hoc'
+  });
+  if (task && task.id) {
+    S.tasks = S.tasks || [];
+    S.tasks.push(task);
+    await api('addTaskToProject', {}, {taskId: task.id, projectId, sectionId: sectionId || ''});
+  }
+  renderPdTasks();
+  document.getElementById('pd-progress-wrap').innerHTML = _projProgressHtml(projectId, '160px');
+}
+
+async function linkTaskToProject(taskId, projectId) {
+  await api('addTaskToProject', {}, {taskId, projectId});
+  // Update local task data
+  const t = (S.tasks||[]).find(x => x.id === taskId);
+  if (t) {
+    const existing = t.projectIds || t.projectId || '';
+    const ids = String(existing).split(',').map(s=>s.trim()).filter(Boolean);
+    if (!ids.includes(projectId)) ids.push(projectId);
+    t.projectIds = ids.join(',');
+    await api('updateTask', {}, {id: taskId, projectIds: t.projectIds});
+  }
+  S._projLinkSearch = false;
+  renderPdTasks();
+  document.getElementById('pd-progress-wrap').innerHTML = _projProgressHtml(projectId, '160px');
+}
+
+function _toggleLinkSearch() {
+  S._projLinkSearch = !S._projLinkSearch;
+  renderPdTasks();
+}
+
+function _filterLinkResults(q) {
+  const el = document.getElementById('pd-link-results');
+  if (!el) return;
+  const projectId = S._projDetailId;
+  const linked = getProjectTasks(projectId).map(t => t.id);
+  let candidates = (S.tasks||[]).filter(t => !linked.includes(t.id) && t.status !== 'done');
+  if (q) {
+    const lq = q.toLowerCase();
+    candidates = candidates.filter(t => (t.title||'').toLowerCase().includes(lq) || (t.owner||'').toLowerCase().includes(lq));
+  }
+  candidates = candidates.slice(0, 15);
+  el.innerHTML = candidates.length ?
+    candidates.map(t => `<div class="pd-link-item" onclick="linkTaskToProject('${t.id}','${projectId}')">
+      <span style="font-weight:600">${esc(t.title)}</span>
+      <span style="font-size:11px;color:var(--text2);margin-left:8px">${esc(t.owner||'')} ${t.priority||''}</span>
+    </div>`).join('') :
+    '<div style="padding:12px;color:var(--text3);font-size:13px">No matching tasks</div>';
+}
+
+async function _promptAddSection() {
+  const name = prompt('Section name:');
+  if (!name) return;
+  await addProjectSection(S._projDetailId, name);
+}
+
+async function addProjectSection(projectId, name) {
+  const order = S._projSections.length;
+  const res = await api('createSection', {}, {projectId, name, order});
+  if (res && res.id) S._projSections.push(res);
+  renderPdTasks();
+}
+
+// ── Milestones Tab ──
+
+function renderPdMilestones() {
+  const el = document.getElementById('pd-tab-milestones');
+  if (!el) return;
+
+  const milestones = S._projMilestones.sort((a,b) => (a.due||'').localeCompare(b.due||''));
+
+  let html = '<div style="border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden">';
+  if (milestones.length) {
+    html += milestones.map(m => {
+      const isDone = m.done === true || m.done === 'true' || m.done === 'TRUE';
+      return `<div class="pd-milestone-row">
+        <div class="task-check ${isDone?'done':''}" onclick="toggleMilestone('${m.id}',${isDone?'false':'true'})">
+          ${isDone ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+        </div>
+        <span style="${isDone?'text-decoration:line-through;color:var(--text2)':''}">${esc(m.title)}</span>
+        <span style="font-size:12px;color:var(--text2)">${m.due||'No date'}</span>
+      </div>`;
+    }).join('');
+  } else {
+    html += '<div style="padding:20px;text-align:center;color:var(--text3)">No milestones yet</div>';
+  }
+  html += '</div>';
+
+  // Add milestone input
+  html += `<div style="display:flex;gap:8px;margin-top:12px;align-items:center">
+    <input id="pd-ms-title" placeholder="Milestone title" style="flex:1;font-size:13px;padding:6px 10px">
+    <input type="date" id="pd-ms-due" style="width:auto;font-size:13px;padding:6px 10px">
+    <button class="btn btn-secondary btn-sm" onclick="_addMilestone()">+ Milestone</button>
+  </div>`;
+
+  el.innerHTML = html;
+}
+
+async function _addMilestone() {
+  const title = document.getElementById('pd-ms-title')?.value?.trim();
+  const due = document.getElementById('pd-ms-due')?.value || '';
+  if (!title) return;
+  await addProjectMilestone(S._projDetailId, title, due);
+}
+
+async function addProjectMilestone(projectId, title, due) {
+  const res = await api('createMilestone', {}, {projectId, title, due, done: false});
+  if (res && res.id) S._projMilestones.push(res);
+  renderPdMilestones();
+}
+
+async function toggleMilestone(id, done) {
+  await api('updateMilestone', {}, {id, done: String(done)});
+  const m = S._projMilestones.find(x => x.id === id);
+  if (m) m.done = String(done);
+  renderPdMilestones();
+}
+
+// ── Overview Tab ──
+
+function renderPdOverview() {
+  const el = document.getElementById('pd-tab-overview');
+  if (!el) return;
+  const p = (S.projects||[]).find(x => x.id === S._projDetailId);
+  if (!p) return;
+
+  el.innerHTML = `<div class="card">
+    <div class="form-row">
+      <label>Description</label>
+      <textarea id="pd-desc" style="min-height:120px" onblur="updateProjectField('description',this.value)">${esc(p.description||'')}</textarea>
+    </div>
+    <div style="font-size:12px;color:var(--text3);margin-top:12px">
+      Created: ${p.created||'—'} &nbsp;&middot;&nbsp; Updated: ${p.updated||'—'} &nbsp;&middot;&nbsp; ID: ${p.id}
+    </div>
+  </div>`;
+}
+
+// ── Update Project Field ──
+
+async function updateProjectField(field, value) {
+  const id = S._projDetailId;
+  if (!id) return;
+  const p = (S.projects||[]).find(x => x.id === id);
+  if (p) p[field] = value;
+  await api('updateProject', {}, {id, [field]: value});
 }
 
 // ===================== MEETING NOTES =====================
@@ -5358,6 +5808,7 @@ const ID_CONFIGS = {
     apiCreate:'createProject', apiUpdate:'updateProject', apiDelete:'deleteProject',
     idPrefix:'P', fields:[
       {key:'name',label:'Project Name',type:'text',required:true,full:true},
+      {key:'type',label:'Type',type:'select',options:['Campaign','Initiative','Program','One-off']},
       {key:'description',label:'Description',type:'textarea'},
       {key:'owner',label:'Owner',type:'member'},{key:'status',label:'Status',type:'select',options:['on-track','at-risk','off-track']},
       {key:'startDate',label:'Start Date',type:'date'},{key:'dueDate',label:'End Date',type:'date'},
