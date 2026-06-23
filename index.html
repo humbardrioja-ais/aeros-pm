@@ -403,6 +403,14 @@ label{font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bot
   <div class="list-col-hd" onclick="listSort('due')" id="lhd-due">Due <span class="sort-arrow" id="lsa-due"></span></div>
   <div class="list-col-hd" onclick="listSort('department')" id="lhd-dept">Team <span class="sort-arrow" id="lsa-dept"></span></div>
 </div>
+
+.ts-view-btn.active{background:var(--brand);color:#fff}
+.ts-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);border:1px solid var(--border)}
+.ts-cal-cell{background:var(--surface);padding:4px;min-height:80px;vertical-align:top}
+.ts-cal-cell.weekend{background:var(--surface2)}
+.ts-cal-cell.today{outline:2px solid var(--brand);outline-offset:-2px}
+.ts-cal-hdr{background:var(--surface2);padding:4px;text-align:center;font-size:10px;font-weight:700;color:var(--text3)}
+.ts-pill{display:flex;align-items:center;gap:3px;border-radius:4px;padding:2px 6px;margin-bottom:2px;font-size:10px;font-weight:600;color:#fff;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media(max-width:768px){
   #view-calendar div[style*="grid-template-columns:1fr 220px"]{grid-template-columns:1fr!important}
   #view-meetings>div[style*="grid-template-columns:280px"]{grid-template-columns:1fr!important}
@@ -996,6 +1004,11 @@ select.sd-val{appearance:auto;cursor:pointer}
         <div id="media-team-schedule" class="hidden">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
             <span class="font-bold" style="margin-right:auto">Team Schedule</span>
+            <div style="display:flex;border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-right:8px">
+              <button class="btn btn-sm ts-view-btn" id="ts-view-grid" onclick="setTsView('grid')" style="border:0;border-radius:0;padding:4px 10px" title="Grid"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></button>
+              <button class="btn btn-sm ts-view-btn" id="ts-view-list" onclick="setTsView('list')" style="border:0;border-radius:0;padding:4px 10px" title="List"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></button>
+              <button class="btn btn-sm ts-view-btn" id="ts-view-cal" onclick="setTsView('cal')" style="border:0;border-radius:0;padding:4px 10px" title="Calendar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></button>
+            </div>
             <button class="btn btn-secondary btn-sm" onclick="teamScheduleShift(-1)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
             <span id="team-schedule-month" style="font-weight:600;font-size:14px"></span>
             <button class="btn btn-secondary btn-sm" onclick="teamScheduleShift(1)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></button>
@@ -1005,6 +1018,8 @@ select.sd-val{appearance:auto;cursor:pointer}
           </div>
           <div id="ts-layer-chips" style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px"></div>
           <div id="team-schedule-grid" style="overflow-x:auto"></div>
+          <div id="team-schedule-list" class="hidden"></div>
+          <div id="team-schedule-cal" class="hidden"></div>
           <div id="ts-summary" style="margin-top:8px;font-size:12px;color:var(--text2)"></div>
         </div>
         <div id="media-shoots" class="hidden">
@@ -6180,6 +6195,10 @@ function teamScheduleShift(dir) {
 }
 
 function renderTeamSchedule() {
+  // Set active view button
+  ['grid','list','cal'].forEach(k=>{const btn=document.getElementById('ts-view-'+k);if(btn)btn.classList.toggle('active',k===S._tsView);});
+  if(S._tsView==='list'){renderTsList();return;}
+  if(S._tsView==='cal'){renderTsCal();return;}
   const w = document.getElementById('team-schedule-grid');
   const label = document.getElementById('team-schedule-month');
   const summary = document.getElementById('ts-summary');
@@ -6712,6 +6731,178 @@ function removeTag(idx) {
   t.tags = tags;
   savePanelField('tags', tags.join(','));
   renderTags();
+}
+
+S._tsView = S._tsView || 'grid';
+
+function setTsView(v) {
+  S._tsView = v;
+  ['grid','list','cal'].forEach(k => {
+    const el = document.getElementById('team-schedule-'+k);
+    if (el) el.classList.toggle('hidden', k !== v);
+    const btn = document.getElementById('ts-view-'+k);
+    if (btn) btn.classList.toggle('active', k === v);
+  });
+  if (v === 'grid') renderTeamSchedule();
+  else if (v === 'list') renderTsList();
+  else if (v === 'cal') renderTsCal();
+}
+
+function renderTsList() {
+  const w = document.getElementById('team-schedule-list');
+  if (!w) return;
+  loadTsColors(); loadTsToggles();
+  const y = S._tsYear, m = S._tsMonth;
+  const cols = S.tsColors;
+  
+  // Collect all items for this month
+  const monthStart = `${y}-${String(m+1).padStart(2,'0')}-01`;
+  const daysInMonth = new Date(y, m+1, 0).getDate();
+  const monthEnd = `${y}-${String(m+1).padStart(2,'0')}-${daysInMonth}`;
+  let items = [];
+  
+  if (S.tsLayers.content !== false) {
+    (S.contentItems||[]).forEach(ct => {
+      const d = ct.scheduledDate || ct.postDate;
+      if (d >= monthStart && d <= monthEnd) items.push({date:d, type:'content', label:ct.title||'Content', who:ct.assigned||ct.cameraman||'', status:ct.status||'', item:ct});
+    });
+  }
+  if (S.tsLayers.shoot !== false) {
+    (S.shoots||[]).forEach(s => {
+      const d = s.scheduledDate || s.date;
+      if (d >= monthStart && d <= monthEnd) items.push({date:d, type:'shoot', label:s.title||'Shoot', who:s.director||s.videographer||'', status:s.status||'', item:s});
+    });
+  }
+  if (S.tsLayers.mission !== false) {
+    (S.missions||[]).forEach(ms => {
+      if (ms.date >= monthStart && ms.date <= monthEnd) items.push({date:ms.date, type:'mission', label:(ms.memberName||ms.employee||'')+' — Mission', who:ms.memberName||ms.employee||'', status:ms.status||'pending', item:ms});
+    });
+  }
+  if (S.tsLayers.leave !== false) {
+    (S.leaves||[]).forEach(l => {
+      const d = l.startDate || l.from_date;
+      if (d && d >= monthStart && d <= monthEnd) items.push({date:d, type:'leave', label:(l.memberName||l.employee||'')+' — '+(l.leaveType||l.leave_type||'Leave'), who:l.memberName||l.employee||'', status:l.status||'pending', item:l});
+    });
+  }
+  if (S.tsLayers.dayoff !== false) {
+    (S.cdoRedemptions||[]).forEach(r => {
+      if (r.date >= monthStart && r.date <= monthEnd) items.push({date:r.date, type:'dayoff', label:(r.memberName||r.employee||'')+' — Day Off', who:r.memberName||r.employee||'', status:r.status||'pending', item:r});
+    });
+  }
+  
+  items.sort((a,b) => a.date.localeCompare(b.date));
+  
+  if (!items.length) {
+    w.innerHTML = '<div style="color:var(--text3);padding:32px;text-align:center">No items this month</div>';
+    return;
+  }
+  
+  // Group by date
+  const groups = {};
+  items.forEach(i => { if (!groups[i.date]) groups[i.date] = []; groups[i.date].push(i); });
+  
+  let html = '';
+  Object.entries(groups).forEach(([date, dayItems]) => {
+    const d = new Date(date+'T00:00:00');
+    const dayName = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()];
+    html += `<div style="margin-bottom:12px">
+      <div style="font-size:12px;font-weight:700;color:var(--text2);padding:4px 0;border-bottom:1px solid var(--border);margin-bottom:4px">${dayName}, ${date}</div>
+      ${dayItems.map(i => {
+        const color = cols[i.type]||'#888';
+        const drawerType = {content:'content',shoot:'shoot',mission:'mission',leave:'leave',dayoff:'cdo'}[i.type];
+        const statusPill = i.status === 'approved' ? '<span style="color:#137333;font-size:10px;margin-left:auto">Approved</span>' : 
+                          i.status === 'pending' ? '<span style="color:#e37400;font-size:10px;margin-left:auto">Pending</span>' :
+                          i.status === 'Published' ? '<span style="color:#137333;font-size:10px;margin-left:auto">Published</span>' : 
+                          `<span style="font-size:10px;color:var(--text3);margin-left:auto">${esc(i.status)}</span>`;
+        return `<div onclick="openItemDrawer('${drawerType}','${i.item.id||''}')" style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:6px;cursor:pointer;margin-bottom:2px" onmouseenter="this.style.background='var(--surface2)'" onmouseleave="this.style.background=''">
+          <div style="width:6px;height:24px;border-radius:3px;background:${color};flex-shrink:0"></div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(i.label)}</div>
+            <div style="font-size:11px;color:var(--text3)">${esc(i.who)}</div>
+          </div>
+          ${statusPill}
+        </div>`;
+      }).join('')}
+    </div>`;
+  });
+  
+  w.innerHTML = html;
+}
+
+function renderTsCal() {
+  const w = document.getElementById('team-schedule-cal');
+  if (!w) return;
+  loadTsColors(); loadTsToggles();
+  const y = S._tsYear, m = S._tsMonth;
+  const cols = S.tsColors;
+  const today = todayStr();
+  const firstDay = new Date(y, m, 1).getDay();
+  const daysInMonth = new Date(y, m+1, 0).getDate();
+  
+  // Collect all items indexed by date
+  const byDate = {};
+  function addToDate(ds, type, item, label, who) {
+    if (S.tsLayers[type] === false) return;
+    if (!byDate[ds]) byDate[ds] = [];
+    byDate[ds].push({type, item, label, who});
+  }
+  
+  (S.contentItems||[]).forEach(ct => {
+    const d = ct.scheduledDate || ct.postDate;
+    if (d) addToDate(d, 'content', ct, ct.title||'Content', ct.assigned||'');
+  });
+  (S.shoots||[]).forEach(s => {
+    const d = s.scheduledDate || s.date;
+    if (d) addToDate(d, 'shoot', s, s.title||'Shoot', s.director||s.videographer||'');
+  });
+  (S.missions||[]).forEach(ms => {
+    if (ms.date) addToDate(ms.date, 'mission', ms, ms.memberName||ms.employee||'', 'Mission');
+  });
+  (S.leaves||[]).forEach(l => {
+    const start = l.startDate || l.from_date;
+    const end = l.endDate || l.to_date || start;
+    if (!start || l.status==='rejected') return;
+    let d = new Date(start+'T00:00:00');
+    const endD = new Date(end+'T00:00:00');
+    while (d <= endD) { addToDate(_localDateStr(d), 'leave', l, l.memberName||l.employee||'', l.leaveType||l.leave_type||'Leave'); d.setDate(d.getDate()+1); }
+  });
+  (S.cdoRedemptions||[]).forEach(r => {
+    if (r.date && r.status!=='rejected') addToDate(r.date, 'dayoff', r, r.memberName||r.employee||'', 'Day Off');
+  });
+  
+  // Build calendar grid
+  let html = '<div class="ts-cal-grid">';
+  ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d => { html += `<div class="ts-cal-hdr">${d}</div>`; });
+  
+  // Padding cells before month starts
+  for (let i = 0; i < firstDay; i++) html += '<div class="ts-cal-cell weekend" style="background:var(--surface2)"></div>';
+  
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dow = new Date(ds+'T00:00:00').getDay();
+    const isWE = dow === 0 || dow === 6;
+    const isToday = ds === today;
+    const items = byDate[ds] || [];
+    
+    let pills = items.map(({type, item, label, who}) => {
+      const color = cols[type]||'#888';
+      const drawerType = {content:'content',shoot:'shoot',mission:'mission',leave:'leave',dayoff:'cdo'}[type];
+      return `<div class="ts-pill" onclick="event.stopPropagation();openItemDrawer('${drawerType}','${item.id||''}')" style="background:${color}">${esc(label)}</div>`;
+    }).join('');
+    
+    html += `<div class="ts-cal-cell${isWE?' weekend':''}${isToday?' today':''}" onclick="tsQuickAdd('','${ds}')">
+      <div style="font-size:11px;font-weight:600;color:${isToday?'var(--brand)':'var(--text2)'};margin-bottom:2px">${d}</div>
+      ${pills}
+    </div>`;
+  }
+  
+  // Padding cells after month ends
+  const totalCells = firstDay + daysInMonth;
+  const trail = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+  for (let i = 0; i < trail; i++) html += '<div class="ts-cal-cell" style="background:var(--surface2)"></div>';
+  
+  html += '</div>';
+  w.innerHTML = html;
 }
 
 </script>
