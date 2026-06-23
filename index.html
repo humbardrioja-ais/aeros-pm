@@ -4322,10 +4322,10 @@ function calShowMore(ds) {
     ...websites.map(wp=>({item:{...wp,owner:wp.lead||''},type:'website',fn:`closeModal();openItemDrawer('website','${wp.id}')`})),
     ...meetings.map(mt=>({item:{...mt,owner:''},type:'meeting',fn:`closeModal();openMeeting('${mt.id}')`})),
     ...shoots.map(s=>({item:{...s,title:s.title||'Shoot',owner:s.photographer||''},type:'shoot',fn:`closeModal();openItemDrawer('shoot','${s.id}')`})),
-    ...missions.map(ms=>({item:{...ms,title:`${ms.employee||''} — mission`},type:'mission',fn:''})),
-    ...leaves.map(l=>({item:{...l,title:`${l.employee||''} — ${l.type||'leave'}`},type:'leave',fn:''})),
+    ...missions.map(ms=>({item:{...ms,title:`${ms.memberName||ms.employee||''} — mission`},type:'mission',fn:`closeModal();openItemDrawer('mission','${ms.id}')`})),
+    ...leaves.map(l=>({item:{...l,title:`${l.memberName||l.employee||''} — ${l.leaveType||l.leave_type||'leave'}`},type:'leave',fn:`closeModal();openItemDrawer('leave','${l.id}')`})),
     ...events.map(e=>({item:e,type:'event',fn:`closeModal();openItemDrawer('event','${e.id}')`})),
-    ...feedEvts.map(e=>({item:e,type:'ical',fn:''}))
+    ...feedEvts.map(e=>({item:e,type:'ical',fn:`closeModal();showFeedEventModal('${e.id||''}')`}))
   ];
   const rows=allItems.map(({item,type,fn})=>calPillHtml(item,type,fn?`${fn}`:'')).join('');
   showModal(`<div class="modal-header">All items — ${ds}</div><div class="modal-body" style="padding:8px">${rows||'<div class="text-sm text-muted">No items</div>'}</div><div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal()">Close</button></div>`);
@@ -5207,13 +5207,23 @@ function _buildDayCell(ds,d,isToday){
     ...websites.map(wp=>({item:{...wp,owner:wp.lead||''},type:'website',fn:`openItemDrawer('website','${wp.id}')`})),
     ...meetings.map(mt=>({item:{...mt,owner:''},type:'meeting',fn:`openMeeting('${mt.id}')`})),
     ...shoots.map(s=>({item:{...s,title:s.title||'Shoot',owner:s.photographer||''},type:'shoot',fn:`openItemDrawer('shoot','${s.id}')`})),
-    ...missions.map(ms=>({item:{...ms,title:`${ms.employee||''} — mission`},type:'mission',fn:''})),
-    ...leaves.map(l=>({item:{...l,title:`${l.employee||''} — ${l.type||'leave'}`},type:'leave',fn:''})),
+    ...missions.map(ms=>({item:{...ms,title:`${ms.memberName||ms.employee||''} — mission`},type:'mission',fn:`openItemDrawer('mission','${ms.id}')`})),
+    ...leaves.map(l=>({item:{...l,title:`${l.memberName||l.employee||''} — ${l.leaveType||l.leave_type||'leave'}`},type:'leave',fn:`openItemDrawer('leave','${l.id}')`})),
     ...events.map(e=>({item:e,type:'event',fn:`openItemDrawer('event','${e.id}')`})),
     ...active.map(t=>({item:t,type:'task',fn:`openTaskPanel('${t.id}')`})),
     ...done.map(t=>({item:t,type:'task',fn:`openTaskPanel('${t.id}')`})),
-    ...feedEvts.map(e=>({item:e,type:'ical',fn:''}))
+    ...feedEvts.map(e=>({item:e,type:'ical',fn:`showFeedEventModal('${e.id||''}')`}))
   ];
+
+  // Sort: items with time first (sorted by time), then items without time
+  allItems.sort((a,b)=>{
+    const at=a.item.time||a.item.startTime||'';
+    const bt=b.item.time||b.item.startTime||'';
+    if(at&&!bt)return -1;
+    if(!at&&bt)return 1;
+    if(at&&bt)return at.localeCompare(bt);
+    return 0;
+  });
 
   let pills=allItems.map(({item,type,fn})=>calPillHtml(item,type,fn)).join('');
 
@@ -6903,6 +6913,35 @@ function renderTsCal() {
   
   html += '</div>';
   w.innerHTML = html;
+}
+
+function showFeedEventModal(eventId) {
+  const e = (S.feedEvents||[]).find(x => x.id === eventId);
+  if (!e) return;
+  const feed = (S.feeds||[]).find(f => f.id === e._feedId) || {};
+  showModal(`<div style="padding:1.5rem;min-width:340px">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <span style="font-size:11px;padding:2px 8px;border-radius:4px;background:${feed.color||'#888'};color:#fff;font-weight:600">${esc(feed.name||'iCal')}</span>
+    </div>
+    <h3 style="margin:0 0 8px;font-size:17px">${esc(e.title)}</h3>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        ${e.date}${e.end_date&&e.end_date!==e.date?' → '+e.end_date:''}
+      </div>
+      ${e.time?`<div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        ${e.time}${e.end_time?' – '+e.end_time:''}
+      </div>`:''}
+      ${e.location?`<div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        ${esc(e.location)}
+      </div>`:''}
+    </div>
+    ${e.description?`<div style="font-size:13px;color:var(--text);white-space:pre-wrap;max-height:200px;overflow-y:auto;padding:10px;background:var(--surface2);border-radius:6px">${esc(e.description)}</div>`:''}
+    <div style="margin-top:16px;text-align:right"><button class="btn btn-secondary" onclick="closeModal()">Close</button></div>
+  </div>`);
 }
 
 </script>
