@@ -620,12 +620,7 @@ select.sd-val{appearance:auto;cursor:pointer}
       <div class="nav-item" onclick="nav('seo')"><span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><span class="label">SEO</span></div>
       <div class="nav-item" onclick="nav('website')"><span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></span><span class="label">Website</span></div>
     </div>
-    <div class="nav-section">
-      <div class="nav-section-label">HR</div>
-      <div class="nav-item" onclick="nav('missions')"><span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg></span><span class="label">Missions</span></div>
-      <div class="nav-item" onclick="nav('cdo')"><span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.28"/></svg></span><span class="label">Change Day Off</span></div>
-      <div class="nav-item" onclick="nav('leave')"><span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/></svg></span><span class="label">Leave</span></div>
-    </div>
+    
     <div class="nav-section">
       <div class="nav-section-label">SETTINGS</div>
       <div class="nav-item" onclick="nav('team')"><span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><span class="label">Team</span></div>
@@ -999,15 +994,18 @@ select.sd-val{appearance:auto;cursor:pointer}
           <div id="content-list"></div>
         </div>
         <div id="media-team-schedule" class="hidden">
-          <div class="flex items-center justify-between mb-12">
-            <span class="font-bold">Team Schedule</span>
-            <div style="display:flex;gap:6px;align-items:center">
-              <button class="btn btn-secondary btn-sm" onclick="teamScheduleShift(-1)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
-              <span id="team-schedule-month" style="font-weight:600;font-size:14px"></span>
-              <button class="btn btn-secondary btn-sm" onclick="teamScheduleShift(1)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></button>
-            </div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+            <span class="font-bold" style="margin-right:auto">Team Schedule</span>
+            <button class="btn btn-secondary btn-sm" onclick="teamScheduleShift(-1)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
+            <span id="team-schedule-month" style="font-weight:600;font-size:14px"></span>
+            <button class="btn btn-secondary btn-sm" onclick="teamScheduleShift(1)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></button>
+            <button class="btn btn-secondary btn-sm" onclick="openItemDrawer('mission','new')">+ Mission</button>
+            <button class="btn btn-secondary btn-sm" onclick="openItemDrawer('leave','new')">+ Leave</button>
+            <button class="btn btn-secondary btn-sm" onclick="openItemDrawer('cdo','new')">+ Day Off</button>
           </div>
+          <div id="ts-layer-chips" style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px"></div>
           <div id="team-schedule-grid" style="overflow-x:auto"></div>
+          <div id="ts-summary" style="margin-top:8px;font-size:12px;color:var(--text2)"></div>
         </div>
         <div id="media-shoots" class="hidden">
           <div class="flex items-center justify-between mb-12">
@@ -6122,8 +6120,57 @@ function renderContentProduction() {
 /* ===================== TEAM SCHEDULE ===================== */
 S._tsYear = S._tsYear || new Date().getFullYear();
 S._tsMonth = S._tsMonth || new Date().getMonth();
-const _TS_MON = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-const _TS_COLORS = {shoot:'#e3f2fd',mission:'#e8f5e9',leave:'#fce4ec',dayoff:'#fff3e0'};
+
+const TS_LAYERS = [
+  {key:'content',label:'Content'},{key:'shoot',label:'Shoots'},
+  {key:'mission',label:'Missions'},{key:'leave',label:'Leave'},
+  {key:'dayoff',label:'Day Off'}
+];
+
+function loadTsColors() {
+  const stored = localStorage.getItem('aeros_ts_colors');
+  const defaults = {content:'#ef6c00',shoot:'#1565c0',mission:'#2e7d32',leave:'#c62828',dayoff:'#e65100'};
+  S.tsColors = stored ? Object.assign({},defaults,JSON.parse(stored)) : defaults;
+}
+function loadTsToggles() { S.tsLayers = JSON.parse(localStorage.getItem('ts_layers')||'{}'); }
+
+function toggleTsLayer(key) {
+  S.tsLayers[key] = S.tsLayers[key]===false?true:false;
+  localStorage.setItem('ts_layers',JSON.stringify(S.tsLayers));
+  renderTsChips(); renderTeamSchedule();
+}
+
+function renderTsChips() {
+  const w = document.getElementById('ts-layer-chips'); if (!w) return;
+  loadTsColors(); loadTsToggles();
+  const isAdmin = S.myRole === 'admin';
+  w.innerHTML = TS_LAYERS.map(({key,label}) => {
+    const on = S.tsLayers[key] !== false;
+    const hex = S.tsColors[key] || '#888';
+    return `<button onclick="toggleTsLayer('${key}')" style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid ${on?'transparent':'var(--border)'};background:${on?hex:'var(--surface)'};color:${on?'#fff':'var(--text2)'};cursor:pointer;display:flex;align-items:center;gap:4px">
+      ${on?'':`<span style="width:8px;height:8px;border-radius:50%;background:${hex};flex-shrink:0"></span>`}${label}
+    </button>`;
+  }).join('') + (isAdmin ? `<button onclick="showTsColorEditor()" style="padding:3px 8px;border-radius:20px;font-size:11px;border:1px solid var(--border);background:var(--surface);cursor:pointer;display:flex;align-items:center" title="Edit colors"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg></button>` : '');
+}
+
+function showTsColorEditor() {
+  if (S.myRole !== 'admin') { toast('Only admin'); return; }
+  loadTsColors();
+  showModal(`<div style="padding:1.5rem;min-width:300px">
+    <h3 style="margin:0 0 1rem">Team Schedule Colors</h3>
+    ${TS_LAYERS.map(({key,label}) => {
+      const hex = S.tsColors[key]||'#888';
+      return `<div style="display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:.5px solid var(--border)">
+        <div style="width:28px;height:18px;border-radius:4px;background:${hex};border:.5px solid rgba(0,0,0,.1);position:relative;overflow:hidden"><input type="color" value="${hex}" oninput="S.tsColors['${key}']=this.value;renderTsChips()" style="position:absolute;inset:-4px;width:calc(100%+8px);height:calc(100%+8px);opacity:0;cursor:pointer"></div>
+        <span style="font-size:13px">${label}</span>
+      </div>`;
+    }).join('')}
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="localStorage.setItem('aeros_ts_colors',JSON.stringify(S.tsColors));closeModal();renderTeamSchedule();toast('Colors saved')">Save</button>
+    </div>
+  </div>`);
+}
 
 function teamScheduleShift(dir) {
   S._tsMonth += dir;
@@ -6135,81 +6182,117 @@ function teamScheduleShift(dir) {
 function renderTeamSchedule() {
   const w = document.getElementById('team-schedule-grid');
   const label = document.getElementById('team-schedule-month');
+  const summary = document.getElementById('ts-summary');
   if (!w || !label) return;
+  loadTsColors(); loadTsToggles();
+  renderTsChips();
   const y = S._tsYear, m = S._tsMonth;
-  label.textContent = `${_TS_MON[m]} ${y}`;
+  label.textContent = `${_MON[m]} ${y}`;
+  const today = todayStr();
   
   const members = (S.team||[]).map(t => t.name).filter(Boolean);
   const daysInMonth = new Date(y, m+1, 0).getDate();
   
-  // Build lookup maps
-  const shootsByMemberDate = {};
-  const missionsByMemberDate = {};
-  const leavesByMemberDate = {};
-  const cdoByMemberDate = {};
+  // Build lookup maps — each stores array of items per person+date
+  const dataByKey = {};
+  function addItem(who, ds, type, item) {
+    if (S.tsLayers[type] === false) return;
+    const k = who+'|'+ds;
+    if (!dataByKey[k]) dataByKey[k] = [];
+    dataByKey[k].push({type, item});
+  }
+  
+  (S.contentItems||[]).forEach(ct => {
+    const who = ct.assigned || ct.cameraman || '';
+    const d = ct.scheduledDate || ct.postDate;
+    if (who && d) addItem(who, d, 'content', ct);
+  });
   
   (S.shoots||[]).forEach(s => {
     const d = s.scheduledDate || s.date;
-    const who = s.director || s.videographer || s.assigned || '';
-    if (d && who) { const k = who+'|'+d; shootsByMemberDate[k] = (shootsByMemberDate[k]||0)+1; }
+    [s.director, s.videographer, s.assigned].filter(Boolean).forEach(who => { if (d) addItem(who, d, 'shoot', s); });
   });
   
   (S.missions||[]).forEach(ms => {
     const who = ms.memberName || ms.employee || '';
-    if (ms.date && who) { const k = who+'|'+ms.date; missionsByMemberDate[k] = ms; }
+    if (ms.date && who) addItem(who, ms.date, 'mission', ms);
   });
   
   (S.leaves||[]).forEach(l => {
     const who = l.memberName || l.employee || '';
     const start = l.startDate || l.from_date;
     const end = l.endDate || l.to_date || start;
-    if (!start || !who) return;
+    if (!start || !who || l.status === 'rejected') return;
     let d = new Date(start+'T00:00:00');
     const endD = new Date(end+'T00:00:00');
-    while (d <= endD) {
-      const ds = _localDateStr(d);
-      leavesByMemberDate[who+'|'+ds] = l;
-      d.setDate(d.getDate()+1);
-    }
+    while (d <= endD) { addItem(who, _localDateStr(d), 'leave', l); d.setDate(d.getDate()+1); }
   });
   
   (S.cdoRedemptions||[]).forEach(r => {
     const who = r.memberName || r.employee || '';
-    if (r.date && who && r.status === 'approved') { cdoByMemberDate[who+'|'+r.date] = r; }
+    if (r.date && who && r.status !== 'rejected') addItem(who, r.date, 'dayoff', r);
   });
   
   // Build grid
-  let header = '<th style="position:sticky;left:0;background:var(--surface);z-index:2;min-width:120px">Team</th>';
+  const cols = S.tsColors;
+  let header = '<th style="position:sticky;left:0;background:var(--surface);z-index:2;min-width:120px;padding:6px 8px">Team</th>';
   for (let d = 1; d <= daysInMonth; d++) {
     const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const dow = new Date(ds+'T00:00:00').getDay();
     const isWE = dow === 0 || dow === 6;
-    header += `<th style="min-width:32px;text-align:center;font-size:10px;padding:4px 2px;${isWE?'background:#f5f5f5;color:var(--text3)':''}">${d}</th>`;
+    const isToday = ds === today;
+    header += `<th style="min-width:36px;text-align:center;font-size:10px;padding:4px 2px;${isWE?'background:var(--surface2);color:var(--text3)':''}${isToday?';outline:2px solid var(--brand);outline-offset:-2px':''}">${d}<div style="font-size:8px;color:var(--text3)">${['S','M','T','W','T','F','S'][dow]}</div></th>`;
   }
+  
+  let todayAvailable = 0, todayMission = 0, todayLeave = 0;
   
   let rows = '';
   members.forEach(name => {
+    let hasMissionToday = false, hasLeaveToday = false;
     let cells = `<td style="position:sticky;left:0;background:var(--surface);z-index:1;font-weight:600;font-size:12px;white-space:nowrap;padding:6px 8px">${esc(name)}</td>`;
     for (let d = 1; d <= daysInMonth; d++) {
       const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      const key = name+'|'+ds;
-      let bg = '', icon = '', title = '';
-      if (shootsByMemberDate[key]) { bg = _TS_COLORS.shoot; icon = 'S'; title = 'Shooting'; }
-      if (missionsByMemberDate[key]) { bg = _TS_COLORS.mission; icon = 'M'; title = 'Mission'; }
-      if (leavesByMemberDate[key]) { bg = _TS_COLORS.leave; icon = 'L'; title = (leavesByMemberDate[key].leaveType||leavesByMemberDate[key].leave_type||'Leave'); }
-      if (cdoByMemberDate[key]) { bg = _TS_COLORS.dayoff; icon = 'D'; title = 'Day Off'; }
-      cells += `<td style="text-align:center;font-size:10px;font-weight:700;padding:4px 2px;${bg?'background:'+bg:''}" title="${title}">${icon}</td>`;
+      const items = dataByKey[name+'|'+ds] || [];
+      if (ds === today) {
+        if (items.some(i=>i.type==='mission')) hasMissionToday = true;
+        if (items.some(i=>i.type==='leave'||i.type==='dayoff')) hasLeaveToday = true;
+      }
+      if (!items.length) {
+        cells += `<td style="padding:2px;vertical-align:top;min-height:28px" onclick="tsQuickAdd('${esc(name)}','${ds}')"></td>`;
+      } else {
+        const pills = items.map(({type,item}) => {
+          const color = cols[type]||'#888';
+          const icon = {content:'C',shoot:'S',mission:'M',leave:'L',dayoff:'D'}[type]||'?';
+          const drawerType = {content:'content',shoot:'shoot',mission:'mission',leave:'leave',dayoff:'cdo'}[type];
+          const id = item.id || '';
+          return `<div onclick="event.stopPropagation();openItemDrawer('${drawerType}','${id}')" style="background:${color};color:#fff;font-size:9px;font-weight:700;border-radius:3px;padding:1px 4px;margin:1px 0;cursor:pointer;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(item.title||item.memberName||item.details||type)}">${icon}</div>`;
+        }).join('');
+        cells += `<td style="padding:2px;vertical-align:top" onclick="tsQuickAdd('${esc(name)}','${ds}')">${pills}</td>`;
+      }
     }
+    if (hasMissionToday) todayMission++;
+    else if (hasLeaveToday) todayLeave++;
+    else todayAvailable++;
     rows += `<tr>${cells}</tr>`;
   });
   
-  w.innerHTML = `<table class="data-table" style="font-size:12px"><thead><tr>${header}</tr></thead><tbody>${rows}</tbody></table>
-    <div style="display:flex;gap:12px;margin-top:10px;font-size:11px;color:var(--text2)">
-      <span><span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:${_TS_COLORS.shoot};vertical-align:middle;margin-right:4px"></span>Shooting</span>
-      <span><span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:${_TS_COLORS.mission};vertical-align:middle;margin-right:4px"></span>Mission</span>
-      <span><span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:${_TS_COLORS.leave};vertical-align:middle;margin-right:4px"></span>Leave</span>
-      <span><span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:${_TS_COLORS.dayoff};vertical-align:middle;margin-right:4px"></span>Day Off</span>
-    </div>`;
+  w.innerHTML = `<table class="data-table" style="font-size:12px;border-collapse:separate;border-spacing:0"><thead><tr>${header}</tr></thead><tbody>${rows}</tbody></table>`;
+  
+  if (summary) summary.textContent = `Today: ${todayAvailable} available, ${todayMission} on mission, ${todayLeave} on leave/day-off`;
+}
+
+function tsQuickAdd(name, ds) {
+  showModal(`<div style="padding:1.5rem;min-width:260px">
+    <h3 style="margin:0 0 1rem">${esc(name)} — ${ds}</h3>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button class="btn btn-secondary" onclick="closeModal();openItemDrawer('shoot','new')">+ Shoot</button>
+      <button class="btn btn-secondary" onclick="closeModal();openItemDrawer('mission','new')">+ Mission</button>
+      <button class="btn btn-secondary" onclick="closeModal();openItemDrawer('leave','new')">+ Leave</button>
+      <button class="btn btn-secondary" onclick="closeModal();openItemDrawer('cdo','new')">+ Day Off</button>
+      <button class="btn btn-secondary" onclick="closeModal();openItemDrawer('content','new')">+ Content</button>
+    </div>
+    <div style="margin-top:12px;text-align:right"><button class="btn btn-secondary btn-sm" onclick="closeModal()">Cancel</button></div>
+  </div>`);
 }
 
 // =====================================================================
