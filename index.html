@@ -4325,7 +4325,7 @@ function calShowMore(ds) {
     ...missions.map(ms=>({item:{...ms,title:`${ms.memberName||ms.employee||''} — mission`},type:'mission',fn:`closeModal();openItemDrawer('mission','${ms.id}')`})),
     ...leaves.map(l=>({item:{...l,title:`${l.memberName||l.employee||''} — ${l.leaveType||l.leave_type||'leave'}`},type:'leave',fn:`closeModal();openItemDrawer('leave','${l.id}')`})),
     ...events.map(e=>({item:e,type:'event',fn:`closeModal();openItemDrawer('event','${e.id}')`})),
-    ...feedEvts.map(e=>({item:e,type:'ical',fn:`closeModal();showFeedEventModal('${e.id||''}')`}))
+    ...feedEvts.map(e=>({item:e,type:'ical',fn:`closeModal();openItemDrawer('ical','${e.id||''}')`}))
   ];
   const rows=allItems.map(({item,type,fn})=>calPillHtml(item,type,fn?`${fn}`:'')).join('');
   showModal(`<div class="modal-header">All items — ${ds}</div><div class="modal-body" style="padding:8px">${rows||'<div class="text-sm text-muted">No items</div>'}</div><div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal()">Close</button></div>`);
@@ -4941,8 +4941,8 @@ function calPillHtml(item,type,clickJs){
   const lockSvg=isIcal?`<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,.4)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-left:2px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`:'';
   const prio=item.priority?`<span style="font-size:8px;font-weight:700;padding:1px 4px;border-radius:3px;background:rgba(0,0,0,.1);color:rgba(0,0,0,.55)">${item.priority}</span>`:'';
   const drag=isIcal?'':` draggable="true" ondragstart="calDragStart(event,'${item.id}','${type}')"`;
-  const click=isIcal||!clickJs?'':` onclick="event.stopPropagation();${clickJs}"`;
-  return`<div style="display:flex;align-items:center;gap:5px;border-radius:5px;padding:2px 6px;min-height:26px;margin-bottom:2px;background:${bg};cursor:${isIcal?'default':'pointer'}"${drag}${click}>
+  const click=!clickJs?'':` onclick="event.stopPropagation();${clickJs}"`;
+  return`<div style="display:flex;align-items:center;gap:5px;border-radius:5px;padding:2px 6px;min-height:26px;margin-bottom:2px;background:${bg};cursor:pointer"${drag}${click}>
     <div style="width:18px;height:18px;border-radius:50%;background:${av};color:${avt};display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:800;flex-shrink:0">${initials}</div>
     <div style="flex:1;min-width:0">
       <div style="font-size:10px;font-weight:600;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:3px">${checkSvg}${esc(item.title||owner)}</div>
@@ -5212,7 +5212,7 @@ function _buildDayCell(ds,d,isToday){
     ...events.map(e=>({item:e,type:'event',fn:`openItemDrawer('event','${e.id}')`})),
     ...active.map(t=>({item:t,type:'task',fn:`openTaskPanel('${t.id}')`})),
     ...done.map(t=>({item:t,type:'task',fn:`openTaskPanel('${t.id}')`})),
-    ...feedEvts.map(e=>({item:e,type:'ical',fn:`showFeedEventModal('${e.id||''}')`}))
+    ...feedEvts.map(e=>({item:e,type:'ical',fn:`openItemDrawer('ical','${e.id||''}')`}))
   ];
 
   // Sort: items with time first (sorted by time), then items without time
@@ -5919,6 +5919,17 @@ const ID_CONFIGS = {
       {key:'notes',label:'Notes',type:'textarea'}
     ]
   },
+  ical: {
+    label:'Calendar Event', color:'#78909c', collection:'feedEvents',
+    apiCreate:null, apiUpdate:null, apiDelete:null,
+    idPrefix:'ICAL', readOnly:true, fields:[
+      {key:'title',label:'Title',type:'text',full:true},
+      {key:'date',label:'Date',type:'date'},{key:'end_date',label:'End Date',type:'date'},
+      {key:'time',label:'Start Time',type:'time'},{key:'end_time',label:'End Time',type:'time'},
+      {key:'location',label:'Location',type:'text',full:true},
+      {key:'description',label:'Description',type:'textarea'}
+    ]
+  },
   video: {
     label:'Video', color:'#ef5350', collection:'videos',
     apiCreate:'createVideo', apiUpdate:'updateVideo', apiDelete:'deleteVideo',
@@ -5949,6 +5960,9 @@ function openItemDrawer(type, id) {
   document.getElementById('id-type-badge').style.background = cfg.color;
   document.getElementById('id-type-badge').style.color = '#000';
   document.getElementById('id-delete-btn').style.display = _idIsNew ? 'none' : '';
+  const isReadOnly = cfg.readOnly || false;
+  document.getElementById('id-save-btn').style.display = isReadOnly ? 'none' : '';
+  document.getElementById('id-delete-btn').style.display = (isReadOnly || _idIsNew) ? 'none' : '';
 
   const body = document.getElementById('id-body');
   body.scrollTop = 0;
@@ -5961,18 +5975,19 @@ function openItemDrawer(type, id) {
   for (const f of cfg.fields) {
     const val = _idItem[f.key] || (f.default === 'myDept' ? S.myDept||'' : f.default === '_selectedPage' ? S._selectedPage||'' : f.default || '');
     const inputId = 'id-f-' + f.key;
+    const ro = cfg.readOnly ? ' disabled style="opacity:.7;cursor:default"' : '';
 
     if (f.full || f.type === 'textarea') {
       if (inRow) { html += '</div>'; inRow = false; }
     }
 
     let input = '';
-    if (f.type === 'text') input = `<input id="${inputId}" value="${esc(val)}" ${f.required?'required':''}>`;
-    else if (f.type === 'number') input = `<input id="${inputId}" type="number" value="${esc(val)}">`;
-    else if (f.type === 'date') input = `<input id="${inputId}" type="date" value="${val}">`;
-    else if (f.type === 'time') input = `<input id="${inputId}" type="time" value="${val}">`;
+    if (f.type === 'text') input = `<input id="${inputId}" value="${esc(val)}" ${f.required?'required':''}${ro}>`;
+    else if (f.type === 'number') input = `<input id="${inputId}" type="number" value="${esc(val)}"${ro}>;`
+    else if (f.type === 'date') input = `<input id="${inputId}" type="date" value="${val}"${ro}>;`
+    else if (f.type === 'time') input = `<input id="${inputId}" type="time" value="${val}"${ro}>;`
     else if (f.type === 'color') input = `<input id="${inputId}" type="color" value="${val||'#1967d2'}">`;
-    else if (f.type === 'textarea') input = `<textarea id="${inputId}" rows="3">${esc(val)}</textarea>`;
+    else if (f.type === 'textarea') input = `<textarea id="${inputId}" rows="3"${ro}>${esc(val)}</textarea>`;
     else if (f.type === 'select') {
       const opts = (f.options||[]).map(o => `<option ${val===o?'selected':''}>${o}</option>`).join('');
       input = `<select id="${inputId}"><option value="">—</option>${opts}</select>`;
@@ -6024,6 +6039,14 @@ function openItemDrawer(type, id) {
   }
 
   body.innerHTML = html;
+  // Add feed badge for iCal events
+  if (type === 'ical' && _idItem._feedId) {
+    const feed = (S.feeds||[]).find(f=>f.id===_idItem._feedId)||{};
+    const badge = document.createElement('div');
+    badge.style.cssText = 'margin-bottom:12px;display:flex;align-items:center;gap:6px';
+    badge.innerHTML = `<span style="padding:3px 10px;border-radius:4px;background:${feed.color||'#888'};color:#fff;font-size:11px;font-weight:600">${esc(feed.name||'iCal Feed')}</span><span style="font-size:11px;color:var(--text3)">Read-only external event</span>`;
+    body.insertBefore(badge, body.firstChild);
+  }
 }
 
 function closeItemDrawer() {
