@@ -4936,7 +4936,7 @@ function calPillHtml(item,type,clickJs){
       bg=`hsl(${h},${Math.min(s+5,65)}%,91%)`;av=`hsl(${h},${Math.min(s+10,70)}%,73%)`;avt=`hsl(${h},${Math.min(s+20,80)}%,22%)`;
     }
   }
-  const time=item.time?`<span style="font-size:9px;color:rgba(0,0,0,.45);margin-left:auto;padding-left:4px;flex-shrink:0">${item.time.slice(0,5)}</span>`:'';
+  const time=item.time?`<span style="font-size:9px;color:rgba(0,0,0,.45);margin-left:auto;padding-left:4px;flex-shrink:0">${to12h(item.time)}</span>`:'';
   const checkSvg=isDone?`<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg>`:'';
   const lockSvg=isIcal?`<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,.4)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-left:2px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`:'';
   const prio=item.priority?`<span style="font-size:8px;font-weight:700;padding:1px 4px;border-radius:3px;background:rgba(0,0,0,.1);color:rgba(0,0,0,.55)">${item.priority}</span>`:'';
@@ -5021,6 +5021,7 @@ function pBadge(p) { return p ? ` <span style="font-size:10px;font-weight:600;co
 function statusDot(s) { const colors={todo:'var(--text3)',doing:'var(--brand)',blocked:'var(--danger)',done:'var(--ok)',inbox:'var(--text3)'};return s?`<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${colors[s]||'var(--text3)'}" title="${s}"></span>`:''; }
 
 function _localDateStr(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function to12h(t){if(!t)return'';const[h,m]=t.split(':').map(Number);const ap=h>=12?'PM':'AM';const h12=h%12||12;return h12+':'+String(m).padStart(2,'0')+ap;}
 /* ===================== CALENDAR REBUILD ===================== */
 function renderCalendar(){
   const mf=document.getElementById('cal-member-filter');if(mf)mf.innerHTML=memberFilterHtml();
