@@ -1,0 +1,38 @@
+[
+  {
+    "id": "CA-1781769815564-331",
+    "name": "Public Holiday",
+    "url": "https://calendar.google.com/calendar/ical/en.kh%23holiday%40group.v.calendar.google.com/public/basic.ics",
+    "color": "#b30000",
+    "enabled": true,
+    "last_synced": "",
+    "created": "2026-06-18T08:03:35.564Z",
+    "updated": "2026-06-18T08:59:54.201Z",
+    "text_color": "",
+    "visibility": ""
+  },
+  {
+    "id": "CA-1781769910762-314",
+    "name": "Media Requests",
+    "url": "https://calendar.google.com/calendar/ical/school.production%40mjqeducation.edu.kh/public/basic.ics",
+    "color": "#a8006b",
+    "enabled": true,
+    "last_synced": "",
+    "created": "2026-06-18T08:05:10.762Z",
+    "updated": "2026-06-23T07:10:21.966Z",
+    "text_color": "#c4c4c4",
+    "visibility": "all"
+  },
+  {
+    "id": "CA-1781770002229-117",
+    "name": "Humbard Calendar",
+    "url": "https://calendar.google.com/calendar/ical/humbard.rioja%40ais.edu.kh/private-b9e57acbdffb9d3bb874c21ef70c442c/basic.ics",
+    "color": "#8c00ff",
+    "enabled": true,
+    "last_synced": "",
+    "created": "2026-06-18T08:06:42.229Z",
+    "updated": "2026-06-23T05:45:59.299Z",
+    "text_color": "",
+    "visibility": ""
+  }
+]
