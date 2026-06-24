@@ -4936,16 +4936,34 @@ function calPillHtml(item,type,clickJs){
       bg=`hsl(${h},${Math.min(s+5,65)}%,91%)`;av=`hsl(${h},${Math.min(s+10,70)}%,73%)`;avt=`hsl(${h},${Math.min(s+20,80)}%,22%)`;
     }
   }
-  const time=item.time?`<span style="font-size:9px;color:rgba(0,0,0,.45);margin-left:auto;padding-left:4px;flex-shrink:0">${to12h(item.time)}</span>`:'';
+  const time=item.time?to12h(item.time):'';
   const checkSvg=isDone?`<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg>`:'';
   const lockSvg=isIcal?`<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,.4)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-left:2px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`:'';
   const prio=item.priority?`<span style="font-size:8px;font-weight:700;padding:1px 4px;border-radius:3px;background:rgba(0,0,0,.1);color:rgba(0,0,0,.55)">${item.priority}</span>`:'';
   const drag=isIcal?'':` draggable="true" ondragstart="calDragStart(event,'${item.id}','${type}')"`;
   const click=!clickJs?'':` onclick="event.stopPropagation();${clickJs}"`;
-  return`<div style="display:flex;align-items:center;gap:4px;border-radius:5px;padding:3px 6px;height:24px;margin-bottom:2px;background:${bg};cursor:pointer;overflow:hidden"${drag}${click}>
+  // Build contextual sub-detail per type
+  let sub='';
+  if(type==='task'||type==='blocked') sub=[owner,item.status==='doing'?'doing':item.status==='blocked'?'blocked':''].filter(Boolean).join(' · ');
+  else if(type==='ical'){const fd=(S.feeds||[]).find(f=>f.id===item._feedId);sub=fd?fd.name:'';}
+  else if(type==='mission') sub=[item.duration||'',item.details||''].filter(Boolean).join(' · ')||'Mission';
+  else if(type==='leave') sub=item.leaveType||item.leave_type||'Leave';
+  else if(type==='meeting') sub=[item.department||'',item.attendees?item.attendees.split(',').length+'p':''].filter(Boolean).join(' · ');
+  else if(type==='shoot') sub=[item.director||item.videographer||'',item.location||''].filter(Boolean).join(' · ');
+  else if(type==='campaign') sub=item.status||'';
+  else if(type==='design') sub=[item.assigned||'',item.stage||''].filter(Boolean).join(' · ');
+  else if(type==='pub') sub=[item.lead||'',item.pub_type||''].filter(Boolean).join(' · ');
+  else if(type==='event') sub=[item.department||'',item.location||''].filter(Boolean).join(' · ');
+  else if(type==='seo') sub=item.keywords||item.target_url||'';
+  else if(type==='website') sub=item.web_type||item.url||'';
+  const titleText=isDone?`<span style="text-decoration:line-through;opacity:.6">${esc(item.title||owner)}</span>`:esc(item.title||owner);
+  return`<div style="display:flex;align-items:center;gap:4px;border-radius:5px;padding:4px 6px;height:34px;margin-bottom:2px;background:${bg};cursor:pointer;overflow:hidden"${drag}${click}>
     <div style="width:16px;height:16px;border-radius:50%;background:${av};color:${avt};display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:800;flex-shrink:0">${initials}</div>
-    <div style="flex:1;min-width:0;font-size:10px;font-weight:600;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:3px">${checkSvg}${esc(item.title||owner)}${prio}</div>
-    ${time}${lockSvg}
+    <div style="flex:1;min-width:0;line-height:1.2">
+      <div style="font-size:10px;font-weight:600;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:3px">${checkSvg}${titleText}</div>
+      <div style="font-size:9px;color:rgba(0,0,0,.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:3px">${esc(sub)}${prio}${lockSvg}</div>
+    </div>
+    ${time?`<span style="font-size:9px;color:rgba(0,0,0,.45);margin-left:auto;padding-left:4px;flex-shrink:0">${time}</span>`:''}
   </div>`;
 }
 
