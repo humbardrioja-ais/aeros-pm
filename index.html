@@ -3405,6 +3405,7 @@ const MTG_TITLES = {
   adhoc:     ()  => '',
 };
 
+function fmtDateLong(iso){if(!iso)return'';const d=new Date(iso+'T00:00:00');return d.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});}
 function fmtDate(iso, monthOnly) {
   if (!iso) return '';
   const d = new Date(iso + 'T00:00:00');
@@ -7360,7 +7361,7 @@ function renderEvents() {
       const d = new Date(e.date+'T00:00:00');
       const dayName = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()];
       rows += `<tr onclick="openItemDrawer('event','${e.id}')" style="cursor:pointer;${isPast?'opacity:.5':''}${isToday?';background:var(--brand-light)':''}" onmouseenter="this.style.background='var(--surface2)'" onmouseleave="this.style.background='${isToday?'var(--brand-light)':''}'">
-        <td style="white-space:nowrap;font-weight:600">${e.date}<div style="font-size:10px;color:var(--text3);font-weight:400">${dayName}${e.end_date?' → '+e.end_date:''}</div></td>
+        <td style="white-space:nowrap;font-weight:600">${fmtDateLong(e.date)}<div style="font-size:10px;color:var(--text3);font-weight:400">${dayName}${e.end_date?' → '+fmtDateLong(e.end_date):''}</div></td>
         <td style="text-align:center">${e.days||1}</td>
         <td><span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;background:${catColor};color:#fff">${esc(cat)}</span></td>
         <td style="font-weight:500">${esc(e.title)}</td>
