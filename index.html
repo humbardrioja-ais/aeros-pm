@@ -745,24 +745,26 @@ select.sd-val{appearance:auto;cursor:pointer}
       </div>
 
       <div id="view-events" class="hidden">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
           <span class="font-bold" style="font-size:16px">Events</span>
           <div style="display:flex;gap:6px;align-items:center">
-            <div style="display:flex;border:1px solid var(--border);border-radius:6px;overflow:hidden">
-              <button class="btn btn-sm evt-view-btn active" id="evt-view-list" onclick="setEvtView('list')" style="border:0;border-radius:0;padding:5px 14px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg> List</button>
-              <button class="btn btn-sm evt-view-btn" id="evt-view-cal" onclick="setEvtView('cal')" style="border:0;border-radius:0;padding:5px 14px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Calendar</button>
+            <div style="display:flex;border:2px solid var(--border);border-radius:8px;overflow:hidden">
+              <button class="btn btn-sm evt-view-btn active" id="evt-view-list" onclick="setEvtView('list')" style="border:0;border-radius:0;padding:6px 16px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg> List</button>
+              <button class="btn btn-sm evt-view-btn" id="evt-view-cal" onclick="setEvtView('cal')" style="border:0;border-radius:0;padding:6px 16px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Calendar</button>
             </div>
-            <select id="events-filter-time" onchange="renderEvents()" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);font-size:12px">
-              <option value="upcoming">Upcoming</option>
-              <option value="past">Past</option>
-              <option value="all">All</option>
-            </select>
-            <select id="events-filter-cat" onchange="renderEvents()" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);font-size:12px">
-              <option value="">All Categories</option><option value="Holidays">Holidays</option><option value="Marketing">Marketing</option><option value="Internal">Internal</option><option value="Academic">Academic</option><option value="Thematic">Thematic</option>
-            </select>
-            <input id="events-search" placeholder="Search events..." oninput="_debouncedRenderEvents()" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);font-size:12px;width:180px">
             <button class="btn btn-primary" onclick="openItemDrawer('event','new')">+ Event</button>
           </div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
+          <select id="events-filter-time" onchange="renderEvents()" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);font-size:12px">
+            <option value="upcoming">Upcoming</option>
+            <option value="past">Past</option>
+            <option value="all">All</option>
+          </select>
+          <select id="events-filter-cat" onchange="renderEvents()" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);font-size:12px">
+            <option value="">All Categories</option><option value="Holidays">Holidays</option><option value="Marketing">Marketing</option><option value="Internal">Internal</option><option value="Academic">Academic</option><option value="Thematic">Thematic</option>
+          </select>
+          <input id="events-search" placeholder="Search events..." oninput="_debouncedRenderEvents()" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);font-size:12px;width:200px">
         </div>
         <div id="events-list"></div>
         <div id="events-cal" class="hidden">
