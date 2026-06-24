@@ -1,1 +1,12 @@
-[]
+[
+  {"id":"EV-001","title":"Staff Meeting — All Hands","date":"2026-06-23","time":"09:00","end_time":"10:30","department":"All","description":"Monthly all-hands meeting. Agenda: Q2 review, upcoming campaigns, team updates.","color":"#1967d2","created":"2026-06-20"},
+  {"id":"EV-002","title":"AIS Open House","date":"2026-06-25","end_date":"2026-06-26","time":"08:00","end_time":"16:00","department":"Marketing","description":"Two-day open house event. All campuses. Photography and video team on standby.","color":"#137333","created":"2026-06-20"},
+  {"id":"EV-003","title":"Content Planning Session","date":"2026-06-24","time":"14:00","end_time":"15:30","department":"Marketing","description":"Plan July content calendar. Bring campaign briefs and deadlines.","color":"#e37400","created":"2026-06-20"},
+  {"id":"EV-004","title":"TEDx Committee Meeting","date":"2026-06-27","time":"10:00","end_time":"11:00","department":"TEDx","description":"Review speaker lineup, venue logistics, and marketing collateral.","color":"#c5221f","created":"2026-06-20"},
+  {"id":"EV-005","title":"Yearbook Photo Deadline","date":"2026-06-30","department":"Publications","description":"Final deadline for all yearbook portrait submissions. No extensions.","color":"#7b1fa2","created":"2026-06-20"},
+  {"id":"EV-006","title":"Social Media Analytics Review","date":"2026-07-01","time":"13:00","end_time":"14:00","department":"Marketing","description":"Monthly review of FB, IG, TikTok performance across all pages.","color":"#1967d2","created":"2026-06-20"},
+  {"id":"EV-007","title":"Campus Tour — New Students","date":"2026-07-03","time":"09:00","end_time":"12:00","department":"Admissions","description":"Guided campus tour for incoming students. Photo/video coverage needed.","color":"#137333","created":"2026-06-20"},
+  {"id":"EV-008","title":"Independence Day","date":"2026-07-04","department":"All","description":"Public holiday — office closed.","color":"#c5221f","created":"2026-06-20"},
+  {"id":"EV-009","title":"Q3 Campaign Kickoff","date":"2026-07-07","time":"10:00","end_time":"11:30","department":"Marketing","description":"Launch planning for Q3 campaigns. Review budget allocations and creative briefs.","color":"#e37400","created":"2026-06-20"},
+  {"id":"EV-010","title":"Video Production Workshop","date":"2026-07-10","time":"14:00","end_time":"17:00","department":"Media","description":"Internal training session on new editing techniques and equipment.","color":"#1967d2","created":"2026-06-20"}
+]
