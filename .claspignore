@@ -1,0 +1,8 @@
+migrate.js
+data/**
+node_modules/**
+push.sh
+CLAUDE.md
+*.md
+.git/**
+.github/**
