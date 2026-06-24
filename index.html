@@ -601,6 +601,7 @@ select.sd-val{appearance:auto;cursor:pointer}
       <div class="nav-item" onclick="nav('mytasks')"><span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span><span class="label">My Tasks</span></div>
       <div class="nav-item" onclick="nav('inbox')"><span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span><span class="label">Inbox</span></div>
       <div class="nav-item" onclick="nav('meetings')"><span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><span class="label">Meetings</span></div>
+      <div class="nav-item" onclick="nav('events')"><span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span><span class="label">Events</span></div>
       <div class="nav-item" onclick="nav('calendar')"><span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span><span class="label">Calendar</span></div>
     </div>
     <div class="nav-section">
@@ -731,6 +732,25 @@ select.sd-val{appearance:auto;cursor:pointer}
           <button class="btn btn-primary" onclick="showTaskModal()">+ Task</button>
         </div>
         <div class="board" id="board-cols"></div>
+      </div>
+
+      <div id="view-events" class="hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+          <span class="font-bold" style="font-size:16px">Events</span>
+          <div style="display:flex;gap:6px;align-items:center">
+            <select id="events-filter-time" onchange="renderEvents()" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);font-size:12px">
+              <option value="upcoming">Upcoming</option>
+              <option value="past">Past</option>
+              <option value="all">All</option>
+            </select>
+            <select id="events-filter-dept" onchange="renderEvents()" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);font-size:12px">
+              <option value="">All departments</option>
+            </select>
+            <input id="events-search" placeholder="Search events..." oninput="_debouncedRenderEvents()" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);font-size:12px;width:180px">
+            <button class="btn btn-primary" onclick="openItemDrawer('event','new')">+ Event</button>
+          </div>
+        </div>
+        <div id="events-list"></div>
       </div>
 
       <div id="view-calendar" class="hidden">
@@ -1967,7 +1987,7 @@ function nav(view) {
   try { localStorage.setItem('aeros_last_view', view); } catch(_) {}
   const titles = { dashboard:'Dashboard',list:'Tasks',board:'Board',calendar:'Calendar',
     timeline:'Timeline',workload:'Workload',eisenhower:'Eisenhower',portfolio:'Portfolio',
-    mytasks:'My Tasks',inbox:'Inbox',projects:'Projects',meetings:'Meetings',
+    mytasks:'My Tasks',inbox:'Inbox',projects:'Projects',meetings:'Meetings',events:'Events',
     media:'Media Production',missions:'Missions',cdo:'Change Day Off',leave:'Leave',
     team:'Team',settings:'Settings',
     campaigns:'Campaigns',designs:'Designs',publishing:'Publications',seo:'SEO',website:'Website',
@@ -2005,6 +2025,7 @@ function renderViewNow(view) {
   if (view === 'dashboard')   renderDashboard();
   if (view === 'list')        renderList();
   if (view === 'board')       renderBoard();
+  if (view === 'events')       renderEvents();
   if (view === 'calendar')    { renderCalendar(); autoLoadFeeds(); }
   if (view === 'timeline')    renderTimeline();
   if (view === 'workload')    renderWorkload();
@@ -7262,6 +7283,95 @@ function showFeedEventModal(eventId) {
     ${e.description?`<div style="font-size:13px;color:var(--text);white-space:pre-wrap;max-height:200px;overflow-y:auto;padding:10px;background:var(--surface2);border-radius:6px">${esc(e.description)}</div>`:''}
     <div style="margin-top:16px;text-align:right"><button class="btn btn-secondary" onclick="closeModal()">Close</button></div>
   </div>`);
+}
+
+/* ===================== EVENTS MODULE ===================== */
+const _debouncedRenderEvents = _debounce(()=>renderEvents(), 150);
+
+function renderEvents() {
+  const w = document.getElementById('events-list');
+  if (!w) return;
+  const today = todayStr();
+  const timeFilter = (document.getElementById('events-filter-time')||{}).value || 'upcoming';
+  const deptFilter = (document.getElementById('events-filter-dept')||{}).value || '';
+  const q = (document.getElementById('events-search')||{}).value?.toLowerCase() || '';
+  
+  // Populate department filter
+  const deptSel = document.getElementById('events-filter-dept');
+  if (deptSel && deptSel.options.length <= 1) {
+    const depts = [...new Set((S.events||[]).map(e=>e.department).filter(Boolean))].sort();
+    depts.forEach(d => { const o = document.createElement('option'); o.value = d; o.textContent = d; deptSel.appendChild(o); });
+  }
+  
+  let events = [...(S.events||[])];
+  
+  // Time filter
+  if (timeFilter === 'upcoming') events = events.filter(e => (e.end_date||e.date) >= today);
+  else if (timeFilter === 'past') events = events.filter(e => (e.end_date||e.date) < today);
+  
+  // Department filter
+  if (deptFilter) events = events.filter(e => e.department === deptFilter);
+  
+  // Search
+  if (q) events = events.filter(e => (e.title||'').toLowerCase().includes(q) || (e.description||'').toLowerCase().includes(q) || (e.department||'').toLowerCase().includes(q));
+  
+  // Sort: upcoming = nearest first, past = most recent first
+  if (timeFilter === 'past') events.sort((a,b) => (b.date||'').localeCompare(a.date||''));
+  else events.sort((a,b) => (a.date||'').localeCompare(b.date||''));
+  
+  if (!events.length) {
+    w.innerHTML = `<div style="color:var(--text3);padding:48px;text-align:center">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:8px"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <div>No events found</div>
+    </div>`;
+    return;
+  }
+  
+  // Group by month
+  const groups = {};
+  events.forEach(e => {
+    const m = (e.date||'').slice(0,7);
+    const label = m ? new Date(m+'-01T00:00:00').toLocaleDateString('en-US',{month:'long',year:'numeric'}) : 'No date';
+    if (!groups[label]) groups[label] = [];
+    groups[label].push(e);
+  });
+  
+  let html = '';
+  Object.entries(groups).forEach(([month, items]) => {
+    html += `<div style="margin-bottom:20px">
+      <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;padding:6px 0;border-bottom:1px solid var(--border);margin-bottom:8px">${month}</div>
+      ${items.map(e => {
+        const isPast = (e.end_date||e.date) < today;
+        const isToday = e.date === today;
+        const isMultiDay = e.end_date && e.end_date !== e.date;
+        const color = e.color || 'var(--brand)';
+        const daysUntil = e.date >= today ? Math.round((new Date(e.date+'T00:00:00') - new Date(today+'T00:00:00')) / 86400000) : null;
+        const daysLabel = daysUntil === 0 ? 'Today' : daysUntil === 1 ? 'Tomorrow' : daysUntil !== null && daysUntil <= 7 ? `In ${daysUntil} days` : '';
+        
+        return `<div onclick="openItemDrawer('event','${e.id}')" style="display:flex;align-items:flex-start;gap:12px;padding:12px;border-radius:var(--radius-lg);cursor:pointer;margin-bottom:4px;border:1px solid var(--border);background:var(--surface);${isPast?'opacity:.6':''}" onmouseenter="this.style.boxShadow='0 2px 8px rgba(0,0,0,.06)'" onmouseleave="this.style.boxShadow=''">
+          <div style="width:4px;height:100%;min-height:40px;border-radius:2px;background:${color};flex-shrink:0"></div>
+          <div style="flex-shrink:0;text-align:center;min-width:44px">
+            <div style="font-size:22px;font-weight:700;color:${isToday?'var(--brand)':'var(--text)'};line-height:1">${new Date(e.date+'T00:00:00').getDate()}</div>
+            <div style="font-size:10px;color:var(--text3);text-transform:uppercase">${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date(e.date+'T00:00:00').getDay()]}</div>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:14px;font-weight:600;margin-bottom:2px">${esc(e.title)}</div>
+            <div style="font-size:12px;color:var(--text2);display:flex;flex-wrap:wrap;gap:6px;align-items:center">
+              ${e.time?`<span>${to12h(e.time)}${e.end_time?' – '+to12h(e.end_time):''}</span>`:''} 
+              ${isMultiDay?`<span>${e.date} → ${e.end_date}</span>`:''}
+              ${e.department?`<span style="padding:1px 6px;border-radius:3px;background:var(--surface2);font-size:11px">${esc(e.department)}</span>`:''}
+            </div>
+            ${e.description?`<div style="font-size:12px;color:var(--text3);margin-top:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(e.description)}</div>`:''}
+          </div>
+          <div style="flex-shrink:0;text-align:right">
+            ${daysLabel?`<span style="font-size:11px;font-weight:600;color:${isToday?'var(--brand)':daysUntil<=3?'var(--danger)':'var(--text3)'}">${daysLabel}</span>`:''}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  });
+  
+  w.innerHTML = html;
 }
 
 </script>
