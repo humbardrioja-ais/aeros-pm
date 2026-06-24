@@ -1084,8 +1084,13 @@ select.sd-val{appearance:auto;cursor:pointer}
       <div id="view-settings" class="hidden">
         <div class="card" style="max-width:480px">
           <div class="font-bold mb-16">Settings</div>
+          <div id="backend-mode-badge" style="margin-bottom:12px;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:600"></div>
           <div class="form-row">
-            <label>API Endpoint (Apps Script Web App URL)</label>
+            <label>GitHub Personal Access Token <span style="font-weight:400;color:var(--text3)">(repo scope — enables GitHub backend)</span></label>
+            <input type="password" id="gh-token" placeholder="ghp_..." onchange="saveSettings()">
+          </div>
+          <div class="form-row">
+            <label>Apps Script API URL <span style="font-weight:400;color:var(--text3)">(fallback + iCal)</span></label>
             <input type="url" id="api-url" placeholder="https://script.google.com/macros/s/.../exec" onchange="saveSettings()">
           </div>
           <div class="form-row">
@@ -1100,7 +1105,10 @@ select.sd-val{appearance:auto;cursor:pointer}
             <label>CDO Expiry (days)</label>
             <input type="number" id="cdo-expiry" value="90" onchange="saveSettings()">
           </div>
-          <button class="btn btn-primary" onclick="runInit()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Initialize Sheet (run once)</button>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+            <button class="btn btn-primary" onclick="runInit()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Initialize Sheet (run once)</button>
+            <button class="btn btn-secondary" onclick="runMigrate()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Migrate to GitHub</button>
+          </div>
         </div>
         <div class="card" style="max-width:600px;margin-top:16px">
           <div id="ay-settings-block"></div>
@@ -1624,6 +1632,7 @@ select.sd-val{appearance:auto;cursor:pointer}
 </div>
 
 <!-- ==================== JAVASCRIPT ==================== -->
+<script src="data/db.js"></script>
 <script>
 // ===================== ICONS =====================
 const ICONS = {
@@ -1694,20 +1703,245 @@ loadCalendarColors();
 loadLayerToggles();
 
 // ===================== API =====================
+// GitHub-backed API — reads from Pages, writes via GitHub Contents API
+// Falls back to Apps Script if no GitHub token is set
 async function api(action, params={}, body=null) {
-  if (!S.apiUrl) { toast('Set your API URL in Settings first', 'warn'); return null; }
-  const url = new URL(S.apiUrl);
-  url.searchParams.set('action', action);
-  Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
-  const opts = { method: body ? 'POST' : 'GET', redirect: 'follow' };
-  if (body) {
-    opts.body = JSON.stringify(body);
-    opts.headers = { 'Content-Type': 'text/plain' }; // avoids CORS preflight with Apps Script
+  // fetchIcal always goes to Apps Script
+  if (action === 'fetchIcal') {
+    const icalUrl = localStorage.getItem('aeros_ical_api_url') || S.apiUrl;
+    if (!icalUrl) { toast('Set iCal API URL in Settings', 'warn'); return null; }
+    const url = new URL(icalUrl);
+    url.searchParams.set('action', 'fetchIcal');
+    Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
+    try { const r = await fetch(url.toString(), { redirect: 'follow' }); return await r.json(); } catch(e) { toast('iCal error: ' + e.message, 'error'); return null; }
   }
+
+  // If no GitHub token, fall back to Apps Script
+  if (!GH.token) {
+    if (!S.apiUrl) { toast('Set your API URL or GitHub token in Settings', 'warn'); return null; }
+    const url = new URL(S.apiUrl);
+    url.searchParams.set('action', action);
+    Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
+    const opts = { method: body ? 'POST' : 'GET', redirect: 'follow' };
+    if (body) { opts.body = JSON.stringify(body); opts.headers = { 'Content-Type': 'text/plain' }; }
+    try { const r = await fetch(url.toString(), opts); return await r.json(); } catch(e) { toast('API error: ' + e.message, 'error'); return null; }
+  }
+
+  // ── GitHub backend ──
+  const cfg = GH.ACTION_MAP[action];
+  if (!cfg) { console.warn('Unknown API action:', action); return null; }
+
   try {
-    const r = await fetch(url.toString(), opts);
-    return await r.json();
-  } catch(e) { toast('API error: ' + e.message, 'error'); return null; }
+    // getAll — parallel fetch of all collections
+    if (cfg.op === 'getAll') return await GH.ghReadAll();
+    if (cfg.op === 'noop') return { message: 'Not needed with GitHub backend' };
+
+    // parseMeetingNotes — needs AI, fall back to Apps Script if available
+    if (action === 'parseMeetingNotes') {
+      if (S.apiUrl) {
+        const url = new URL(S.apiUrl);
+        url.searchParams.set('action', action);
+        Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
+        const opts = body ? { method: 'POST', body: JSON.stringify(body), headers: { 'Content-Type': 'text/plain' }, redirect: 'follow' } : { redirect: 'follow' };
+        const r = await fetch(url.toString(), opts);
+        return await r.json();
+      }
+      return null;
+    }
+
+    // Passthrough read operations (getSubtasks, getComments, etc.) — read from collection and filter
+    if (cfg.op === 'passthrough') {
+      // For sub-entity reads, we read the parent collection and extract
+      if (action === 'getSubtasks') {
+        const tasks = await GH.ghRead('tasks');
+        const task = tasks.find(t => t.id === (params.taskId || body?.taskId));
+        return task?.subtasks || [];
+      }
+      if (action === 'getComments') {
+        const tasks = await GH.ghRead('tasks');
+        const task = tasks.find(t => t.id === (params.taskId || body?.taskId));
+        return task?.comments || [];
+      }
+      if (action === 'getMeetingItems') {
+        const meetings = await GH.ghRead('meetings');
+        const m = meetings.find(x => x.id === (params.meetingId || body?.meetingId));
+        return m?.items || [];
+      }
+      if (action === 'getMilestones') {
+        const projects = await GH.ghRead('projects');
+        const p = projects.find(x => x.id === (params.projectId || body?.projectId));
+        return p?.milestones || [];
+      }
+      if (action === 'getSections') {
+        const projects = await GH.ghRead('projects');
+        const p = projects.find(x => x.id === (params.projectId || body?.projectId));
+        return p?.sections || [];
+      }
+      if (action === 'getActivity') {
+        const tasks = await GH.ghRead('tasks');
+        const task = tasks.find(t => t.id === (params.taskId || body?.taskId));
+        return task?.activity || [];
+      }
+      return [];
+    }
+
+    const col = cfg.collection;
+
+    // ── DELETE ──
+    if (action.startsWith('delete') || action === 'deleteTask') {
+      const id = params.id || body?.id;
+      if (id) await GH.ghDelete(col, id);
+      return { ok: true };
+    }
+
+    // ── CREATE ──
+    if (cfg.idPrefix) {
+      const item = { ...body };
+
+      // Handle sub-entity creates
+      if (cfg.sub === 'subtasks') {
+        const tasks = await GH._readViaApi('tasks');
+        const task = tasks.find(t => t.id === (body?.taskId || params.taskId));
+        if (task) {
+          if (!task.subtasks) task.subtasks = [];
+          const sub = { id: 'ST-' + Date.now(), title: body?.title, assignee: body?.assignee, done: body?.done || false };
+          task.subtasks.push(sub);
+          await GH.ghWrite('tasks', tasks);
+          return sub;
+        }
+        return null;
+      }
+
+      if (cfg.sub === 'sections') {
+        const projects = await GH._readViaApi('projects');
+        const p = projects.find(x => x.id === (body?.projectId || params.projectId));
+        if (p) {
+          if (!p.sections) p.sections = [];
+          const sec = { id: 'SEC-' + Date.now(), name: body?.name, order: body?.order || p.sections.length };
+          p.sections.push(sec);
+          await GH.ghWrite('projects', projects);
+          return sec;
+        }
+        return null;
+      }
+
+      if (cfg.sub === 'milestones') {
+        const projects = await GH._readViaApi('projects');
+        const p = projects.find(x => x.id === (body?.projectId || params.projectId));
+        if (p) {
+          if (!p.milestones) p.milestones = [];
+          const ms = { id: 'ML-' + Date.now(), title: body?.title, due: body?.due, done: body?.done || false };
+          p.milestones.push(ms);
+          await GH.ghWrite('projects', projects);
+          return ms;
+        }
+        return null;
+      }
+
+      if (cfg.sub === 'clips') {
+        const videos = await GH._readViaApi('videos');
+        const v = videos.find(x => x.id === (body?.videoId || params.videoId));
+        if (v) {
+          if (!v.clips) v.clips = [];
+          const clip = { id: 'CL-' + Date.now(), ...body };
+          delete clip.videoId;
+          v.clips.push(clip);
+          await GH.ghWrite('videos', videos);
+          return clip;
+        }
+        return null;
+      }
+
+      return await GH.ghCreate(col, item);
+    }
+
+    // ── UPDATE (including approve/reject/markRead/markShootDone/addTaskToProject/saveMeetingItems) ──
+    if (cfg.op === 'addToProject') {
+      const tasks = await GH._readViaApi('tasks');
+      const t = tasks.find(x => x.id === (body?.taskId || params.taskId));
+      if (t) {
+        if (!t.projectIds) t.projectIds = [];
+        const pid = body?.projectId || params.projectId;
+        if (pid && !t.projectIds.includes(pid)) t.projectIds.push(pid);
+        if (body?.sectionId) t.sectionId = body.sectionId;
+        await GH.ghWrite('tasks', tasks);
+      }
+      return { ok: true };
+    }
+
+    if (cfg.op === 'saveMeetingItems') {
+      const meetings = await GH._readViaApi('meetings');
+      const m = meetings.find(x => x.id === (body?.meetingId || params.meetingId));
+      if (m) {
+        if (!m.items) m.items = [];
+        m.items.push(...(body?.items || []));
+        await GH.ghWrite('meetings', meetings);
+      }
+      return { ok: true };
+    }
+
+    // Handle sub-entity updates
+    if (cfg.sub === 'subtasks') {
+      if (action === 'updateSubtask') {
+        const tasks = await GH._readViaApi('tasks');
+        for (const t of tasks) {
+          const sub = (t.subtasks || []).find(s => s.id === (body?.id || params.id));
+          if (sub) { Object.assign(sub, body); delete sub.taskId; await GH.ghWrite('tasks', tasks); return sub; }
+        }
+        return null;
+      }
+      if (action === 'deleteSubtask') {
+        const tasks = await GH._readViaApi('tasks');
+        const subId = params.id || body?.id;
+        for (const t of tasks) {
+          const idx = (t.subtasks || []).findIndex(s => s.id === subId);
+          if (idx >= 0) { t.subtasks.splice(idx, 1); await GH.ghWrite('tasks', tasks); return { ok: true }; }
+        }
+        return { ok: true };
+      }
+    }
+
+    if (cfg.sub === 'milestones' && action === 'updateMilestone') {
+      const projects = await GH._readViaApi('projects');
+      for (const p of projects) {
+        const ms = (p.milestones || []).find(m => m.id === (body?.id || params.id));
+        if (ms) { Object.assign(ms, body); await GH.ghWrite('projects', projects); return ms; }
+      }
+      return null;
+    }
+
+    // markRead — update notification
+    if (action === 'markRead') {
+      const id = params.id || body?.id;
+      return await GH.ghUpdate('notifications', id, { read: 'true' });
+    }
+
+    // markShootDone
+    if (action === 'markShootDone') {
+      const id = params.id || body?.id;
+      return await GH.ghUpdate('shoots', id, { status: 'Complete' });
+    }
+
+    // approveCDO
+    if (action === 'approveCDO') {
+      const id = body?.id || params.id;
+      return await GH.ghUpdate('cdoRedemptions', id, { status: 'approved', approvedBy: body?.approvedBy });
+    }
+
+    // Generic update: any action with a body containing id
+    const id = body?.id || params.id;
+    if (id) {
+      const fields = { ...body };
+      delete fields.id;
+      return await GH.ghUpdate(col, id, fields);
+    }
+
+    return null;
+  } catch(e) {
+    toast('GitHub API error: ' + e.message, 'error');
+    console.error('api() error:', action, e);
+    return null;
+  }
 }
 
 // ===================== NAVIGATION =====================
@@ -1840,7 +2074,7 @@ function applyData(d) {
 }
 
 async function loadData(force = false) {
-  if (!S.apiUrl) return;
+  if (!S.apiUrl && !GH.token) return;
   const now = Date.now();
   if (!force && now - S._lastLoaded < 30000) return;
 
@@ -1852,7 +2086,7 @@ async function loadData(force = false) {
     } catch(_) {}
   }
 
-  // Single round-trip to fetch everything
+  // Fetch everything (GitHub parallel fetch or Apps Script single call)
   S._lastLoaded = now;
   const d = await api('getAll', { user: S.myName });
   if (!d) return;
@@ -3888,6 +4122,15 @@ function renderSettings() {
   document.getElementById('api-url').value = S.apiUrl;
   document.getElementById('my-name').value = S.myName;
   document.getElementById('my-dept').value = S.myDept;
+  const ghInp = document.getElementById('gh-token');
+  if (ghInp) ghInp.value = localStorage.getItem('aeros_gh_token') || '';
+  const badge = document.getElementById('backend-mode-badge');
+  if (badge) {
+    const isGH = !!GH.token;
+    badge.style.background = isGH ? '#e6f4ea' : '#fef7e0';
+    badge.style.color = isGH ? '#137333' : '#b45309';
+    badge.textContent = isGH ? 'Backend: GitHub (JSON files via Pages + API)' : 'Backend: Apps Script (legacy)';
+  }
   renderAYSettings();
   renderScalableLists();
 }
@@ -3973,15 +4216,53 @@ function saveSettings() {
   S.apiUrl  = document.getElementById('api-url').value;
   S.myName  = document.getElementById('my-name').value;
   S.myDept  = document.getElementById('my-dept').value;
+  const ghToken = (document.getElementById('gh-token') || {}).value || '';
   localStorage.setItem('aeros_api_url', S.apiUrl);
   localStorage.setItem('aeros_my_name', S.myName);
   localStorage.setItem('aeros_my_dept', S.myDept);
+  if (ghToken) localStorage.setItem('aeros_gh_token', ghToken);
+  else localStorage.removeItem('aeros_gh_token');
+  // Also store Apps Script URL as iCal fallback
+  if (S.apiUrl) localStorage.setItem('aeros_ical_api_url', S.apiUrl);
+  renderSettings(); // refresh badge
   toast('Settings saved');
 }
 
 async function runInit() {
   const res = await api('initSheet');
   toast(res?.message || 'Done!');
+}
+
+async function runMigrate() {
+  if (!GH.token) { toast('Set a GitHub token first', 'warn'); return; }
+  if (!S.apiUrl) { toast('Set the Apps Script URL to migrate from', 'warn'); return; }
+  if (!confirm('This will fetch all data from Apps Script and write it to GitHub as JSON files. Continue?')) return;
+  toast('Migrating... fetching from Apps Script', 'info');
+  try {
+    // Fetch from Apps Script
+    const url = new URL(S.apiUrl);
+    url.searchParams.set('action', 'getAll');
+    url.searchParams.set('user', S.myName);
+    const r = await fetch(url.toString(), { redirect: 'follow' });
+    const d = await r.json();
+    if (!d) { toast('No data returned from Apps Script', 'error'); return; }
+    // Write each collection to GitHub
+    const map = {
+      tasks:'tasks', projects:'projects', team:'team', meetings:'meetings',
+      missions:'missions', leaves:'leaves', shoots:'shoots', videos:'videos',
+      events:'events', feeds:'feeds', campaigns:'campaigns', designs:'designs',
+      publishing:'publishing', seoProjects:'seoProjects', websiteProjects:'websiteProjects',
+      contentItems:'contentItems', socialRecords:'socialRecords', rules:'rules',
+      cdoBalances:'cdoBalances', cdoRedemptions:'cdoRedemptions', notifs:'notifications'
+    };
+    let count = 0;
+    for (const [srcKey, col] of Object.entries(map)) {
+      const items = d[srcKey] || [];
+      if (!GH.FILE_MAP[col]) continue;
+      try { await GH.ghWrite(col, items); count++; toast(`Wrote ${col} (${Array.isArray(items)?items.length:0})`, 'info'); } catch(e) { console.error('migrate write error:', col, e); }
+    }
+    toast(`Migration complete! ${count} files written to GitHub`, 'success');
+  } catch(e) { toast('Migration failed: ' + e.message, 'error'); }
 }
 
 // ===================== TASK CRUD =====================
