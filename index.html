@@ -7352,13 +7352,13 @@ function renderEvents() {
   Object.entries(groups).forEach(([month, items]) => {
     html += `<div style="margin-bottom:24px">
       <div style="font-size:13px;font-weight:700;color:var(--text2);padding:8px 0;border-bottom:2px solid var(--border);margin-bottom:2px">${month} <span style="font-weight:400;color:var(--text3)">(${items.length} events)</span></div>
-      <table class="data-table" style="font-size:13px"><thead><tr>
-        <th style="width:100px">Date</th>
-        <th style="width:50px">Days</th>
-        <th style="width:100px">Category</th>
-        <th>Title</th>
-        <th>Khmer</th>
-        <th style="width:70px">Time</th>
+      <table class="data-table" style="font-size:13px;table-layout:fixed;width:100%"><thead><tr>
+        <th style="width:110px">Date</th>
+        <th style="width:40px">Days</th>
+        <th style="width:90px">Category</th>
+        <th style="width:30%">Title</th>
+        <th style="width:30%">Khmer</th>
+        <th style="width:80px">Time</th>
       </tr></thead><tbody>
       ${items.map(e => {
         const cat = e.category || e.department || '';
