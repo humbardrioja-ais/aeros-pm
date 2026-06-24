@@ -4942,12 +4942,9 @@ function calPillHtml(item,type,clickJs){
   const prio=item.priority?`<span style="font-size:8px;font-weight:700;padding:1px 4px;border-radius:3px;background:rgba(0,0,0,.1);color:rgba(0,0,0,.55)">${item.priority}</span>`:'';
   const drag=isIcal?'':` draggable="true" ondragstart="calDragStart(event,'${item.id}','${type}')"`;
   const click=!clickJs?'':` onclick="event.stopPropagation();${clickJs}"`;
-  return`<div style="display:flex;align-items:center;gap:5px;border-radius:5px;padding:2px 6px;min-height:26px;margin-bottom:2px;background:${bg};cursor:pointer"${drag}${click}>
-    <div style="width:18px;height:18px;border-radius:50%;background:${av};color:${avt};display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:800;flex-shrink:0">${initials}</div>
-    <div style="flex:1;min-width:0">
-      <div style="font-size:10px;font-weight:600;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:3px">${checkSvg}${esc(item.title||owner)}</div>
-      <div style="font-size:9px;color:rgba(0,0,0,.5);display:flex;align-items:center;gap:3px">${esc(owner.length>0&&(item.title)?owner:'')}${prio}</div>
-    </div>
+  return`<div style="display:flex;align-items:center;gap:4px;border-radius:5px;padding:3px 6px;height:24px;margin-bottom:2px;background:${bg};cursor:pointer;overflow:hidden"${drag}${click}>
+    <div style="width:16px;height:16px;border-radius:50%;background:${av};color:${avt};display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:800;flex-shrink:0">${initials}</div>
+    <div style="flex:1;min-width:0;font-size:10px;font-weight:600;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:3px">${checkSvg}${esc(item.title||owner)}${prio}</div>
     ${time}${lockSvg}
   </div>`;
 }
