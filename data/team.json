@@ -1,0 +1,67 @@
+[
+  {
+    "id": "M-1781712672415-548",
+    "name": "Sothear Khath",
+    "email": "sothear.khath@ais.edu.kh",
+    "role": "Member",
+    "department": "",
+    "avatar": "",
+    "phone": "",
+    "active": true,
+    "created": "2026-06-17T16:11:12.416Z",
+    "avatar_img": "",
+    "avatar_color": ""
+  },
+  {
+    "id": "M-1781765021080-396",
+    "name": "Voleak Vath",
+    "email": "voleak.vath@ais.edu.kh",
+    "role": "Member",
+    "department": "",
+    "avatar": "",
+    "phone": "",
+    "active": true,
+    "created": "2026-06-18T06:43:41.080Z",
+    "avatar_img": "",
+    "avatar_color": "#f0dc00"
+  },
+  {
+    "id": "M-1781765021087-561",
+    "name": "Vattey Vay",
+    "email": "vattey.vay@ais.edu.kh",
+    "role": "Member",
+    "department": "",
+    "avatar": "",
+    "phone": "",
+    "active": true,
+    "created": "2026-06-18T06:43:41.080Z",
+    "avatar_img": "",
+    "avatar_color": ""
+  },
+  {
+    "id": "M-1781765021093-915",
+    "name": "Vichhai Pov",
+    "email": "vichhai.pov@ais.edu.kh",
+    "role": "Member",
+    "department": "",
+    "avatar": "",
+    "phone": "",
+    "active": true,
+    "created": "2026-06-18T06:43:41.080Z",
+    "avatar_img": "",
+    "avatar_color": ""
+  },
+  {
+    "id": "M-1781765021098-191",
+    "name": "Sina Yoeurn",
+    "email": "sina.yoeurn@ais.edu.kh",
+    "role": "Member",
+    "department": "",
+    "avatar": "",
+    "phone": "",
+    "active": true,
+    "created": "2026-06-18T06:43:41.080Z",
+    "avatar_img": "",
+    "avatar_color": "#18cc00"
+  }
+]
