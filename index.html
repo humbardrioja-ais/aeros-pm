@@ -743,8 +743,8 @@ select.sd-val{appearance:auto;cursor:pointer}
               <option value="past">Past</option>
               <option value="all">All</option>
             </select>
-            <select id="events-filter-dept" onchange="renderEvents()" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);font-size:12px">
-              <option value="">All departments</option>
+            <select id="events-filter-cat" onchange="renderEvents()" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);font-size:12px">
+              <option value="">All Categories</option><option value="Holidays">Holidays</option><option value="Marketing">Marketing</option><option value="Internal">Internal</option><option value="Academic">Academic</option><option value="Thematic">Thematic</option>
             </select>
             <input id="events-search" placeholder="Search events..." oninput="_debouncedRenderEvents()" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);font-size:12px;width:180px">
             <button class="btn btn-primary" onclick="openItemDrawer('event','new')">+ Event</button>
@@ -6071,8 +6071,11 @@ const ID_CONFIGS = {
     label:'Event', color:'var(--cal-event,#aecbfa)', collection:'events',
     apiCreate:'createEvent', apiUpdate:'updateEvent', apiDelete:'deleteEvent',
     idPrefix:'EV', fields:[
-      {key:'title',label:'Title',type:'text',required:true,full:true},
-      {key:'date',label:'Date',type:'date'},{key:'end_date',label:'End Date',type:'date'},
+      {key:'title',label:'Title (English)',type:'text',required:true,full:true},
+      {key:'title_kh',label:'Title (Khmer)',type:'text',full:true},
+      {key:'category',label:'Category',type:'select',options:['Holidays','Marketing','Internal','Academic','Thematic']},
+      {key:'date',label:'Start Date',type:'date'},{key:'end_date',label:'End Date',type:'date'},
+      {key:'days',label:'Days',type:'number'},
       {key:'time',label:'Start Time',type:'time'},{key:'end_time',label:'End Time',type:'time'},
       {key:'department',label:'Department',type:'text',default:'myDept'},
       {key:'description',label:'Description',type:'textarea'},
@@ -7287,43 +7290,29 @@ function showFeedEventModal(eventId) {
 
 /* ===================== EVENTS MODULE ===================== */
 const _debouncedRenderEvents = _debounce(()=>renderEvents(), 150);
+const EVT_CAT_COLORS = {Holidays:'#c5221f',Marketing:'#1967d2',Internal:'#e37400',Academic:'#137333',Thematic:'#7b1fa2'};
 
 function renderEvents() {
   const w = document.getElementById('events-list');
   if (!w) return;
   const today = todayStr();
   const timeFilter = (document.getElementById('events-filter-time')||{}).value || 'upcoming';
-  const deptFilter = (document.getElementById('events-filter-dept')||{}).value || '';
+  const catFilter = (document.getElementById('events-filter-cat')||{}).value || '';
   const q = (document.getElementById('events-search')||{}).value?.toLowerCase() || '';
-  
-  // Populate department filter
-  const deptSel = document.getElementById('events-filter-dept');
-  if (deptSel && deptSel.options.length <= 1) {
-    const depts = [...new Set((S.events||[]).map(e=>e.department).filter(Boolean))].sort();
-    depts.forEach(d => { const o = document.createElement('option'); o.value = d; o.textContent = d; deptSel.appendChild(o); });
-  }
   
   let events = [...(S.events||[])];
   
-  // Time filter
   if (timeFilter === 'upcoming') events = events.filter(e => (e.end_date||e.date) >= today);
   else if (timeFilter === 'past') events = events.filter(e => (e.end_date||e.date) < today);
   
-  // Department filter
-  if (deptFilter) events = events.filter(e => e.department === deptFilter);
+  if (catFilter) events = events.filter(e => (e.category||e.department) === catFilter);
+  if (q) events = events.filter(e => (e.title||'').toLowerCase().includes(q) || (e.title_kh||'').toLowerCase().includes(q) || (e.category||'').toLowerCase().includes(q));
   
-  // Search
-  if (q) events = events.filter(e => (e.title||'').toLowerCase().includes(q) || (e.description||'').toLowerCase().includes(q) || (e.department||'').toLowerCase().includes(q));
-  
-  // Sort: upcoming = nearest first, past = most recent first
   if (timeFilter === 'past') events.sort((a,b) => (b.date||'').localeCompare(a.date||''));
   else events.sort((a,b) => (a.date||'').localeCompare(b.date||''));
   
   if (!events.length) {
-    w.innerHTML = `<div style="color:var(--text3);padding:48px;text-align:center">
-      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:8px"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-      <div>No events found</div>
-    </div>`;
+    w.innerHTML = '<div style="color:var(--text3);padding:48px;text-align:center">No events found</div>';
     return;
   }
   
@@ -7338,36 +7327,33 @@ function renderEvents() {
   
   let html = '';
   Object.entries(groups).forEach(([month, items]) => {
-    html += `<div style="margin-bottom:20px">
-      <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;padding:6px 0;border-bottom:1px solid var(--border);margin-bottom:8px">${month}</div>
+    html += `<div style="margin-bottom:24px">
+      <div style="font-size:13px;font-weight:700;color:var(--text2);padding:8px 0;border-bottom:2px solid var(--border);margin-bottom:2px">${month} <span style="font-weight:400;color:var(--text3)">(${items.length} events)</span></div>
+      <table class="data-table" style="font-size:13px"><thead><tr>
+        <th style="width:100px">Date</th>
+        <th style="width:50px">Days</th>
+        <th style="width:100px">Category</th>
+        <th>Title</th>
+        <th>Khmer</th>
+        <th style="width:70px">Time</th>
+      </tr></thead><tbody>
       ${items.map(e => {
+        const cat = e.category || e.department || '';
+        const catColor = EVT_CAT_COLORS[cat] || '#616161';
         const isPast = (e.end_date||e.date) < today;
         const isToday = e.date === today;
-        const isMultiDay = e.end_date && e.end_date !== e.date;
-        const color = e.color || 'var(--brand)';
-        const daysUntil = e.date >= today ? Math.round((new Date(e.date+'T00:00:00') - new Date(today+'T00:00:00')) / 86400000) : null;
-        const daysLabel = daysUntil === 0 ? 'Today' : daysUntil === 1 ? 'Tomorrow' : daysUntil !== null && daysUntil <= 7 ? `In ${daysUntil} days` : '';
-        
-        return `<div onclick="openItemDrawer('event','${e.id}')" style="display:flex;align-items:flex-start;gap:12px;padding:12px;border-radius:var(--radius-lg);cursor:pointer;margin-bottom:4px;border:1px solid var(--border);background:var(--surface);${isPast?'opacity:.6':''}" onmouseenter="this.style.boxShadow='0 2px 8px rgba(0,0,0,.06)'" onmouseleave="this.style.boxShadow=''">
-          <div style="width:4px;height:100%;min-height:40px;border-radius:2px;background:${color};flex-shrink:0"></div>
-          <div style="flex-shrink:0;text-align:center;min-width:44px">
-            <div style="font-size:22px;font-weight:700;color:${isToday?'var(--brand)':'var(--text)'};line-height:1">${new Date(e.date+'T00:00:00').getDate()}</div>
-            <div style="font-size:10px;color:var(--text3);text-transform:uppercase">${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date(e.date+'T00:00:00').getDay()]}</div>
-          </div>
-          <div style="flex:1;min-width:0">
-            <div style="font-size:14px;font-weight:600;margin-bottom:2px">${esc(e.title)}</div>
-            <div style="font-size:12px;color:var(--text2);display:flex;flex-wrap:wrap;gap:6px;align-items:center">
-              ${e.time?`<span>${to12h(e.time)}${e.end_time?' – '+to12h(e.end_time):''}</span>`:''} 
-              ${isMultiDay?`<span>${e.date} → ${e.end_date}</span>`:''}
-              ${e.department?`<span style="padding:1px 6px;border-radius:3px;background:var(--surface2);font-size:11px">${esc(e.department)}</span>`:''}
-            </div>
-            ${e.description?`<div style="font-size:12px;color:var(--text3);margin-top:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(e.description)}</div>`:''}
-          </div>
-          <div style="flex-shrink:0;text-align:right">
-            ${daysLabel?`<span style="font-size:11px;font-weight:600;color:${isToday?'var(--brand)':daysUntil<=3?'var(--danger)':'var(--text3)'}">${daysLabel}</span>`:''}
-          </div>
-        </div>`;
+        const d = new Date(e.date+'T00:00:00');
+        const dayName = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()];
+        return `<tr onclick="openItemDrawer('event','${e.id}')" style="cursor:pointer;${isPast?'opacity:.5':''}${isToday?';background:var(--brand-light)':''}" onmouseenter="this.style.background='var(--surface2)'" onmouseleave="this.style.background='${isToday?'var(--brand-light)':''}'">
+          <td style="white-space:nowrap;font-weight:600">${e.date}<div style="font-size:10px;color:var(--text3);font-weight:400">${dayName}${e.end_date?' → '+e.end_date:''}</div></td>
+          <td style="text-align:center">${e.days||1}</td>
+          <td><span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;background:${catColor};color:#fff">${esc(cat)}</span></td>
+          <td style="font-weight:500">${esc(e.title)}</td>
+          <td style="color:var(--text2);font-size:12px">${esc(e.title_kh||'')}</td>
+          <td style="font-size:12px;color:var(--text2)">${e.time?to12h(e.time)+(e.end_time?'–'+to12h(e.end_time):''):''}</td>
+        </tr>`;
       }).join('')}
+      </tbody></table>
     </div>`;
   });
   
