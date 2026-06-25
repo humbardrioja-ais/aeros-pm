@@ -7445,17 +7445,15 @@ function renderEvents() {
   });
 
   // Quick-add row
-  const quickRow = `<tr class="evt-quick-add"><td colspan="8" style="padding:8px 4px;border-top:2px solid var(--border)">
-    <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">
-      <input id="evt-qa-date" type="date" style="width:130px" value="${todayStr()}">
-      <input id="evt-qa-days" type="number" style="width:50px" value="1" min="1" placeholder="Days">
-      <select id="evt-qa-cat" style="width:100px">${EVT_CATS.map(c=>`<option value="${c}">${c}</option>`).join('')}</select>
-      <input id="evt-qa-title" placeholder="Title..." style="flex:1;min-width:120px" onkeydown="if(event.key==='Enter')evtQuickAdd()">
-      <input id="evt-qa-title-kh" placeholder="Khmer..." style="width:120px" onkeydown="if(event.key==='Enter')evtQuickAdd()">
-      <input id="evt-qa-time" type="time" style="width:90px">
-      <button class="btn btn-primary btn-sm" onclick="evtQuickAdd()">+ Add</button>
-    </div>
-  </td></tr>`;
+  const quickRow = `<tr class="evt-quick-add" style="border-top:2px solid var(--brand)">
+    <td><input id="evt-qa-date" type="date" value="${todayStr()}" onkeydown="if(event.key==='Enter')evtQuickAdd()"></td>
+    <td><input id="evt-qa-days" type="number" value="1" min="1" onkeydown="if(event.key==='Enter')evtQuickAdd()"></td>
+    <td><select id="evt-qa-cat">${EVT_CATS.map(c=>`<option value="${c}">${c}</option>`).join('')}</select></td>
+    <td style="padding:0"><input id="evt-qa-assigned" placeholder="—" list="evt-qa-members" onkeydown="if(event.key==='Enter')evtQuickAdd()"><datalist id="evt-qa-members">${(S.team||[]).map(m=>'<option value="'+esc(m.name)+'">').join('')}</datalist></td>
+    <td><input id="evt-qa-title" placeholder="Event title..." onkeydown="if(event.key==='Enter')evtQuickAdd()"></td>
+    <td><input id="evt-qa-title-kh" placeholder="ចំណងជើង..." onkeydown="if(event.key==='Enter')evtQuickAdd()"></td>
+    <td style="display:flex;gap:2px;align-items:center;padding:4px"><input id="evt-qa-time" type="time" style="flex:1" onkeydown="if(event.key==='Enter')evtQuickAdd()"><button class="btn btn-primary btn-sm" onclick="evtQuickAdd()" style="padding:3px 8px;white-space:nowrap">+</button></td>
+  </tr>`;
 
   w.innerHTML = statsHtml + `<table class="data-table" style="font-size:13px;table-layout:fixed;width:100%"><thead><tr style="position:sticky;top:0;z-index:5;background:var(--surface)">
     <th style="width:110px">Date</th>
@@ -7476,9 +7474,12 @@ async function evtQuickAdd() {
     title, date,
     days: parseInt(document.getElementById('evt-qa-days')?.value)||1,
     category: document.getElementById('evt-qa-cat')?.value||'Internal',
+    assigned: document.getElementById('evt-qa-assigned')?.value?.trim()||'',
     title_kh: document.getElementById('evt-qa-title-kh')?.value?.trim()||'',
     time: document.getElementById('evt-qa-time')?.value||''
   };
+  body.department = body.category;
+  body.color = EVT_CAT_COLORS[body.category]||'#616161';
   await api('createEvent',{},body);
   toast('Event added');
   renderEvents();
