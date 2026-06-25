@@ -784,11 +784,7 @@ select.sd-val{appearance:auto;cursor:pointer}
           </div>
         </div>
         <div style="display:flex;gap:6px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
-          <select id="events-filter-time" onchange="renderEvtCurrentView()" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);font-size:12px">
-            <option value="upcoming">Upcoming</option>
-            <option value="past">Past</option>
-            <option value="all">All</option>
-          </select>
+          
           <select id="events-filter-cat" onchange="renderEvtCurrentView()" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);font-size:12px">
             <option value="">All Categories</option><option value="Holidays">Holidays</option><option value="Marketing">Marketing</option><option value="Internal">Internal</option><option value="Academic">Academic</option><option value="Thematic">Thematic</option>
           </select>
@@ -7363,7 +7359,7 @@ function _evtHexToTint(hex, lightness) {
 
 function _evtFilteredEvents() {
   const today = todayStr();
-  const timeFilter = (document.getElementById('events-filter-time')||{}).value || 'upcoming';
+  const timeFilter = 'all';
   const catFilter = (document.getElementById('events-filter-cat')||{}).value || '';
   const q = (document.getElementById('events-search')||{}).value?.toLowerCase() || '';
   let events = [...(S.events||[])];
@@ -7419,14 +7415,13 @@ function renderEvents() {
     items.forEach(e => {
       const cat = e.category || e.department || '';
       const catColor = EVT_CAT_COLORS[cat] || '#616161';
-      const isPast = (e.end_date||e.date) < today;
       const isToday = e.date === today;
       const rowBg = _evtHexToTint(catColor, document.documentElement.classList.contains('dark') ? 15 : 95);
       const d = new Date(e.date+'T00:00:00');
       const dayName = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()];
       const member = e.assigned ? (S.team||[]).find(m=>m.name===e.assigned) : null;
       const avatar = member ? `<div style="display:flex;align-items:center;gap:4px"><div style="width:20px;height:20px;border-radius:50%;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700">${esc((member.name||'').slice(0,2).toUpperCase())}</div><span style="font-size:11px">${esc(member.name)}</span></div>` : '';
-      rows += `<tr onclick="openItemDrawer('event','${e.id}')" style="cursor:pointer;background:${rowBg};${isPast?'opacity:.5':''}${isToday?';outline:1px solid var(--brand)':''}" onmouseenter="this.style.filter='brightness(0.95)'" onmouseleave="this.style.filter=''">
+      rows += `<tr onclick="openItemDrawer('event','${e.id}')" style="cursor:pointer;background:${rowBg};${isToday?';outline:1px solid var(--brand)':''}" onmouseenter="this.style.filter='brightness(0.95)'" onmouseleave="this.style.filter=''">
         <td style="white-space:nowrap;font-weight:600">${fmtDateLong(e.date)}<div style="font-size:10px;color:var(--text3);font-weight:400">${dayName}${e.end_date?' → '+fmtDateLong(e.end_date):''}</div></td>
         <td style="text-align:center">${e.days||1}</td>
         <td><span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;background:${catColor};color:#fff">${esc(cat)}</span></td>
@@ -7466,6 +7461,18 @@ function renderEvents() {
     <th style="width:22%">Khmer</th>
     <th style="width:90px">Time</th>
   </tr></thead><tbody>${rows}</tbody></table>`;
+
+  // Scroll to current month
+  setTimeout(() => {
+    const todayMonth = todayStr().slice(0,7);
+    const monthHeaders = w.querySelectorAll('td[colspan]');
+    for (const td of monthHeaders) {
+      if (td.textContent.includes(new Date(todayMonth+'-01T00:00:00').toLocaleDateString('en-US',{month:'long',year:'numeric'}))) {
+        td.closest('tr').scrollIntoView({behavior:'instant',block:'start'});
+        break;
+      }
+    }
+  }, 50);
 }
 
 async function evtQuickAdd() { evtQuickAddMonth('evt-qa'); }
