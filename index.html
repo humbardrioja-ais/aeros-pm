@@ -2168,10 +2168,15 @@ async function loadData(force = false) {
 
   // Fetch everything (GitHub parallel fetch or Apps Script single call)
   S._lastLoaded = now;
-  const d = await api('getAll', { user: S.myName });
-  if (!d) return;
-  applyData(d);
-  try { localStorage.setItem('aeros_data_cache', JSON.stringify(d)); } catch(_) {}
+  try {
+    const d = await api('getAll', { user: S.myName });
+    if (!d) { console.warn('[loadData] api returned null'); return; }
+    applyData(d);
+    try { localStorage.setItem('aeros_data_cache', JSON.stringify(d)); } catch(_) {}
+  } catch(err) {
+    console.error('[loadData] Failed:', err);
+    toast('Data load failed — check connection', 'error');
+  }
 }
 
 // ===================== DASHBOARD =====================
