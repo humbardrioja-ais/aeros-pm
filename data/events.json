@@ -1,20 +1,5 @@
 [
   {
-    "title": "Video Production Workshop",
-    "date": "2026-07-11",
-    "time": "14:00",
-    "end_time": "17:00",
-    "category": "Internal",
-    "color": "#e37400",
-    "department": "Internal",
-    "end_date": "",
-    "days": 1,
-    "title_kh": "",
-    "description": "",
-    "created": "2026-06-24",
-    "id": "EV-1782398886788"
-  },
-  {
     "id": "EV-001",
     "title": "Exam Preparation Class 2024-2025",
     "title_kh": "កម្មវិធីរៀនត្រៀមសម្រាប់ការប្រឡងឡើងថ្នាក់ ឆ្នាំសិក្សា2024-2025",
@@ -434,7 +419,8 @@
     "id": "EV-027",
     "title": "Water Festival Ceremony",
     "title_kh": "ព្រះរាជពិធីបុណ្យអុំទូក បណ្តែតប្រទីប និងសំពះព្រះខែ អកអំបុក",
-    "date": "2026-06-25",
+    "date": "2025-11-04",
+    "end_date": "2025-11-06",
     "days": 3,
     "time": "",
     "end_time": "",
