@@ -7387,7 +7387,7 @@ function renderEvents() {
     const cnt = catCounts[c]||0;
     const catFilter = (document.getElementById('events-filter-cat')||{}).value || '';
     const isActive = catFilter === c;
-    return `<div class="evt-stat-badge" style="background:${color};${isActive?'outline:2px solid var(--text);outline-offset:2px':''}" onclick="document.getElementById('events-filter-cat').value='${isActive?'':c}';renderEvtCurrentView()">${esc(c)} (${cnt})</div>`;
+    return `<div class="evt-stat-badge" style="border:2px solid ${color};color:${color};background:${isActive?color:'transparent'};${isActive?'color:#fff':''}" onclick="document.getElementById('events-filter-cat').value='${isActive?'':c}';renderEvtCurrentView()"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg> ${esc(c)} (${cnt})</div>`;
   }).join('')}</div>`;
 
   let events = allEventsFiltered;
@@ -7757,11 +7757,11 @@ function evtEditCatColors() {
 function evtSaveCatColors() {
   EVT_CATS.forEach(c => {
     const inp = document.getElementById('evt-cc-'+c);
-    if (inp) EVT_CAT_COLORS[c] = inp.value;
+    if (inp && inp.value) EVT_CAT_COLORS[c] = inp.value;
   });
   localStorage.setItem('evt_cat_colors', JSON.stringify(EVT_CAT_COLORS));
   closeModal();
-  renderEvtCal();
+  renderEvtCurrentView();
   toast('Category colors saved');
 }
 
