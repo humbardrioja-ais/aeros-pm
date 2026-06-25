@@ -148,8 +148,8 @@ const GH = {
   async ghRead(collection) {
     const file = this.FILE_MAP[collection];
     if (!file) throw new Error('Unknown collection: ' + collection);
-    const bust = this._bustCache[collection] || '';
-    const url = `${this.pagesBase}/${file}${bust ? '?t=' + bust : ''}`;
+    const bust = this._bustCache[collection] || Date.now();
+    const url = `${this.pagesBase}/${file}?t=${bust}`;
     const r = await fetch(url);
     if (!r.ok) {
       if (r.status === 404) return [];
