@@ -773,23 +773,26 @@ select.sd-val{appearance:auto;cursor:pointer}
       </div>
 
       <div id="view-events" class="hidden">
-        <div style="position:sticky;top:-1px;z-index:10;background:var(--bg);padding-bottom:8px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-          <span class="font-bold" style="font-size:16px">Events</span>
-          <div style="display:flex;gap:6px;align-items:center">
-            <div style="display:flex;border:2px solid var(--border);border-radius:8px;overflow:hidden">
-              <button class="btn btn-sm evt-view-btn active" id="evt-view-list" onclick="setEvtView('list')" style="border:0;border-radius:0;padding:6px 16px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg> List</button>
-              <button class="btn btn-sm evt-view-btn" id="evt-view-cal" onclick="setEvtView('cal')" style="border:0;border-radius:0;padding:6px 16px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Calendar</button>
+        <input type="hidden" id="events-filter-cat" value="">
+        <!-- Sticky header: title + buttons + search + stats -->
+        <div id="evt-sticky-header" style="position:sticky;top:0;z-index:10;background:var(--bg);padding:0 0 6px;border-bottom:1px solid var(--border);margin-bottom:8px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;padding-top:4px">
+            <span class="font-bold" style="font-size:16px">Events</span>
+            <div style="display:flex;gap:6px;align-items:center">
+              <div style="display:flex;border:2px solid var(--border);border-radius:8px;overflow:hidden">
+                <button class="btn btn-sm evt-view-btn active" id="evt-view-list" onclick="setEvtView('list')" style="border:0;border-radius:0;padding:6px 16px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg> List</button>
+                <button class="btn btn-sm evt-view-btn" id="evt-view-cal" onclick="setEvtView('cal')" style="border:0;border-radius:0;padding:6px 16px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Calendar</button>
+              </div>
+              <button class="btn btn-secondary" onclick="evtScrollToToday()">Today</button>
+              <button class="btn btn-primary" onclick="openItemDrawer('event','new')">+ Event</button>
             </div>
-            <button class="btn btn-secondary" onclick="evtScrollToToday()">Today</button>
-            <button class="btn btn-primary" onclick="openItemDrawer('event','new')">+ Event</button>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+            <input id="events-search" placeholder="Search events..." oninput="_debouncedRenderEvents()" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);font-size:12px;width:200px">
+            <div id="evt-stats-sticky" style="display:flex;gap:4px;flex-wrap:wrap;flex:1"></div>
           </div>
         </div>
-        <div style="display:flex;gap:6px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
-          
-<input type="hidden" id="events-filter-cat" value="">
-          <input id="events-search" placeholder="Search events..." oninput="_debouncedRenderEvents()" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);font-size:12px;width:200px">
-        </div>
+        <!-- Content -->
         <div id="events-list"></div>
         <div id="events-cal" class="hidden">
           <div id="evt-cal-chips" class="evt-cat-chips"></div>
