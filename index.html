@@ -7422,8 +7422,9 @@ function renderEvents() {
       const member = e.assigned ? (S.team||[]).find(m=>m.name===e.assigned) : null;
       const avatar = member ? `<div style="display:flex;align-items:center;gap:4px"><div style="width:20px;height:20px;border-radius:50%;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700">${esc((member.name||'').slice(0,2).toUpperCase())}</div><span style="font-size:11px">${esc(member.name)}</span></div>` : '';
       rows += `<tr onclick="openItemDrawer('event','${e.id}')" style="cursor:pointer;background:${rowBg};${isToday?';outline:1px solid var(--brand)':''}" onmouseenter="this.style.filter='brightness(0.95)'" onmouseleave="this.style.filter=''">
-        <td style="white-space:nowrap;font-weight:600">${fmtDateLong(e.date)}<div style="font-size:10px;color:var(--text3);font-weight:400">${dayName}${e.end_date?' → '+fmtDateLong(e.end_date):''}</div></td>
-        <td style="text-align:center">${e.days||1}</td>
+        <td style="white-space:nowrap;font-weight:600;font-size:12px">${fmtDateLong(e.date)}<div style="font-size:10px;color:var(--text3);font-weight:400">${dayName}</div></td>
+        <td style="white-space:nowrap;font-size:12px;color:var(--text2)">${e.end_date?fmtDateLong(e.end_date):''}</td>
+        <td style="text-align:center">${e.end_date?daysBetween(e.date,e.end_date):(e.days||1)}</td>
         <td><span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;background:${catColor};color:#fff">${esc(cat)}</span></td>
         <td>${avatar}</td>
         <td style="font-weight:500">${esc(e.title)}</td>
@@ -7442,8 +7443,9 @@ function renderEvents() {
     const defaultDate = monthKey + '-01';
     const qid = 'qa-'+monthKey.replace('-','');
     rows += `<tr class="evt-quick-add" style="border-top:1px dashed var(--border)">
-      <td><input id="${qid}-date" type="date" value="${defaultDate}" onkeydown="if(event.key==='Enter')evtQuickAddMonth('${qid}')"></td>
-      <td><input id="${qid}-days" type="number" value="1" min="1" style="width:100%" onkeydown="if(event.key==='Enter')evtQuickAddMonth('${qid}')"></td>
+      <td><input id="${qid}-date" type="date" value="${defaultDate}" onchange="evtCalcDays('${qid}')" onkeydown="if(event.key==='Enter')evtQuickAddMonth('${qid}')"></td>
+      <td><input id="${qid}-end" type="date" onchange="evtCalcDays('${qid}')" onkeydown="if(event.key==='Enter')evtQuickAddMonth('${qid}')"></td>
+      <td><span id="${qid}-days" style="font-size:12px;color:var(--text2);text-align:center;display:block">1</span></td>
       <td><select id="${qid}-cat">${EVT_CATS.map(c=>`<option value="${c}">${c}</option>`).join('')}</select></td>
       <td><input id="${qid}-assigned" placeholder="—" list="${qid}-members" onkeydown="if(event.key==='Enter')evtQuickAddMonth('${qid}')"><datalist id="${qid}-members">${(S.team||[]).map(m=>'<option value="'+esc(m.name)+'">').join('')}</datalist></td>
       <td><input id="${qid}-title" placeholder="+ Add event..." onkeydown="if(event.key==='Enter')evtQuickAddMonth('${qid}')"></td>
@@ -7453,8 +7455,9 @@ function renderEvents() {
   });
 
   w.innerHTML = statsHtml + `<table class="data-table" style="font-size:13px;table-layout:fixed;width:100%"><thead><tr style="position:sticky;top:0;z-index:5;background:var(--surface)">
-    <th style="width:110px">Date</th>
-    <th style="width:40px">Days</th>
+    <th style="width:100px">Start</th>
+    <th style="width:100px">End</th>
+    <th style="width:35px">Days</th>
     <th style="width:90px">Category</th>
     <th style="width:80px">Assigned</th>
     <th style="width:22%">Title</th>
@@ -7477,13 +7480,27 @@ function renderEvents() {
 
 async function evtQuickAdd() { evtQuickAddMonth('evt-qa'); }
 
+
+function evtCalcDays(prefix) {
+  const start = document.getElementById(prefix+'-date')?.value;
+  const end = document.getElementById(prefix+'-end')?.value;
+  const span = document.getElementById(prefix+'-days');
+  if (span && start && end && end >= start) {
+    span.textContent = daysBetween(start, end);
+  } else if (span) {
+    span.textContent = '1';
+  }
+}
 async function evtQuickAddMonth(prefix) {
   const date = document.getElementById(prefix+'-date')?.value;
   const title = document.getElementById(prefix+'-title')?.value?.trim();
   if (!date || !title) { toast('Date and title required','warn'); return; }
+  const endDate = document.getElementById(prefix+'-end')?.value || '';
+  const days = endDate && endDate > date ? daysBetween(date, endDate) : 1;
   const body = {
     title, date,
-    days: parseInt(document.getElementById(prefix+'-days')?.value)||1,
+    end_date: endDate && endDate !== date ? endDate : '',
+    days,
     category: document.getElementById(prefix+'-cat')?.value||'Academic',
     assigned: document.getElementById(prefix+'-assigned')?.value?.trim()||'',
     title_kh: document.getElementById(prefix+'-kh')?.value?.trim()||'',
