@@ -7442,18 +7442,20 @@ function renderEvents() {
         </td>
       </tr>`;
     });
+    // Quick-add row at end of each month
+    const monthKey = items[0]?.date?.slice(0,7) || todayStr().slice(0,7);
+    const defaultDate = monthKey + '-01';
+    const qid = 'qa-'+monthKey.replace('-','');
+    rows += `<tr class="evt-quick-add" style="border-top:1px dashed var(--border)">
+      <td><input id="${qid}-date" type="date" value="${defaultDate}" onkeydown="if(event.key==='Enter')evtQuickAddMonth('${qid}')"></td>
+      <td><input id="${qid}-days" type="number" value="1" min="1" style="width:100%" onkeydown="if(event.key==='Enter')evtQuickAddMonth('${qid}')"></td>
+      <td><select id="${qid}-cat">${EVT_CATS.map(c=>`<option value="${c}">${c}</option>`).join('')}</select></td>
+      <td><input id="${qid}-assigned" placeholder="—" list="${qid}-members" onkeydown="if(event.key==='Enter')evtQuickAddMonth('${qid}')"><datalist id="${qid}-members">${(S.team||[]).map(m=>'<option value="'+esc(m.name)+'">').join('')}</datalist></td>
+      <td><input id="${qid}-title" placeholder="+ Add event..." onkeydown="if(event.key==='Enter')evtQuickAddMonth('${qid}')"></td>
+      <td><input id="${qid}-kh" placeholder="ចំណងជើង..." onkeydown="if(event.key==='Enter')evtQuickAddMonth('${qid}')"></td>
+      <td style="display:flex;gap:2px;align-items:center;padding:4px"><input id="${qid}-time" type="time" style="flex:1" onkeydown="if(event.key==='Enter')evtQuickAddMonth('${qid}')"><button class="btn btn-primary btn-sm" onclick="evtQuickAddMonth('${qid}')" style="padding:3px 8px">+</button></td>
+    </tr>`;
   });
-
-  // Quick-add row
-  const quickRow = `<tr class="evt-quick-add" style="border-top:2px solid var(--brand)">
-    <td><input id="evt-qa-date" type="date" value="${todayStr()}" onkeydown="if(event.key==='Enter')evtQuickAdd()"></td>
-    <td><input id="evt-qa-days" type="number" value="1" min="1" onkeydown="if(event.key==='Enter')evtQuickAdd()"></td>
-    <td><select id="evt-qa-cat">${EVT_CATS.map(c=>`<option value="${c}">${c}</option>`).join('')}</select></td>
-    <td style="padding:0"><input id="evt-qa-assigned" placeholder="—" list="evt-qa-members" onkeydown="if(event.key==='Enter')evtQuickAdd()"><datalist id="evt-qa-members">${(S.team||[]).map(m=>'<option value="'+esc(m.name)+'">').join('')}</datalist></td>
-    <td><input id="evt-qa-title" placeholder="Event title..." onkeydown="if(event.key==='Enter')evtQuickAdd()"></td>
-    <td><input id="evt-qa-title-kh" placeholder="ចំណងជើង..." onkeydown="if(event.key==='Enter')evtQuickAdd()"></td>
-    <td style="display:flex;gap:2px;align-items:center;padding:4px"><input id="evt-qa-time" type="time" style="flex:1" onkeydown="if(event.key==='Enter')evtQuickAdd()"><button class="btn btn-primary btn-sm" onclick="evtQuickAdd()" style="padding:3px 8px;white-space:nowrap">+</button></td>
-  </tr>`;
 
   w.innerHTML = statsHtml + `<table class="data-table" style="font-size:13px;table-layout:fixed;width:100%"><thead><tr style="position:sticky;top:0;z-index:5;background:var(--surface)">
     <th style="width:110px">Date</th>
@@ -7463,26 +7465,31 @@ function renderEvents() {
     <th style="width:22%">Title</th>
     <th style="width:22%">Khmer</th>
     <th style="width:90px">Time</th>
-  </tr></thead><tbody>${rows}${quickRow}</tbody></table>`;
+  </tr></thead><tbody>${rows}</tbody></table>`;
 }
 
-async function evtQuickAdd() {
-  const date = document.getElementById('evt-qa-date')?.value;
-  const title = document.getElementById('evt-qa-title')?.value?.trim();
+async function evtQuickAdd() { evtQuickAddMonth('evt-qa'); }
+
+async function evtQuickAddMonth(prefix) {
+  const date = document.getElementById(prefix+'-date')?.value;
+  const title = document.getElementById(prefix+'-title')?.value?.trim();
   if (!date || !title) { toast('Date and title required','warn'); return; }
   const body = {
     title, date,
-    days: parseInt(document.getElementById('evt-qa-days')?.value)||1,
-    category: document.getElementById('evt-qa-cat')?.value||'Internal',
-    assigned: document.getElementById('evt-qa-assigned')?.value?.trim()||'',
-    title_kh: document.getElementById('evt-qa-title-kh')?.value?.trim()||'',
-    time: document.getElementById('evt-qa-time')?.value||''
+    days: parseInt(document.getElementById(prefix+'-days')?.value)||1,
+    category: document.getElementById(prefix+'-cat')?.value||'Academic',
+    assigned: document.getElementById(prefix+'-assigned')?.value?.trim()||'',
+    title_kh: document.getElementById(prefix+'-kh')?.value?.trim()||'',
+    time: document.getElementById(prefix+'-time')?.value||''
   };
   body.department = body.category;
   body.color = EVT_CAT_COLORS[body.category]||'#616161';
-  await api('createEvent',{},body);
-  toast('Event added');
+  body.id = 'EV-' + Date.now();
+  S.events = S.events || [];
+  S.events.push(body);
   renderEvents();
+  toast('Event added');
+  await api('createEvent',{},body);
 }
 
 async function evtDuplicate(id) {
