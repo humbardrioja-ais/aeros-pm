@@ -773,6 +773,7 @@ select.sd-val{appearance:auto;cursor:pointer}
       </div>
 
       <div id="view-events" class="hidden">
+        <div style="position:sticky;top:-1px;z-index:10;background:var(--bg);padding-bottom:8px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
           <span class="font-bold" style="font-size:16px">Events</span>
           <div style="display:flex;gap:6px;align-items:center">
@@ -785,9 +786,7 @@ select.sd-val{appearance:auto;cursor:pointer}
         </div>
         <div style="display:flex;gap:6px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
           
-          <select id="events-filter-cat" onchange="renderEvtCurrentView()" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);font-size:12px">
-            <option value="">All Categories</option><option value="Holidays">Holidays</option><option value="Marketing">Marketing</option><option value="Internal">Internal</option><option value="Academic">Academic</option><option value="Thematic">Thematic</option>
-          </select>
+<input type="hidden" id="events-filter-cat" value="">
           <input id="events-search" placeholder="Search events..." oninput="_debouncedRenderEvents()" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);font-size:12px;width:200px">
         </div>
         <div id="events-list"></div>
@@ -7454,7 +7453,8 @@ function renderEvents() {
     </tr>`;
   });
 
-  w.innerHTML = statsHtml + `<table class="data-table" style="font-size:13px;table-layout:fixed;width:100%"><thead><tr style="position:sticky;top:0;z-index:5;background:var(--surface)">
+  const stickyStats = document.getElementById('evt-stats-sticky'); if(stickyStats) stickyStats.innerHTML = statsHtml;
+  w.innerHTML = `<table class="data-table" style="font-size:13px;table-layout:fixed;width:100%"><thead><tr style="position:sticky;top:0;z-index:5;background:var(--surface)">
     <th style="width:100px">Start</th>
     <th style="width:100px">End</th>
     <th style="width:35px">Days</th>
