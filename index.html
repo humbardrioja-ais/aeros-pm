@@ -415,7 +415,7 @@ label{font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bot
 .evt-view-btn.active{background:var(--brand);color:#fff}
 /* Events calendar grid */
 .evt-cal-layout{display:grid;grid-template-columns:1fr 220px;gap:16px}
-@media(max-width:800px){.evt-cal-layout{grid-template-columns:1fr}.evt-cal-sidebar{display:none}}
+@media(max-width:800px){.evt-cal-layout{grid-template-columns:1fr}.evt-cal-sidebar{display:none;display:none}}
 .evt-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:8px;overflow:hidden}
 .evt-cal-hdr{background:var(--surface2);padding:6px;text-align:center;font-size:11px;font-weight:700;color:var(--text3)}
 .evt-cal-cell{background:var(--surface);padding:4px;min-height:100px;vertical-align:top;cursor:pointer;position:relative}
@@ -781,6 +781,7 @@ select.sd-val{appearance:auto;cursor:pointer}
               <button class="btn btn-sm evt-view-btn active" id="evt-view-list" onclick="setEvtView('list')" style="border:0;border-radius:0;padding:6px 16px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg> List</button>
               <button class="btn btn-sm evt-view-btn" id="evt-view-cal" onclick="setEvtView('cal')" style="border:0;border-radius:0;padding:6px 16px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Calendar</button>
             </div>
+            <button class="btn btn-secondary" onclick="evtScrollToToday()">Today</button>
             <button class="btn btn-primary" onclick="openItemDrawer('event','new')">+ Event</button>
           </div>
         </div>
@@ -7348,7 +7349,7 @@ function showFeedEventModal(eventId) {
 /* ===================== EVENTS MODULE ===================== */
 const _debouncedRenderEvents = _debounce(()=>renderEvtCurrentView(), 150);
 const EVT_CAT_COLORS = {Holidays:'#c5221f',Marketing:'#1967d2',Internal:'#e37400',Academic:'#137333',Thematic:'#7b1fa2'};
-(function(){ const sc = localStorage.getItem('evt_cat_colors'); if(sc) try{Object.assign(EVT_CAT_COLORS,JSON.parse(sc))}catch(e){} })();
+(function(){ const sc = localStorage.getItem('evt_cat_colors'); if(sc) try{const parsed=JSON.parse(sc);Object.keys(parsed).forEach(k=>{if(parsed[k])EVT_CAT_COLORS[k]=parsed[k];})}catch(e){} })();
 const EVT_CATS = ['Holidays','Marketing','Internal','Academic','Thematic'];
 
 function _evtHexToTint(hex, lightness) {
@@ -7481,6 +7482,26 @@ function renderEvents() {
 async function evtQuickAdd() { evtQuickAddMonth('evt-qa'); }
 
 
+
+function evtScrollToToday() {
+  if (S._evtView === 'cal') {
+    S._evtCalY = new Date().getFullYear();
+    S._evtCalM = new Date().getMonth();
+    renderEvtCal();
+    return;
+  }
+  const todayMonth = todayStr().slice(0,7);
+  const container = document.getElementById('events-list');
+  if (!container) return;
+  const rows = container.querySelectorAll('td[colspan]');
+  for (const td of rows) {
+    const monthLabel = new Date(todayMonth+'-01T00:00:00').toLocaleDateString('en-US',{month:'long',year:'numeric'});
+    if (td.textContent.includes(monthLabel)) {
+      td.closest('tr').scrollIntoView({behavior:'smooth',block:'start'});
+      return;
+    }
+  }
+}
 function evtCalcDays(prefix) {
   const start = document.getElementById(prefix+'-date')?.value;
   const end = document.getElementById(prefix+'-end')?.value;
