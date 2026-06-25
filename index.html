@@ -413,14 +413,42 @@ label{font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bot
 .ts-pill{display:flex;align-items:center;gap:3px;border-radius:4px;padding:2px 6px;margin-bottom:2px;font-size:10px;font-weight:600;color:#fff;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 .evt-view-btn.active{background:var(--brand);color:#fff}
-.evt-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);border:1px solid var(--border)}
+/* Events calendar grid */
+.evt-cal-layout{display:grid;grid-template-columns:1fr 220px;gap:16px}
+@media(max-width:800px){.evt-cal-layout{grid-template-columns:1fr}.evt-cal-sidebar{display:none}}
+.evt-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:8px;overflow:hidden}
 .evt-cal-hdr{background:var(--surface2);padding:6px;text-align:center;font-size:11px;font-weight:700;color:var(--text3)}
-.evt-cal-cell{background:var(--surface);padding:4px;min-height:90px;vertical-align:top;cursor:pointer}
+.evt-cal-cell{background:var(--surface);padding:4px;min-height:100px;vertical-align:top;cursor:pointer;position:relative}
 .evt-cal-cell:hover{background:var(--surface2)}
-.evt-cal-cell.weekend{background:var(--surface2)}
+.evt-cal-cell.weekend{background:color-mix(in srgb, var(--surface2) 60%, var(--surface))}
 .evt-cal-cell.today{outline:2px solid var(--brand);outline-offset:-2px}
 .evt-cal-cell.outside{background:var(--surface2);opacity:.4}
-.evt-pill{display:flex;align-items:center;gap:3px;border-radius:4px;padding:2px 5px;margin-bottom:2px;font-size:10px;font-weight:600;color:#fff;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.evt-pill{display:flex;flex-direction:column;border-radius:5px;padding:3px 6px;margin-bottom:3px;font-size:10px;font-weight:600;cursor:pointer;overflow:hidden;position:relative}
+.evt-pill .evt-pill-l1{display:flex;align-items:center;justify-content:space-between;gap:3px;color:#fff}
+.evt-pill .evt-pill-l1 span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.evt-pill .evt-pill-l2{font-size:9px;opacity:.75;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.evt-pill[draggable="true"]{cursor:grab}
+.evt-pill.dragging{opacity:.4}
+/* Category chips */
+.evt-cat-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;align-items:center}
+.evt-cat-chip{display:inline-flex;align-items:center;gap:4px;padding:4px 12px;border-radius:16px;font-size:12px;font-weight:600;cursor:pointer;border:2px solid transparent;transition:opacity .15s;user-select:none}
+.evt-cat-chip.off{opacity:.35;filter:grayscale(.6)}
+/* Mini calendar for sidebar */
+.evt-mini-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;text-align:center;font-size:10px}
+.evt-mini-hdr{font-weight:700;color:var(--text3);padding:2px 0}
+.evt-mini-day{padding:3px 0;border-radius:4px;cursor:pointer}
+.evt-mini-day:hover{background:var(--surface2)}
+.evt-mini-day.today-mini{background:var(--brand);color:#fff;font-weight:700}
+.evt-mini-day.has-dot{position:relative}
+.evt-mini-day.has-dot::after{content:'';position:absolute;bottom:1px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--brand)}
+/* List view enhancements */
+.evt-stats-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.evt-stat-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 12px;border-radius:16px;font-size:12px;font-weight:600;cursor:pointer;color:#fff;transition:transform .1s}
+.evt-stat-badge:hover{transform:scale(1.05)}
+.data-table tr .evt-row-actions{opacity:0;transition:opacity .15s;display:flex;gap:4px;align-items:center}
+.data-table tr:hover .evt-row-actions{opacity:1}
+.evt-quick-add td{padding:4px}
+.evt-quick-add input,.evt-quick-add select{padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--surface);font-size:12px;width:100%;box-sizing:border-box}
 @media(max-width:768px){
   #view-calendar div[style*="grid-template-columns:1fr 220px"]{grid-template-columns:1fr!important}
   #view-meetings>div[style*="grid-template-columns:280px"]{grid-template-columns:1fr!important}
@@ -756,25 +784,32 @@ select.sd-val{appearance:auto;cursor:pointer}
           </div>
         </div>
         <div style="display:flex;gap:6px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
-          <select id="events-filter-time" onchange="renderEvents()" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);font-size:12px">
+          <select id="events-filter-time" onchange="renderEvtCurrentView()" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);font-size:12px">
             <option value="upcoming">Upcoming</option>
             <option value="past">Past</option>
             <option value="all">All</option>
           </select>
-          <select id="events-filter-cat" onchange="renderEvents()" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);font-size:12px">
+          <select id="events-filter-cat" onchange="renderEvtCurrentView()" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);font-size:12px">
             <option value="">All Categories</option><option value="Holidays">Holidays</option><option value="Marketing">Marketing</option><option value="Internal">Internal</option><option value="Academic">Academic</option><option value="Thematic">Thematic</option>
           </select>
           <input id="events-search" placeholder="Search events..." oninput="_debouncedRenderEvents()" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);font-size:12px;width:200px">
         </div>
         <div id="events-list"></div>
         <div id="events-cal" class="hidden">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <div id="evt-cal-chips" class="evt-cat-chips"></div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;position:sticky;top:-1px;z-index:10;background:var(--bg);padding:6px 0">
             <button class="btn btn-secondary btn-sm" onclick="evtCalShift(-1)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
             <span id="evt-cal-month" style="font-weight:600;font-size:15px"></span>
             <button class="btn btn-secondary btn-sm" onclick="evtCalShift(1)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></button>
             <button class="btn btn-secondary btn-sm" onclick="S._evtCalY=new Date().getFullYear();S._evtCalM=new Date().getMonth();renderEvtCal()">Today</button>
           </div>
-          <div id="evt-cal-grid"></div>
+          <div class="evt-cal-layout">
+            <div id="evt-cal-grid"></div>
+            <div class="evt-cal-sidebar">
+              <div id="evt-mini-cal-wrap" style="margin-bottom:16px"></div>
+              <div id="evt-upcoming-sidebar"></div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -6103,6 +6138,7 @@ const ID_CONFIGS = {
       {key:'date',label:'Start Date',type:'date'},{key:'end_date',label:'End Date',type:'date'},
       {key:'days',label:'Days',type:'number'},
       {key:'time',label:'Start Time',type:'time'},{key:'end_time',label:'End Time',type:'time'},
+      {key:'assigned',label:'Assigned To',type:'member'},
       {key:'department',label:'Department',type:'text',default:'myDept'},
       {key:'description',label:'Description',type:'textarea'},
       {key:'color',label:'Color',type:'color',default:'#1967d2'}
@@ -7315,33 +7351,58 @@ function showFeedEventModal(eventId) {
 }
 
 /* ===================== EVENTS MODULE ===================== */
-const _debouncedRenderEvents = _debounce(()=>renderEvents(), 150);
+const _debouncedRenderEvents = _debounce(()=>renderEvtCurrentView(), 150);
 const EVT_CAT_COLORS = {Holidays:'#c5221f',Marketing:'#1967d2',Internal:'#e37400',Academic:'#137333',Thematic:'#7b1fa2'};
+(function(){ const sc = localStorage.getItem('evt_cat_colors'); if(sc) try{Object.assign(EVT_CAT_COLORS,JSON.parse(sc))}catch(e){} })();
+const EVT_CATS = ['Holidays','Marketing','Internal','Academic','Thematic'];
 
-function renderEvents() {
-  const w = document.getElementById('events-list');
-  if (!w) return;
+function _evtHexToTint(hex, lightness) {
+  const [h,s] = hexToHslParts(hex);
+  return `hsl(${h},${s}%,${lightness}%)`;
+}
+
+function _evtFilteredEvents() {
   const today = todayStr();
   const timeFilter = (document.getElementById('events-filter-time')||{}).value || 'upcoming';
   const catFilter = (document.getElementById('events-filter-cat')||{}).value || '';
   const q = (document.getElementById('events-search')||{}).value?.toLowerCase() || '';
-  
   let events = [...(S.events||[])];
-  
   if (timeFilter === 'upcoming') events = events.filter(e => (e.end_date||e.date) >= today);
   else if (timeFilter === 'past') events = events.filter(e => (e.end_date||e.date) < today);
-  
   if (catFilter) events = events.filter(e => (e.category||e.department) === catFilter);
   if (q) events = events.filter(e => (e.title||'').toLowerCase().includes(q) || (e.title_kh||'').toLowerCase().includes(q) || (e.category||'').toLowerCase().includes(q));
-  
+  return { events, timeFilter, catFilter, q, today };
+}
+
+function renderEvtCurrentView() {
+  if (S._evtView === 'cal') renderEvtCal(); else renderEvents();
+}
+
+function renderEvents() {
+  const w = document.getElementById('events-list');
+  if (!w) return;
+  const { events: allEventsFiltered, timeFilter, today } = _evtFilteredEvents();
+
+  // Category stats bar
+  const catCounts = {};
+  (S.events||[]).forEach(e => { const c = e.category||e.department||'Other'; catCounts[c] = (catCounts[c]||0)+1; });
+  const statsHtml = `<div class="evt-stats-bar">${EVT_CATS.map(c => {
+    const color = EVT_CAT_COLORS[c]||'#616161';
+    const cnt = catCounts[c]||0;
+    const catFilter = (document.getElementById('events-filter-cat')||{}).value || '';
+    const isActive = catFilter === c;
+    return `<div class="evt-stat-badge" style="background:${color};${isActive?'outline:2px solid var(--text);outline-offset:2px':''}" onclick="document.getElementById('events-filter-cat').value='${isActive?'':c}';renderEvtCurrentView()">${esc(c)} (${cnt})</div>`;
+  }).join('')}</div>`;
+
+  let events = allEventsFiltered;
   if (timeFilter === 'past') events.sort((a,b) => (b.date||'').localeCompare(a.date||''));
   else events.sort((a,b) => (a.date||'').localeCompare(b.date||''));
-  
+
   if (!events.length) {
-    w.innerHTML = '<div style="color:var(--text3);padding:48px;text-align:center">No events found</div>';
+    w.innerHTML = statsHtml + '<div style="color:var(--text3);padding:48px;text-align:center">No events found</div>';
     return;
   }
-  
+
   // Group by month
   const groups = {};
   events.forEach(e => {
@@ -7350,44 +7411,114 @@ function renderEvents() {
     if (!groups[label]) groups[label] = [];
     groups[label].push(e);
   });
-  
-  // Single table with sticky header, month dividers as rows
+
   let rows = '';
   Object.entries(groups).forEach(([month, items]) => {
-    rows += `<tr><td colspan="6" style="padding:0;border:none;height:12px;background:transparent"></td></tr>
-    <tr><td colspan="6" style="padding:10px 14px;font-size:16px;font-weight:700;color:#fff;background:var(--brand);border-radius:6px">${month} <span style="font-weight:400;font-size:12px;opacity:.8">(${items.length} events)</span></td></tr>`;
+    rows += `<tr><td colspan="8" style="padding:0;border:none;height:12px;background:transparent"></td></tr>
+    <tr><td colspan="8" style="padding:10px 14px;font-size:16px;font-weight:700;color:#fff;background:var(--brand);border-radius:6px">${month} <span style="font-weight:400;font-size:12px;opacity:.8">(${items.length} events)</span></td></tr>`;
     items.forEach(e => {
       const cat = e.category || e.department || '';
       const catColor = EVT_CAT_COLORS[cat] || '#616161';
       const isPast = (e.end_date||e.date) < today;
       const isToday = e.date === today;
+      const rowBg = _evtHexToTint(catColor, document.documentElement.classList.contains('dark') ? 15 : 95);
       const d = new Date(e.date+'T00:00:00');
       const dayName = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()];
-      rows += `<tr onclick="openItemDrawer('event','${e.id}')" style="cursor:pointer;${isPast?'opacity:.5':''}${isToday?';background:var(--brand-light)':''}" onmouseenter="this.style.background='var(--surface2)'" onmouseleave="this.style.background='${isToday?'var(--brand-light)':''}'">
+      const member = e.assigned ? (S.team||[]).find(m=>m.name===e.assigned) : null;
+      const avatar = member ? `<div style="display:flex;align-items:center;gap:4px"><div style="width:20px;height:20px;border-radius:50%;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700">${esc((member.name||'').slice(0,2).toUpperCase())}</div><span style="font-size:11px">${esc(member.name)}</span></div>` : '';
+      rows += `<tr onclick="openItemDrawer('event','${e.id}')" style="cursor:pointer;background:${rowBg};${isPast?'opacity:.5':''}${isToday?';outline:1px solid var(--brand)':''}" onmouseenter="this.style.filter='brightness(0.95)'" onmouseleave="this.style.filter=''">
         <td style="white-space:nowrap;font-weight:600">${fmtDateLong(e.date)}<div style="font-size:10px;color:var(--text3);font-weight:400">${dayName}${e.end_date?' → '+fmtDateLong(e.end_date):''}</div></td>
         <td style="text-align:center">${e.days||1}</td>
         <td><span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;background:${catColor};color:#fff">${esc(cat)}</span></td>
+        <td>${avatar}</td>
         <td style="font-weight:500">${esc(e.title)}</td>
         <td style="color:var(--text2);font-size:12px">${esc(e.title_kh||'')}</td>
-        <td style="font-size:12px;color:var(--text2)">${e.time?to12h(e.time)+(e.end_time?'–'+to12h(e.end_time):''):''}</td>
+        <td style="font-size:12px;color:var(--text2);position:relative">
+          <span>${e.time?to12h(e.time)+(e.end_time?'–'+to12h(e.end_time):''):''}</span>
+          <span class="evt-row-actions" style="position:absolute;right:4px;top:50%;transform:translateY(-50%)">
+            <button class="btn btn-secondary btn-sm" style="padding:3px 5px" title="Duplicate" onclick="event.stopPropagation();evtDuplicate('${e.id}')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+            <button class="btn btn-danger btn-sm" style="padding:3px 5px" title="Delete" onclick="event.stopPropagation();evtDeleteConfirm('${e.id}')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+          </span>
+        </td>
       </tr>`;
     });
   });
 
-  w.innerHTML = `<table class="data-table" style="font-size:13px;table-layout:fixed;width:100%"><thead><tr style="position:sticky;top:0;z-index:5;background:var(--surface)">
+  // Quick-add row
+  const quickRow = `<tr class="evt-quick-add"><td colspan="8" style="padding:8px 4px;border-top:2px solid var(--border)">
+    <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">
+      <input id="evt-qa-date" type="date" style="width:130px" value="${todayStr()}">
+      <input id="evt-qa-days" type="number" style="width:50px" value="1" min="1" placeholder="Days">
+      <select id="evt-qa-cat" style="width:100px">${EVT_CATS.map(c=>`<option value="${c}">${c}</option>`).join('')}</select>
+      <input id="evt-qa-title" placeholder="Title..." style="flex:1;min-width:120px" onkeydown="if(event.key==='Enter')evtQuickAdd()">
+      <input id="evt-qa-title-kh" placeholder="Khmer..." style="width:120px" onkeydown="if(event.key==='Enter')evtQuickAdd()">
+      <input id="evt-qa-time" type="time" style="width:90px">
+      <button class="btn btn-primary btn-sm" onclick="evtQuickAdd()">+ Add</button>
+    </div>
+  </td></tr>`;
+
+  w.innerHTML = statsHtml + `<table class="data-table" style="font-size:13px;table-layout:fixed;width:100%"><thead><tr style="position:sticky;top:0;z-index:5;background:var(--surface)">
     <th style="width:110px">Date</th>
     <th style="width:40px">Days</th>
     <th style="width:90px">Category</th>
-    <th style="width:30%">Title</th>
-    <th style="width:30%">Khmer</th>
-    <th style="width:80px">Time</th>
-  </tr></thead><tbody>${rows}</tbody></table>`;
+    <th style="width:80px">Assigned</th>
+    <th style="width:22%">Title</th>
+    <th style="width:22%">Khmer</th>
+    <th style="width:90px">Time</th>
+  </tr></thead><tbody>${rows}${quickRow}</tbody></table>`;
+}
+
+async function evtQuickAdd() {
+  const date = document.getElementById('evt-qa-date')?.value;
+  const title = document.getElementById('evt-qa-title')?.value?.trim();
+  if (!date || !title) { toast('Date and title required','warn'); return; }
+  const body = {
+    title, date,
+    days: parseInt(document.getElementById('evt-qa-days')?.value)||1,
+    category: document.getElementById('evt-qa-cat')?.value||'Internal',
+    title_kh: document.getElementById('evt-qa-title-kh')?.value?.trim()||'',
+    time: document.getElementById('evt-qa-time')?.value||''
+  };
+  await api('createEvent',{},body);
+  toast('Event added');
+  renderEvents();
+}
+
+async function evtDuplicate(id) {
+  const e = (S.events||[]).find(x=>x.id===id);
+  if (!e) return;
+  const nd = new Date(e.date+'T00:00:00'); nd.setDate(nd.getDate()+1);
+  const body = {...e, id:undefined, date:_localDateStr(nd)};
+  delete body.id;
+  await api('createEvent',{},body);
+  toast('Event duplicated');
+  renderEvents();
+}
+
+async function evtDeleteConfirm(id) {
+  if (!confirm('Delete this event?')) return;
+  await api('deleteEvent',{id});
+  toast('Event deleted');
+  renderEvents();
 }
 
 /* ===================== EVENTS CALENDAR VIEW ===================== */
 S._evtView = S._evtView || 'list';
 S._evtCalY = S._evtCalY || new Date().getFullYear();
 S._evtCalM = S._evtCalM || new Date().getMonth();
+
+// Layer toggles for calendar view
+(function(){
+  const stored = localStorage.getItem('evt_cal_layers');
+  S._evtCalLayers = stored ? JSON.parse(stored) : {};
+  EVT_CATS.forEach(c => { if (S._evtCalLayers[c] === undefined) S._evtCalLayers[c] = true; });
+})();
+
+function toggleEvtCalLayer(cat) {
+  S._evtCalLayers[cat] = !S._evtCalLayers[cat];
+  localStorage.setItem('evt_cal_layers', JSON.stringify(S._evtCalLayers));
+  renderEvtCal();
+}
 
 function setEvtView(v) {
   S._evtView = v;
@@ -7413,14 +7544,30 @@ function renderEvtCal() {
   const y = S._evtCalY, m = S._evtCalM;
   const today = todayStr();
   label.textContent = _MON[m] + ' ' + y;
-  
+
+  // Render category toggle chips
+  const chipsW = document.getElementById('evt-cal-chips');
+  if (chipsW) {
+    const isAdmin = S.myRole === 'admin';
+    chipsW.innerHTML = EVT_CATS.map(c => {
+      const color = EVT_CAT_COLORS[c]||'#616161';
+      const on = S._evtCalLayers[c] !== false;
+      return `<div class="evt-cat-chip${on?'':' off'}" style="background:${_evtHexToTint(color, document.documentElement.classList.contains('dark')?25:90)};color:${color};border-color:${color}" onclick="toggleEvtCalLayer('${c}')">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">${on?'<polyline points="20 6 9 17 4 12"/>':'<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>'}</svg>
+        ${esc(c)}
+      </div>`;
+    }).join('') + (isAdmin ? `<button class="btn btn-secondary btn-sm" onclick="evtEditCatColors()" style="margin-left:auto;font-size:11px" title="Edit category colors"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="15.5" r="2.5"/><circle cx="8.5" cy="15.5" r="2.5"/></svg> Colors</button>` : '');
+  }
+
   const catFilter = (document.getElementById('events-filter-cat')||{}).value || '';
   const q = (document.getElementById('events-search')||{}).value?.toLowerCase() || '';
-  
+
   // Build date index for events
   const byDate = {};
   (S.events||[]).forEach(e => {
-    if (catFilter && (e.category||e.department) !== catFilter) return;
+    const cat = e.category||e.department||'';
+    if (S._evtCalLayers[cat] === false) return;
+    if (catFilter && cat !== catFilter) return;
     if (q && !(e.title||'').toLowerCase().includes(q) && !(e.title_kh||'').toLowerCase().includes(q)) return;
     const start = e.date;
     const end = e.end_date || e.date;
@@ -7434,19 +7581,19 @@ function renderEvtCal() {
       d.setDate(d.getDate()+1);
     }
   });
-  
+
   const firstDay = new Date(y, m, 1).getDay();
   const daysInMonth = new Date(y, m+1, 0).getDate();
   const prevDays = new Date(y, m, 0).getDate();
-  
+
   let html = '<div class="evt-cal-grid">';
   ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d => { html += `<div class="evt-cal-hdr">${d}</div>`; });
-  
+
   // Previous month padding
   for (let i = firstDay - 1; i >= 0; i--) {
     html += `<div class="evt-cal-cell outside"><div style="font-size:11px;color:var(--text3)">${prevDays-i}</div></div>`;
   }
-  
+
   // Current month days
   for (let d = 1; d <= daysInMonth; d++) {
     const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
@@ -7454,28 +7601,136 @@ function renderEvtCal() {
     const isWE = dow === 0 || dow === 6;
     const isToday = ds === today;
     const items = byDate[ds] || [];
-    
+
     const pills = items.map(e => {
       const cat = e.category || e.department || '';
       const color = EVT_CAT_COLORS[cat] || e.color || '#616161';
-      return `<div class="evt-pill" onclick="event.stopPropagation();openItemDrawer('event','${e.id}')" style="background:${color}" title="${esc(e.title)}">${e.time?to12h(e.time)+' ':''}<span style="overflow:hidden;text-overflow:ellipsis">${esc(e.title)}</span></div>`;
+      const tint = _evtHexToTint(color, document.documentElement.classList.contains('dark') ? 20 : 88);
+      const line2 = e.title_kh || cat;
+      return `<div class="evt-pill" draggable="true" data-evt-id="${e.id}" onclick="event.stopPropagation();openItemDrawer('event','${e.id}')" style="background:${tint};border-left:3px solid ${color}" title="${esc(e.title)}${e.time?' '+to12h(e.time):''}">
+        <div class="evt-pill-l1"><span style="color:var(--text)">${esc(e.title)}</span>${e.time?`<span style="font-size:9px;color:var(--text2);flex-shrink:0">${to12h(e.time)}</span>`:''}</div>
+        ${line2?`<div class="evt-pill-l2" style="color:var(--text3)">${esc(line2)}</div>`:''}
+      </div>`;
     }).join('');
-    
-    html += `<div class="evt-cal-cell${isWE?' weekend':''}${isToday?' today':''}" onclick="openItemDrawer('event','new')">
+
+    html += `<div class="evt-cal-cell${isWE?' weekend':''}${isToday?' today':''}" data-date="${ds}" ondragover="event.preventDefault();this.style.outline='2px solid var(--brand)'" ondragleave="this.style.outline=''" ondrop="_evtDrop(event,this)" onclick="openItemDrawer('event','new')">
       <div style="font-size:11px;font-weight:600;color:${isToday?'var(--brand)':'var(--text2)'};margin-bottom:2px">${d}</div>
       ${pills}
     </div>`;
   }
-  
+
   // Next month padding
   const total = firstDay + daysInMonth;
   const trail = total % 7 === 0 ? 0 : 7 - (total % 7);
   for (let i = 1; i <= trail; i++) {
     html += `<div class="evt-cal-cell outside"><div style="font-size:11px;color:var(--text3)">${i}</div></div>`;
   }
-  
+
   html += '</div>';
   w.innerHTML = html;
+
+  // Attach drag start listeners
+  w.querySelectorAll('.evt-pill[draggable]').forEach(pill => {
+    pill.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/plain', pill.dataset.evtId);
+      pill.classList.add('dragging');
+    });
+    pill.addEventListener('dragend', () => pill.classList.remove('dragging'));
+  });
+
+  // Render sidebar
+  _renderEvtMiniCal(y, m, today, byDate);
+  _renderEvtUpcoming(today);
+}
+
+async function _evtDrop(event, cell) {
+  event.preventDefault();
+  cell.style.outline = '';
+  const id = event.dataTransfer.getData('text/plain');
+  const ds = cell.dataset.date;
+  if (!id || !ds) return;
+  const ev = (S.events||[]).find(e=>e.id===id);
+  if (!ev) return;
+  const prev = ev.date;
+  if (prev === ds) return;
+  ev.date = ds;
+  // Adjust end_date if it was a multi-day event
+  if (ev.end_date) {
+    const diff = (new Date(ds+'T00:00:00') - new Date(prev+'T00:00:00'));
+    const newEnd = new Date(new Date(ev.end_date+'T00:00:00').getTime() + diff);
+    ev.end_date = _localDateStr(newEnd);
+  }
+  await api('updateEvent',{},{id, date:ev.date, end_date:ev.end_date||undefined});
+  renderEvtCal();
+  showUndoToast(`Event moved to ${ds}`, async()=>{
+    ev.date = prev;
+    if (ev.end_date) {
+      const diff2 = (new Date(prev+'T00:00:00') - new Date(ds+'T00:00:00'));
+      ev.end_date = _localDateStr(new Date(new Date(ev.end_date+'T00:00:00').getTime() + diff2));
+    }
+    await api('updateEvent',{},{id, date:prev, end_date:ev.end_date||undefined});
+    renderEvtCal();
+  });
+}
+
+function _renderEvtMiniCal(y, m, today, byDate) {
+  const wrap = document.getElementById('evt-mini-cal-wrap');
+  if (!wrap) return;
+  const first = new Date(y, m, 1).getDay();
+  const days = new Date(y, m+1, 0).getDate();
+  let hdrs = ['S','M','T','W','T','F','S'].map(d=>`<div class="evt-mini-hdr">${d}</div>`).join('');
+  let cells = '';
+  for (let i = 0; i < first; i++) cells += '<div></div>';
+  for (let d = 1; d <= days; d++) {
+    const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const hasDot = byDate[ds] && byDate[ds].length > 0;
+    const isT = ds === today;
+    cells += `<div class="evt-mini-day${isT?' today-mini':''}${hasDot?' has-dot':''}" onclick="S._evtCalY=${y};S._evtCalM=${m};renderEvtCal()">${d}</div>`;
+  }
+  wrap.innerHTML = `<div style="font-size:12px;font-weight:600;margin-bottom:4px;color:var(--text2)">${_MON[m]} ${y}</div>
+    <div class="evt-mini-grid">${hdrs}${cells}</div>`;
+}
+
+function _renderEvtUpcoming(today) {
+  const wrap = document.getElementById('evt-upcoming-sidebar');
+  if (!wrap) return;
+  const upcoming = (S.events||[]).filter(e=>e.date>=today).sort((a,b)=>(a.date||'').localeCompare(b.date||'')).slice(0,5);
+  if (!upcoming.length) { wrap.innerHTML = '<div style="font-size:12px;color:var(--text3);padding:8px 0">No upcoming events</div>'; return; }
+  wrap.innerHTML = `<div style="font-size:12px;font-weight:600;margin-bottom:6px;color:var(--text2)">Upcoming</div>` +
+    upcoming.map(e => {
+      const cat = e.category||e.department||'';
+      const color = EVT_CAT_COLORS[cat]||'#616161';
+      return `<div style="display:flex;align-items:flex-start;gap:6px;padding:6px 0;border-bottom:1px solid var(--border);cursor:pointer;font-size:12px" onclick="openItemDrawer('event','${e.id}')">
+        <div style="min-width:4px;width:4px;height:32px;border-radius:2px;background:${color};flex-shrink:0"></div>
+        <div style="min-width:0">
+          <div style="font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(e.title)}</div>
+          <div style="color:var(--text3);font-size:11px">${fmtDateLong(e.date)}${e.time?' '+to12h(e.time):''}</div>
+        </div>
+        <span style="margin-left:auto;flex-shrink:0;display:inline-block;padding:1px 6px;border-radius:3px;font-size:9px;font-weight:600;background:${color};color:#fff">${esc(cat)}</span>
+      </div>`;
+    }).join('');
+}
+
+function evtEditCatColors() {
+  if (S.myRole !== 'admin') { toast('Only admin can edit colors'); return; }
+  let html = '<div style="display:flex;flex-direction:column;gap:8px;padding:16px">';
+  html += '<div style="font-weight:700;font-size:14px;margin-bottom:4px">Event Category Colors</div>';
+  EVT_CATS.forEach(c => {
+    html += `<div style="display:flex;align-items:center;gap:8px"><label style="width:80px;font-size:13px">${c}</label><input type="color" id="evt-cc-${c}" value="${EVT_CAT_COLORS[c]||'#616161'}" style="width:40px;height:28px;border:none;cursor:pointer"></div>`;
+  });
+  html += `<div style="margin-top:8px;text-align:right"><button class="btn btn-primary" onclick="evtSaveCatColors()">Save</button> <button class="btn btn-secondary" onclick="closeModal()">Cancel</button></div></div>`;
+  showModal(html);
+}
+
+function evtSaveCatColors() {
+  EVT_CATS.forEach(c => {
+    const inp = document.getElementById('evt-cc-'+c);
+    if (inp) EVT_CAT_COLORS[c] = inp.value;
+  });
+  localStorage.setItem('evt_cat_colors', JSON.stringify(EVT_CAT_COLORS));
+  closeModal();
+  renderEvtCal();
+  toast('Category colors saved');
 }
 
 </script>
