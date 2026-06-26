@@ -2717,7 +2717,9 @@
     "color": "#137333",
     "assigned": "",
     "description": "",
-    "created": "2026-06-24"
+    "created": "2026-06-24",
+    "completed": true,
+    "updated": "2026-06-26T11:56"
   },
   {
     "id": "EV-171",
