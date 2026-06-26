@@ -1046,43 +1046,36 @@ select.sd-val{appearance:auto;cursor:pointer}
 </div>
 
       <!-- MEETING NOTES -->
-      <div id="view-meetings" class="hidden" style="display:flex;height:calc(100vh - var(--topbar) - 40px);margin:-20px;overflow:hidden">
-        <!-- Left panel: meeting list -->
-        <div class="mtg-list-panel">
-          <div class="mtg-list-panel-hd">
-            <button class="mtg-new-btn" onclick="mtgNewMeeting()">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              New Meeting
-            </button>
-            <input type="search" class="mtg-list-search" id="meeting-search" placeholder="Search meetings..." oninput="_debouncedFilterMeetings(this.value)">
-            <div class="mtg-filter-chips">
-              <button class="mtg-filter-chip active" onclick="filterMeetingType(this,'all')">All</button>
-              <button class="mtg-filter-chip" onclick="filterMeetingType(this,'daily')">Daily</button>
-              <button class="mtg-filter-chip" onclick="filterMeetingType(this,'weekly')">Weekly</button>
-              <button class="mtg-filter-chip" onclick="filterMeetingType(this,'monthly')">Monthly</button>
-              <button class="mtg-filter-chip" onclick="filterMeetingType(this,'adhoc')">Ad-hoc</button>
-            </div>
-            <div class="mtg-view-toggle">
-              <button class="active" onclick="setMtgView('list',this)" title="List view">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-              </button>
-              <button onclick="setMtgView('calendar',this)" title="Calendar view">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-              </button>
+      <div id="view-meetings" class="hidden">
+        <!-- Sticky header -->
+        <div style="position:sticky;top:-20px;z-index:10;background:var(--bg);padding:20px 0 6px;margin:-20px -20px 8px;padding-left:20px;padding-right:20px;border-bottom:1px solid var(--border)">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <span class="font-bold" style="font-size:16px">Meetings</span>
+            <div style="display:flex;gap:6px;align-items:center">
+              <div style="display:flex;border:2px solid var(--border);border-radius:8px;overflow:hidden">
+                <button class="btn btn-sm mtg-v-btn active" id="mtg-v-list" onclick="setMtgView('list')" style="border:0;border-radius:0;padding:5px 14px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:5px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg> List</button>
+                <button class="btn btn-sm mtg-v-btn" id="mtg-v-cal" onclick="setMtgView('cal')" style="border:0;border-radius:0;padding:5px 14px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:5px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Calendar</button>
+              </div>
+              <button class="btn btn-secondary" onclick="mtgScrollToToday()">Today</button>
+              <button class="btn btn-primary" onclick="createNewMeeting()">+ Meeting</button>
             </div>
           </div>
-          <div class="mtg-list-body" id="meeting-history-list"></div>
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+            <input id="mtg-search" placeholder="Search meetings..." oninput="renderMeetings()" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);font-size:12px;width:200px">
+            <div id="mtg-type-chips" style="display:flex;gap:4px;flex-wrap:wrap"></div>
+          </div>
         </div>
-        <!-- Right panel: detail -->
-        <div class="mtg-detail" id="meeting-detail">
-          <div class="mtg-detail-empty" id="meeting-view-panel">
-            <div style="text-align:center">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:12px"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-              <p style="color:var(--text3)">Select a meeting or create a new one</p>
-            </div>
+        <!-- List view -->
+        <div id="mtg-list-view"></div>
+        <!-- Calendar view -->
+        <div id="mtg-cal-view" class="hidden">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+            <button class="btn btn-secondary btn-sm" onclick="mtgCalShift(-1)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
+            <span id="mtg-cal-month" style="font-weight:600;font-size:15px"></span>
+            <button class="btn btn-secondary btn-sm" onclick="mtgCalShift(1)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></button>
+            <button class="btn btn-secondary btn-sm" onclick="S._mtgCalY=new Date().getFullYear();S._mtgCalM=new Date().getMonth();renderMtgCal()">Today</button>
           </div>
-          <!-- Calendar view container (hidden by default) -->
-          <div id="mtg-calendar-view" class="hidden"></div>
+          <div id="mtg-cal-grid"></div>
         </div>
       </div>
 
@@ -3530,705 +3523,345 @@ let _mtgViewMode = 'list';
 let _mtgCalMonth = new Date();  // tracks calendar nav
 
 function renderMeetings() {
-  const filter = S._mtgTypeFilter || 'all';
-  const q = (document.getElementById('meeting-search')||{}).value || '';
-  let meetings = [...(S.meetings||[])];
-  if (filter !== 'all') meetings = meetings.filter(m => (m.type||'adhoc') === filter);
-  if (q) meetings = meetings.filter(m => (m.title||'').toLowerCase().includes(q.toLowerCase()) || (m.attendees||'').toLowerCase().includes(q.toLowerCase()));
+  renderMtgTypeChips();
+  if (S._mtgView === 'cal') { renderMtgCal(); return; }
+  renderMtgList();
+}
 
+S._mtgView = S._mtgView || 'list';
+S._mtgTypeFilter = S._mtgTypeFilter || 'all';
+S._mtgCalY = S._mtgCalY || new Date().getFullYear();
+S._mtgCalM = S._mtgCalM || new Date().getMonth();
+
+const MTG_TYPE_COLORS = {daily:'#1967d2',weekly:'#137333',biweekly:'#0d47a1',monthly:'#e37400',quarterly:'#c5221f',adhoc:'#616161'};
+const MTG_TYPE_LABELS = {daily:'Daily',weekly:'Weekly',biweekly:'Biweekly',monthly:'Monthly',quarterly:'Quarterly',adhoc:'Ad-hoc'};
+
+function setMtgView(v) {
+  S._mtgView = v;
+  document.getElementById('mtg-list-view').classList.toggle('hidden', v !== 'list');
+  document.getElementById('mtg-cal-view').classList.toggle('hidden', v !== 'cal');
+  document.getElementById('mtg-v-list').classList.toggle('active', v === 'list');
+  document.getElementById('mtg-v-cal').classList.toggle('active', v === 'cal');
+  if (v === 'list') renderMtgList();
+  else renderMtgCal();
+}
+
+function renderMtgTypeChips() {
+  const w = document.getElementById('mtg-type-chips'); if (!w) return;
+  const types = ['all','daily','weekly','biweekly','monthly','quarterly','adhoc'];
+  const labels = {all:'All',daily:'Daily',weekly:'Weekly',biweekly:'Biweekly',monthly:'Monthly',quarterly:'Quarterly',adhoc:'Ad-hoc'};
+  w.innerHTML = types.map(t => {
+    const active = S._mtgTypeFilter === t;
+    const color = t === 'all' ? 'var(--brand)' : MTG_TYPE_COLORS[t] || '#616161';
+    return `<button class="btn btn-sm" style="font-size:11px;padding:2px 10px;border-radius:20px;${active?'background:'+color+';color:#fff;border-color:'+color:'border:1px solid var(--border)'}" onclick="S._mtgTypeFilter='${t}';renderMeetings()">${labels[t]}</button>`;
+  }).join('');
+}
+
+function renderMtgList() {
+  const w = document.getElementById('mtg-list-view'); if (!w) return;
+  const q = (document.getElementById('mtg-search')||{}).value?.toLowerCase() || '';
   const today = todayStr();
-  const upcoming = meetings.filter(m => (m.date||'') >= today).sort((a,b) => (a.date||'').localeCompare(b.date||''));
-  const past = meetings.filter(m => (m.date||'') < today).sort((a,b) => (b.date||'').localeCompare(a.date||'')).slice(0, 20);
+  let meetings = [...(S.meetings||[])];
+  if (S._mtgTypeFilter !== 'all') meetings = meetings.filter(m => (m.type||'adhoc') === S._mtgTypeFilter);
+  if (q) meetings = meetings.filter(m => (m.title||'').toLowerCase().includes(q) || (m.attendees||'').toLowerCase().includes(q));
+  meetings.sort((a,b) => (a.date||'').localeCompare(b.date||''));
 
-  const listEl = document.getElementById('meeting-history-list');
   if (!meetings.length) {
-    listEl.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text3);font-size:13px">No meetings found</div>';
+    w.innerHTML = '<div style="color:var(--text3);padding:48px;text-align:center">No meetings found</div>';
     return;
   }
 
-  const attendeeCount = (att) => {
-    if (!att) return 0;
-    return att.split(',').map(s=>s.trim()).filter(Boolean).length;
-  };
-
-  const renderItem = (m, cls) => {
-    const isToday = m.date === today;
-    const time = m.startTime || m.start_time || '';
-    const endTime = m.endTime || m.end_time || '';
-    const timeStr = time ? `${to12h(time)}${endTime ? ' - '+to12h(endTime) : ''}` : '';
-    const ac = attendeeCount(m.attendees);
-    return `<div class="${cls}${isToday ? ' mtg-today' : ''}" id="mhi-${m.id}" onclick="openMeetingDetail('${m.id}')">
-      <div class="mtg-item-top">
-        <span class="mtg-item-date">${fmtDate(m.date)}${timeStr ? ' · ' + timeStr : ''}</span>
-        ${m.pinned==='true'?'<svg width="10" height="10" viewBox="0 0 24 24" fill="var(--brand)" stroke="none"><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24z"/></svg>':''}
-      </div>
-      <div class="mtg-item-title">${esc(m.title||'Untitled')}</div>
-      <div class="mtg-item-meta">
-        <span class="mtg-badge ${mtgTypeClass(m.type)}">${mtgTypeLabel(m.type)}</span>
-        ${ac ? `<span class="mtg-item-attendee-count"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg> ${ac}</span>` : ''}
-      </div>
-    </div>`;
-  };
-
-  let html = '';
-  if (upcoming.length) {
-    html += `<div class="mtg-list-section-hdr">Upcoming</div>`;
-    html += upcoming.map(m => renderItem(m, 'mtg-upcoming-item')).join('');
-  }
-  if (past.length) {
-    html += `<div class="mtg-list-section-hdr">Past</div>`;
-    html += past.map(m => renderItem(m, 'mtg-past-item')).join('');
-  }
-  listEl.innerHTML = html;
-
-  // If calendar mode active, also render calendar
-  if (_mtgViewMode === 'calendar') renderMtgCal();
-}
-
-function filterMeetingType(el, type) {
-  S._mtgTypeFilter = type;
-  document.querySelectorAll('.mtg-filter-chip').forEach(c => c.classList.remove('active'));
-  el.classList.add('active');
-  renderMeetings();
-}
-
-function setMtgView(mode, btn) {
-  _mtgViewMode = mode;
-  document.querySelectorAll('.mtg-view-toggle button').forEach(b => b.classList.remove('active'));
-  if (btn) btn.classList.add('active');
-  const calView = document.getElementById('mtg-calendar-view');
-  const panel = document.getElementById('meeting-view-panel');
-  if (mode === 'calendar') {
-    calView.classList.remove('hidden');
-    panel.classList.add('hidden');
-    renderMtgCal();
-  } else {
-    calView.classList.add('hidden');
-    panel.classList.remove('hidden');
-  }
-}
-
-/* ---------- Calendar View ---------- */
-function renderMtgCal() {
-  const container = document.getElementById('mtg-calendar-view');
-  if (!container) return;
-  const year = _mtgCalMonth.getFullYear();
-  const month = _mtgCalMonth.getMonth();
-  const monthName = _mtgCalMonth.toLocaleDateString('en-US', {month:'long', year:'numeric'});
-  const firstDay = new Date(year, month, 1).getDay();
-  const daysInMonth = new Date(year, month+1, 0).getDate();
-  const prevDays = new Date(year, month, 0).getDate();
-  const today = todayStr();
-
-  // Build meeting lookup by date
-  const mtgByDate = {};
-  (S.meetings||[]).forEach(m => {
-    if (!m.date) return;
-    if (!mtgByDate[m.date]) mtgByDate[m.date] = [];
-    mtgByDate[m.date].push(m);
+  const groups = {};
+  meetings.forEach(m => {
+    const key = (m.date||'').slice(0,7);
+    const label = key ? new Date(key+'-01T00:00:00').toLocaleDateString('en-US',{month:'long',year:'numeric'}) : 'No date';
+    if (!groups[label]) groups[label] = [];
+    groups[label].push(m);
   });
 
-  let html = `<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
-    <button class="btn btn-secondary btn-sm" onclick="_mtgCalMonth.setMonth(_mtgCalMonth.getMonth()-1);renderMtgCal()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
-    <span style="font-weight:700;font-size:15px;min-width:160px;text-align:center">${monthName}</span>
-    <button class="btn btn-secondary btn-sm" onclick="_mtgCalMonth.setMonth(_mtgCalMonth.getMonth()+1);renderMtgCal()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></button>
-    <button class="btn btn-secondary btn-sm" onclick="_mtgCalMonth=new Date();renderMtgCal()" style="margin-left:auto;font-size:11px">Today</button>
-  </div>`;
-  html += '<div class="mtg-cal-grid">';
-  ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d => {
-    html += `<div class="mtg-cal-hdr">${d}</div>`;
-  });
+  let rows = '';
+  Object.entries(groups).forEach(([month, items]) => {
+    rows += `<tr><td colspan="7" style="padding:0;border:none;height:12px;background:transparent"></td></tr>
+    <tr><td colspan="7" style="padding:10px 14px;font-size:16px;font-weight:700;color:#fff;background:var(--brand);border-radius:6px">${month} <span style="font-weight:400;font-size:12px;opacity:.8">(${items.length} meetings)</span></td></tr>`;
+    items.forEach(m => {
+      const type = m.type || 'adhoc';
+      const typeColor = MTG_TYPE_COLORS[type] || '#616161';
+      const typeLabel = MTG_TYPE_LABELS[type] || 'Ad-hoc';
+      const isToday = m.date === today;
+      const isDone = m.status === 'completed';
+      const time = m.startTime || m.time || '';
+      const endTime = m.endTime || m.end_time || '';
+      const actionTasks = (S.tasks||[]).filter(t => t.source === 'meeting' && t.meetingId === m.id);
+      const doneTasks = actionTasks.filter(t => t.status === 'done').length;
 
-  // prev month filler
-  for (let i = firstDay - 1; i >= 0; i--) {
-    const day = prevDays - i;
-    html += `<div class="mtg-cal-cell other-month"><div class="mtg-cal-day-num">${day}</div></div>`;
-  }
-  // current month
-  for (let d = 1; d <= daysInMonth; d++) {
-    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const isToday = dateStr === today;
-    const mtgs = mtgByDate[dateStr] || [];
-    html += `<div class="mtg-cal-cell${isToday ? ' today' : ''}"><div class="mtg-cal-day-num">${d}</div>`;
-    mtgs.forEach(m => {
-      html += `<div class="mtg-cal-pill pill-${m.type||'adhoc'}" onclick="event.stopPropagation();setMtgView('list');openMeetingDetail('${m.id}')" title="${esc(m.title)}">${esc(m.title||'Untitled')}</div>`;
+      rows += `<tr onclick="openMeetingDetail('${m.id}')" style="cursor:pointer;${isToday?'outline:2px solid var(--brand);outline-offset:-2px;border-radius:4px':''};${isDone?'opacity:.4':''}" onmouseenter="this.style.background='var(--surface2)'" onmouseleave="this.style.background=''">
+        <td style="white-space:nowrap;font-weight:600;font-size:12px">${fmtDateLong(m.date)}<div style="font-size:10px;color:var(--text3);font-weight:400">${m.date?['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date(m.date+'T00:00:00').getDay()]:''}</div></td>
+        <td><span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;background:${typeColor};color:#fff">${typeLabel}</span></td>
+        <td style="font-weight:500;font-size:13px">${esc(m.title)}</td>
+        <td style="font-size:12px;color:var(--text2)">${time?to12h(time)+(endTime?'–'+to12h(endTime):''):''}</td>
+        <td style="font-size:12px;color:var(--text3)">${esc(m.attendees||'')}</td>
+        <td style="font-size:11px;color:var(--text3)">${actionTasks.length?doneTasks+'/'+actionTasks.length:''}</td>
+        <td style="width:30px">
+          <div onclick="event.stopPropagation();toggleMtgDone('${m.id}',${!isDone})" style="width:18px;height:18px;border-radius:50%;${isDone?'background:#137333;display:flex;align-items:center;justify-content:center':'border:2px solid rgba(0,0,0,.2)'};cursor:pointer">${isDone?'<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>':''}</div>
+        </td>
+      </tr>`;
     });
-    html += '</div>';
-  }
-  // next month filler
-  const totalCells = firstDay + daysInMonth;
-  const remaining = (7 - (totalCells % 7)) % 7;
-  for (let i = 1; i <= remaining; i++) {
-    html += `<div class="mtg-cal-cell other-month"><div class="mtg-cal-day-num">${i}</div></div>`;
-  }
-  html += '</div>';
-  container.innerHTML = html;
-}
+  });
 
-/* ---------- New Meeting via drawer ---------- */
-function mtgNewMeeting(type) {
-  type = type || 'adhoc';
-  const today = todayStr();
-  const teamOpts = (S.team||[]).map(m => m.name).join(', ');
-  const deptOpts = [...new Set((S.team||[]).map(m=>m.department).filter(Boolean))];
-  const typeOpts = [
-    {v:'daily',l:'Daily Standup'},{v:'weekly',l:'Weekly Sync'},{v:'biweekly',l:'Biweekly Sync'},
-    {v:'monthly',l:'Monthly Review'},{v:'quarterly',l:'Quarterly Review'},{v:'adhoc',l:'Ad-hoc'}
-  ];
-  const autoTitle = MTG_TITLES[type] ? MTG_TITLES[type](today) : '';
+  w.innerHTML = `<table class="data-table" style="font-size:13px;table-layout:fixed;width:100%"><thead><tr style="position:sticky;top:80px;z-index:5;background:var(--surface)">
+    <th style="width:120px">Date</th>
+    <th style="width:80px">Type</th>
+    <th>Title</th>
+    <th style="width:90px">Time</th>
+    <th style="width:120px">Attendees</th>
+    <th style="width:50px">Items</th>
+    <th style="width:30px"></th>
+  </tr></thead><tbody>${rows}</tbody></table>`;
 
-  showModal(`<div style="padding:1.5rem;min-width:380px;max-width:500px">
-    <h3 style="margin:0 0 1rem">New Meeting</h3>
-    <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;color:var(--text2)">Type</label>
-    <select id="nm-type" onchange="const d=document.getElementById('nm-date').value,t=MTG_TITLES[this.value];if(t&&d)document.getElementById('nm-title').value=t(d)" style="margin-bottom:8px">
-      ${typeOpts.map(o => `<option value="${o.v}"${o.v===type?' selected':''}>${o.l}</option>`).join('')}
-    </select>
-    <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;color:var(--text2)">Title</label>
-    <input id="nm-title" type="text" style="margin-bottom:8px" value="${esc(autoTitle)}" placeholder="Auto-generated from type + date">
-    <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;color:var(--text2)">Date</label>
-    <input id="nm-date" type="date" value="${today}" onchange="const tp=document.getElementById('nm-type').value,t=MTG_TITLES[tp];if(t)document.getElementById('nm-title').value=t(this.value)" style="margin-bottom:8px">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-      <div><label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;color:var(--text2)">Start Time</label><input id="nm-start" type="time"></div>
-      <div><label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;color:var(--text2)">End Time</label><input id="nm-end" type="time"></div>
-    </div>
-    <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;color:var(--text2)">Department</label>
-    <input id="nm-dept" type="text" style="margin-bottom:8px" value="${esc(S.myDept||'')}" list="nm-dept-list">
-    <datalist id="nm-dept-list">${deptOpts.map(d=>`<option value="${esc(d)}">`).join('')}</datalist>
-    <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;color:var(--text2)">Attendees</label>
-    <input id="nm-attendees" type="text" style="margin-bottom:12px" placeholder="comma separated names">
-    <div style="display:flex;gap:.5rem;justify-content:flex-end">
-      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="confirmNewMeeting()">Create Meeting</button>
-    </div>
-  </div>`);
-}
-
-async function confirmNewMeeting() {
-  const type = document.getElementById('nm-type').value;
-  const date = document.getElementById('nm-date').value;
-  const title = document.getElementById('nm-title').value || (MTG_TITLES[type] ? MTG_TITLES[type](date) : `${type} meeting`);
-  const dept = document.getElementById('nm-dept').value;
-  const attendees = document.getElementById('nm-attendees').value;
-  const startTime = document.getElementById('nm-start')?.value||'';
-  const endTime = document.getElementById('nm-end')?.value||'';
-  const body = { title, type, date, department: dept, attendees, startTime, endTime, rawNotes: '' };
-  closeModal();
-  try {
-    const res = await api('createMeeting', {}, body);
-    if (res && res.id) {
-      S.meetings = S.meetings || [];
-      S.meetings.unshift({ ...body, id: res.id, agenda: '[]', decisions: '[]' });
-      toast('Meeting created');
-      renderMeetings();
-      openMeetingDetail(res.id);
+  // Scroll to current month
+  setTimeout(() => {
+    const todayMonth = today.slice(0,7);
+    const headers = w.querySelectorAll('td[colspan]');
+    for (const td of headers) {
+      if (td.textContent.includes(new Date(todayMonth+'-01T00:00:00').toLocaleDateString('en-US',{month:'long',year:'numeric'}))) {
+        td.closest('tr').scrollIntoView({behavior:'instant',block:'start'});
+        break;
+      }
     }
-  } catch(e) { toast('Error: ' + e.message, true); }
+  }, 50);
 }
 
-/* ---------- Meeting Detail ---------- */
 async function openMeetingDetail(id) {
-  S._activeMeetingId = id;
-  // highlight in list
-  document.querySelectorAll('.mtg-upcoming-item,.mtg-past-item').forEach(el => el.classList.remove('active'));
-  const hi = document.getElementById('mhi-' + id);
-  if (hi) hi.classList.add('active');
-
-  // switch to list view if on calendar
-  if (_mtgViewMode === 'calendar') {
-    _mtgViewMode = 'list';
-    document.querySelectorAll('.mtg-view-toggle button').forEach(b => b.classList.remove('active'));
-    document.querySelector('.mtg-view-toggle button')?.classList.add('active');
-    document.getElementById('mtg-calendar-view').classList.add('hidden');
-    document.getElementById('meeting-view-panel').classList.remove('hidden');
-  }
-
-  const meeting = (S.meetings||[]).find(m => m.id === id);
-  if (!meeting) return;
-  const panel = document.getElementById('meeting-view-panel');
-  panel.classList.remove('hidden');
-  panel.classList.remove('mtg-detail-empty');
-  panel.innerHTML = '<div style="padding:20px;color:var(--text3)">Loading...</div>';
-
+  const mtg = (S.meetings||[]).find(m => m.id === id);
+  if (!mtg) return;
+  // Load meeting items
   const items = await api('getMeetingItems', { meetingId: id }) || [];
+  const agenda = mtg.agenda ? (typeof mtg.agenda === 'string' ? JSON.parse(mtg.agenda||'[]') : mtg.agenda) : [];
+  const decisions = mtg.decisions ? (typeof mtg.decisions === 'string' ? JSON.parse(mtg.decisions||'[]') : mtg.decisions) : [];
+  const actionTasks = (S.tasks||[]).filter(t => t.source === 'meeting' && t.meetingId === id);
+  const doneTasks = actionTasks.filter(t => t.status === 'done').length;
+  const time = mtg.startTime || mtg.time || '';
+  const endTime = mtg.endTime || mtg.end_time || '';
+  const typeColor = MTG_TYPE_COLORS[mtg.type||'adhoc'] || '#616161';
+  const typeLabel = MTG_TYPE_LABELS[mtg.type||'adhoc'] || 'Ad-hoc';
 
-  // Get live action items from S.tasks that reference this meeting
-  const linkedTasks = (S.tasks||[]).filter(t => t.meetingId === id);
-  const itemTasks = items.filter(i => (i.type||i.item_type||'task') !== 'event');
+  const body = document.getElementById('id-body');
+  if (!body) { openItemDrawer('meeting', id); return; }
 
-  // Enrich with live data
-  const enriched = itemTasks.map(item => {
-    const live = item.taskId ? (S.tasks||[]).find(t => t.id === item.taskId) : null;
-    return { ...item, liveStatus: live ? live.status : (item.status||'todo'), liveTitle: live ? live.title : item.title, liveOwner: live ? live.owner : (item.assignee||item.owner||''), livePriority: live ? live.priority : (item.priority||'P2'), liveDue: live ? live.due : (item.dueDate||item.due||'') };
-  });
-  // Also include linked tasks not in items
-  linkedTasks.forEach(t => {
-    if (!enriched.find(e => e.taskId === t.id)) {
-      enriched.push({ taskId: t.id, title: t.title, liveStatus: t.status, liveTitle: t.title, liveOwner: t.owner||'', livePriority: t.priority||'P2', liveDue: t.due||'' });
-    }
-  });
+  // Open in item drawer with custom content
+  document.getElementById('item-drawer-overlay').classList.add('open');
+  document.getElementById('item-drawer').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  document.getElementById('id-type-badge').textContent = 'Meeting';
+  document.getElementById('id-type-badge').style.background = typeColor;
+  document.getElementById('id-type-badge').style.color = '#fff';
+  document.getElementById('id-save-btn').style.display = 'none';
+  document.getElementById('id-delete-btn').style.display = '';
 
-  const doneCount = enriched.filter(t => t.liveStatus === 'done').length;
-  const totalTasks = enriched.length;
-  const pct = totalTasks ? Math.round(doneCount/totalTasks*100) : 0;
+  _idType = 'meeting'; _idItem = mtg; _idIsNew = false;
 
-  // Update counts
-  if (meeting.doneCount != doneCount || meeting.taskCount != totalTasks) {
-    meeting.doneCount = doneCount; meeting.taskCount = totalTasks;
-    renderMeetings();
-    if (!id.startsWith('MTG-tmp')) api('updateMeetingNote', {}, { id, taskCount: totalTasks, doneCount });
-  }
-
-  renderMeetingDetail(meeting, enriched, items);
-}
-
-function renderMeetingDetail(meeting, actionItems, rawItems) {
-  const panel = document.getElementById('meeting-view-panel');
-  const id = meeting.id;
-  const agenda = _parseMtgJson(meeting.agenda);
-  const decisions = _parseMtgJson(meeting.decisions);
-  const doneCount = actionItems.filter(t => t.liveStatus === 'done').length;
-  const totalTasks = actionItems.length;
-  const pct = totalTasks ? Math.round(doneCount/totalTasks*100) : 0;
-  const raw = meeting.rawNotes || meeting.raw_notes || '';
-
-  const statusDot = s => {
-    const cls = {done:'st-done',doing:'st-doing',blocked:'st-blocked',todo:'st-todo',inbox:'st-inbox'}[s]||'st-inbox';
-    return `<span class="status-dot ${cls}" title="${s}"></span>`;
-  };
-
-  // Attendee avatars
-  const attendees = (meeting.attendees||'').split(',').map(s=>s.trim()).filter(Boolean);
-  const avatarHtml = attendees.map(name => {
-    const initials = name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-    return `<div class="mtg-avatar" title="${esc(name)}">${initials}</div>`;
-  }).join('');
-
-  const sectionArrow = `<svg class="mtg-section-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>`;
-
-  panel.innerHTML = `
-    <!-- Header -->
-    <div class="mtg-detail-header">
-      <input class="mtg-detail-title" value="${esc(meeting.title||'')}" onblur="mtgSaveTitle('${id}',this.value)" onkeydown="if(event.key==='Enter'){this.blur()}">
-      <div class="mtg-detail-meta">
-        <span class="mtg-badge ${mtgTypeClass(meeting.type)}">${mtgTypeLabel(meeting.type)}</span>
-        <span style="font-size:12px;color:var(--text3)">${fmtDate(meeting.date)}</span>
-        ${(meeting.startTime||meeting.start_time)?`<span style="font-size:12px;color:var(--text3)">${to12h(meeting.startTime||meeting.start_time)}${(meeting.endTime||meeting.end_time)?' - '+to12h(meeting.endTime||meeting.end_time):''}</span>`:''}
-        ${meeting.department?`<span style="font-size:12px;color:var(--text3)">${esc(meeting.department)}</span>`:''}
-        <div style="margin-left:auto;display:flex;gap:6px">
-          <button class="btn btn-secondary btn-sm" onclick="toggleMeetingPin('${id}')" title="${meeting.pinned==='true'?'Unpin':'Pin'}">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="${meeting.pinned==='true'?'var(--brand)':'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24z"/></svg>
-          </button>
-          <button class="btn btn-secondary btn-sm" onclick="mtgEditFields('${id}')">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            Edit
-          </button>
-        </div>
-      </div>
-      ${avatarHtml ? `<div class="mtg-attendee-row">${avatarHtml}</div>` : ''}
-      ${totalTasks ? `<div class="mtg-detail-progress">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-          <span style="font-size:12px;font-weight:600">${doneCount}/${totalTasks} action items done</span>
-          <span style="font-size:12px;color:var(--text3)">${pct}%</span>
-        </div>
-        <div class="mtg-progress-bar"><div class="mtg-progress-fill" style="width:${pct}%"></div></div>
-      </div>` : ''}
+  body.scrollTop = 0;
+  body.innerHTML = `
+    <input value="${esc(mtg.title)}" onblur="updateMtgField('${id}','title',this.value)" style="font-size:18px;font-weight:700;border:none;background:transparent;width:100%;padding:0;margin-bottom:8px;color:var(--text)">
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;flex-wrap:wrap">
+      <span style="padding:2px 10px;border-radius:4px;font-size:11px;font-weight:600;background:${typeColor};color:#fff">${typeLabel}</span>
+      <span style="font-size:12px;color:var(--text2)">${fmtDateLong(mtg.date)}${time?' · '+to12h(time):''}${endTime?' – '+to12h(endTime):''}</span>
+      ${mtg.department?`<span style="font-size:11px;padding:2px 8px;border-radius:4px;background:var(--surface2)">${esc(mtg.department)}</span>`:''}
     </div>
+    ${mtg.attendees?`<div style="font-size:12px;color:var(--text3);margin-bottom:12px">Attendees: ${esc(mtg.attendees)}</div>`:''}
+    ${actionTasks.length?`<div style="margin-bottom:12px"><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Action items: ${doneTasks}/${actionTasks.length} done</div><div style="height:4px;background:var(--surface2);border-radius:2px;overflow:hidden"><div style="height:100%;background:var(--brand);width:${Math.round(doneTasks/actionTasks.length*100)}%;border-radius:2px"></div></div></div>`:''}
+    <button class="btn btn-secondary btn-sm" onclick="closeItemDrawer();openItemDrawer('meeting','${id}')" style="margin-bottom:16px;font-size:11px">Edit all fields</button>
 
-    <!-- Agenda Section -->
-    <div class="mtg-section" id="mtg-sec-agenda">
-      <div class="mtg-section-hd" onclick="toggleMtgSection('agenda')">
-        ${sectionArrow}
-        <span>Agenda</span>
-        <span class="mtg-section-count">${agenda.length} item${agenda.length!==1?'s':''}</span>
-      </div>
-      <div class="mtg-section-body" id="mtg-body-agenda">
-        ${agenda.map((a, i) => `<div class="mtg-agenda-item">
-          <input type="checkbox" ${a.done?'checked':''} onchange="toggleAgendaItem('${id}',${i})">
-          <span class="mtg-agenda-text${a.done?' discussed':''}">${esc(a.text)}</span>
-        </div>`).join('')}
-        <div class="mtg-agenda-add">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          <input placeholder="Add agenda item..." onkeydown="if(event.key==='Enter'&&this.value.trim()){addAgendaItem('${id}',this.value.trim());this.value=''}">
-        </div>
+    <!-- Agenda -->
+    <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:12px">
+      <div onclick="this.nextElementSibling.classList.toggle('hidden')" style="padding:8px 12px;background:var(--surface2);cursor:pointer;font-weight:600;font-size:13px;display:flex;align-items:center;gap:6px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg> Agenda (${agenda.length})</div>
+      <div style="padding:8px 12px">
+        ${agenda.map((a,i) => `<div style="display:flex;align-items:center;gap:6px;padding:3px 0;border-bottom:1px solid var(--border)"><input type="checkbox" ${a.done?'checked':''} onchange="toggleMtgAgenda('${id}',${i},this.checked)"><span style="font-size:12px;${a.done?'text-decoration:line-through;opacity:.5':''}">${esc(a.text)}</span></div>`).join('')}
+        <div style="display:flex;gap:4px;margin-top:6px"><input id="mtg-ag-${id}" placeholder="Add agenda item..." style="flex:1;font-size:12px;padding:3px 6px;border:1px solid var(--border);border-radius:4px" onkeydown="if(event.key==='Enter')addMtgAgenda('${id}')"><button class="btn btn-secondary btn-sm" onclick="addMtgAgenda('${id}')" style="font-size:11px">Add</button></div>
       </div>
     </div>
 
-    <!-- Decisions Section -->
-    <div class="mtg-section" id="mtg-sec-decisions">
-      <div class="mtg-section-hd" onclick="toggleMtgSection('decisions')">
-        ${sectionArrow}
-        <span>Decisions</span>
-        <span class="mtg-section-count">${decisions.length}</span>
-      </div>
-      <div class="mtg-section-body" id="mtg-body-decisions">
-        ${decisions.map(d => `<div class="mtg-decision-item">
-          <div class="mtg-decision-bullet"></div>
-          <span class="mtg-decision-text">${esc(d.text)}</span>
-          <span class="mtg-decision-time">${d.time||''}</span>
-        </div>`).join('')}
-        <div class="mtg-decision-add">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          <input placeholder="Add decision..." onkeydown="if(event.key==='Enter'&&this.value.trim()){addDecision('${id}',this.value.trim());this.value=''}">
-        </div>
+    <!-- Decisions -->
+    <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:12px">
+      <div onclick="this.nextElementSibling.classList.toggle('hidden')" style="padding:8px 12px;background:var(--surface2);cursor:pointer;font-weight:600;font-size:13px;display:flex;align-items:center;gap:6px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> Decisions (${decisions.length})</div>
+      <div style="padding:8px 12px">
+        ${decisions.map(d => `<div style="padding:3px 0;border-bottom:1px solid var(--border);font-size:12px;display:flex;gap:4px"><span style="color:var(--brand)">•</span> ${esc(d.text)} <span style="font-size:10px;color:var(--text3);margin-left:auto">${d.date||''}</span></div>`).join('')}
+        <div style="display:flex;gap:4px;margin-top:6px"><input id="mtg-dec-${id}" placeholder="Add decision..." style="flex:1;font-size:12px;padding:3px 6px;border:1px solid var(--border);border-radius:4px" onkeydown="if(event.key==='Enter')addMtgDecision('${id}')"><button class="btn btn-secondary btn-sm" onclick="addMtgDecision('${id}')" style="font-size:11px">Add</button></div>
       </div>
     </div>
 
-    <!-- Action Items Section (default open) -->
-    <div class="mtg-section" id="mtg-sec-actions">
-      <div class="mtg-section-hd" onclick="toggleMtgSection('actions')">
-        ${sectionArrow}
-        <span>Action Items</span>
-        <span class="mtg-section-count">${totalTasks}</span>
-      </div>
-      <div class="mtg-section-body" id="mtg-body-actions">
-        ${actionItems.map(item => `<div class="mtg-action-item" onclick="${item.taskId?`openTaskPanel('${item.taskId}')`:''}" style="${item.taskId?'':'cursor:default'}">
-          ${statusDot(item.liveStatus)}
-          <span style="flex:1;${item.liveStatus==='done'?'text-decoration:line-through;color:var(--text3)':''}">${esc(item.liveTitle||item.title)}</span>
-          ${item.liveOwner?`<div class="mtg-avatar" style="width:22px;height:22px;font-size:9px" title="${esc(item.liveOwner)}">${item.liveOwner.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)}</div>`:''}
-          <span class="badge badge-p${(item.livePriority||'P2')[1]||'2'}" style="flex-shrink:0">${item.livePriority||'P2'}</span>
-          ${item.liveDue?`<span style="font-size:11px;color:var(--text3);flex-shrink:0">${fmtDate(item.liveDue)}</span>`:''}
-        </div>`).join('')}
-        ${!actionItems.length?'<div style="padding:16px;text-align:center;color:var(--text3);font-size:12px">No action items yet</div>':''}
-        <div class="mtg-action-add">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          <input placeholder="Add action item..." onkeydown="if(event.key==='Enter'&&this.value.trim()){addMeetingActionItem('${id}',this.value.trim());this.value=''}">
-        </div>
+    <!-- Action Items -->
+    <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:12px">
+      <div onclick="this.nextElementSibling.classList.toggle('hidden')" style="padding:8px 12px;background:var(--surface2);cursor:pointer;font-weight:600;font-size:13px;display:flex;align-items:center;gap:6px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Action items (${actionTasks.length})</div>
+      <div style="padding:8px 12px">
+        ${actionTasks.map(t => `<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="width:6px;height:6px;border-radius:50%;background:${t.status==='done'?'var(--ok)':t.status==='doing'?'var(--brand)':'var(--text3)'};flex-shrink:0"></span><span onclick="closeItemDrawer();openTaskPanel('${t.id}')" style="cursor:pointer;flex:1;${t.status==='done'?'text-decoration:line-through;opacity:.5':''}">${esc(t.title)}</span>${t.priority?`<span style="font-size:10px;color:var(--text3)">${t.priority}</span>`:''}</div>`).join('')||'<div style="font-size:12px;color:var(--text3)">No action items</div>'}
+        <div style="display:flex;gap:4px;margin-top:6px"><input id="mtg-act-${id}" placeholder="Add action item..." style="flex:1;font-size:12px;padding:3px 6px;border:1px solid var(--border);border-radius:4px" onkeydown="if(event.key==='Enter')addMtgActionItem('${id}')"><button class="btn btn-secondary btn-sm" onclick="addMtgActionItem('${id}')" style="font-size:11px">Add</button></div>
       </div>
     </div>
 
-    <!-- Notes Section -->
-    <div class="mtg-section" id="mtg-sec-notes">
-      <div class="mtg-section-hd" onclick="toggleMtgSection('notes')">
-        ${sectionArrow}
-        <span>Notes</span>
-      </div>
-      <div class="mtg-section-body collapsed" id="mtg-body-notes" style="padding:12px 16px">
-        <textarea class="mtg-notes-area" id="mtg-raw-notes" placeholder="Paste raw meeting notes here...">${esc(raw)}</textarea>
-        <div style="display:flex;gap:8px;margin-top:10px;align-items:center">
-          <button class="btn btn-secondary btn-sm" onclick="mtgParseNotes('${id}')" id="mtg-parse-btn">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-            Detect Tasks & Events
-          </button>
-          <span id="mtg-parse-status" style="font-size:12px;color:var(--text3)"></span>
-        </div>
-        <div id="mtg-extracted-items" style="margin-top:12px"></div>
+    <!-- Notes -->
+    <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden">
+      <div onclick="this.nextElementSibling.classList.toggle('hidden')" style="padding:8px 12px;background:var(--surface2);cursor:pointer;font-weight:600;font-size:13px;display:flex;align-items:center;gap:6px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Notes</div>
+      <div style="padding:8px 12px">
+        <textarea style="width:100%;min-height:100px;font-size:12px;border:1px solid var(--border);border-radius:6px;padding:6px;resize:vertical" placeholder="Paste meeting notes..." onblur="updateMtgField('${id}','rawNotes',this.value)">${esc(mtg.rawNotes||mtg.raw_notes||'')}</textarea>
+        <button class="btn btn-secondary btn-sm" onclick="mtgDetectItems('${id}')" style="margin-top:4px;font-size:11px">Detect Tasks & Events</button>
+        <div id="mtg-extracted-${id}" style="margin-top:6px"></div>
       </div>
     </div>
   `;
 }
 
-/* ---------- Helper: parse JSON safely ---------- */
-function _parseMtgJson(str) {
-  if (!str) return [];
-  if (Array.isArray(str)) return str;
-  try { return JSON.parse(str); } catch(e) { return []; }
+function toggleMtgDone(id, done) {
+  const m = (S.meetings||[]).find(x => x.id === id);
+  if (m) { m.status = done ? 'completed' : 'scheduled'; m.updated = nowIso(); }
+  renderMtgList();
+  api('updateMeetingNote', {}, { id, status: done ? 'completed' : 'scheduled', updated: nowIso() });
+  toast(done ? 'Meeting completed' : 'Meeting reopened');
 }
 
-/* ---------- Section toggle ---------- */
-function toggleMtgSection(sectionId) {
-  const body = document.getElementById('mtg-body-' + sectionId);
-  const arrow = document.querySelector('#mtg-sec-' + sectionId + ' .mtg-section-arrow');
-  if (!body) return;
-  body.classList.toggle('collapsed');
-  if (arrow) arrow.classList.toggle('collapsed');
+async function updateMtgField(id, field, value) {
+  const mtg = (S.meetings||[]).find(m => m.id === id);
+  if (mtg) { mtg[field] = value; mtg.updated = nowIso(); }
+  await api('updateMeetingNote', {}, { id, [field]: value, updated: nowIso() });
 }
 
-/* ---------- Title inline edit ---------- */
-async function mtgSaveTitle(id, newTitle) {
-  newTitle = newTitle.trim();
-  if (!newTitle) return;
-  const m = (S.meetings||[]).find(x=>x.id===id);
-  if (!m || m.title === newTitle) return;
-  m.title = newTitle;
-  renderMeetings();
-  await api('updateMeetingNote', {}, { id, title: newTitle });
-}
-
-/* ---------- Agenda ---------- */
-async function addAgendaItem(meetingId, text) {
-  const m = (S.meetings||[]).find(x=>x.id===meetingId);
-  if (!m) return;
-  const agenda = _parseMtgJson(m.agenda);
-  agenda.push({ text, done: false });
-  m.agenda = JSON.stringify(agenda);
-  openMeetingDetail(meetingId);
-  await api('updateMeetingNote', {}, { id: meetingId, agenda: m.agenda });
-}
-
-async function toggleAgendaItem(meetingId, idx) {
-  const m = (S.meetings||[]).find(x=>x.id===meetingId);
-  if (!m) return;
-  const agenda = _parseMtgJson(m.agenda);
-  if (agenda[idx]) agenda[idx].done = !agenda[idx].done;
-  m.agenda = JSON.stringify(agenda);
-  openMeetingDetail(meetingId);
-  await api('updateMeetingNote', {}, { id: meetingId, agenda: m.agenda });
-}
-
-/* ---------- Decisions ---------- */
-async function addDecision(meetingId, text) {
-  const m = (S.meetings||[]).find(x=>x.id===meetingId);
-  if (!m) return;
-  const decisions = _parseMtgJson(m.decisions);
-  const now = new Date();
-  decisions.push({ text, time: now.toLocaleTimeString('en-US', {hour:'numeric',minute:'2-digit'}) });
-  m.decisions = JSON.stringify(decisions);
-  openMeetingDetail(meetingId);
-  await api('updateMeetingNote', {}, { id: meetingId, decisions: m.decisions });
-}
-
-/* ---------- Action Items ---------- */
-async function addMeetingActionItem(meetingId, title) {
-  const m = (S.meetings||[]).find(x=>x.id===meetingId);
-  if (!m) return;
-  toast('Creating task...');
-  const taskData = { title, owner: '', due: '', priority: 'P2', status: 'todo', source: 'meeting', department: m.department||'', meetingId };
-  const res = await api('createTask', {}, taskData);
-  if (res?.id) {
-    S.tasks = S.tasks||[];
-    S.tasks.push({ ...taskData, id: res.id });
-    await api('saveMeetingItems', {}, { meetingId, items: [{ title, item_type: 'task' }], department: m.department||'' });
-    m.taskCount = (parseInt(m.taskCount)||0) + 1;
-    api('updateMeetingNote', {}, { id: meetingId, taskCount: m.taskCount });
-    toast('Action item created');
-    openMeetingDetail(meetingId);
-  }
-}
-
-/* ---------- Parse Notes (in detail view) ---------- */
-async function mtgParseNotes(meetingId) {
-  const notesEl = document.getElementById('mtg-raw-notes');
-  const notes = notesEl ? notesEl.value.trim() : '';
-  if (!notes) { toast('Paste some notes first'); return; }
-  const btn = document.getElementById('mtg-parse-btn');
-  const status = document.getElementById('mtg-parse-status');
-  if (btn) btn.disabled = true;
-  if (status) status.textContent = 'Detecting...';
-
-  // Save raw notes to meeting
-  const m = (S.meetings||[]).find(x=>x.id===meetingId);
-  if (m) { m.rawNotes = notes; api('updateMeetingNote', {}, { id: meetingId, rawNotes: notes }); }
-
-  const result = await api('parseMeetingNotes', {}, { raw_notes: notes });
-  if (btn) btn.disabled = false;
-  if (!result || !result.items) { toast('Parse failed'); if(status) status.textContent = ''; return; }
-  S.parsedItems = result.items.map(i => ({ ...i, confirmed: true }));
-  if (status) status.textContent = `${S.parsedItems.length} item${S.parsedItems.length!==1?'s':''} detected`;
-
-  // Render extracted items inline
-  const container = document.getElementById('mtg-extracted-items');
-  if (!container) return;
-  renderExtractedItems(container);
-
-  // Add save button
-  container.innerHTML += `<div style="margin-top:12px"><button class="btn btn-primary btn-sm" onclick="mtgSaveExtracted('${meetingId}')">Save Extracted Items</button></div>`;
-}
-
-function renderExtractedItems(container) {
-  const el = container || document.getElementById('extracted-items');
-  if (!el) return;
-  if (!S.parsedItems || !S.parsedItems.length) {
-    el.innerHTML = '<div style="color:var(--text3);font-size:12px;padding:8px 0">No items detected.</div>';
-    return;
-  }
-  const teamNames = (S.team||[]).map(m=>m.name);
-  const projects  = S.projects||[];
-  const meetings  = (S.meetings||[]).filter(m=>m.date>=todayStr()).slice(0,20);
-  const CATS = [
-    {k:'task',      label:'Task'},
-    {k:'event',     label:'Calendar Event'},
-    {k:'project',   label:'Project Item'},
-    {k:'nextmtg',   label:'Next Meeting'},
-  ];
-
-  el.innerHTML = `<div style="font-weight:600;font-size:13px;margin-bottom:10px">Detected Items — set category &amp; confirm</div>` +
-    S.parsedItems.map((item, i) => {
-      const cat = item.cat || (item.item_type === 'event' ? 'event' : 'task');
-      if (!item.cat) item.cat = cat;
-      const confColor = (item.confidence||0) >= 70 ? 'var(--ok)' : (item.confidence||0) >= 40 ? '#e37400' : 'var(--danger)';
-      const prioSel = ['P0','P1','P2','P3'].map(p=>`<option${item.priority===p?' selected':''}>${p}</option>`).join('');
-      const ownerOpts = ['', ...teamNames].map(n=>`<option${(item.owner||'')===(n)?' selected':''}>${esc(n)}</option>`).join('');
-      const projOpts  = projects.map(p=>`<option value="${esc(p.id)}" ${item.projectId===p.id?'selected':''}>${esc(p.title||p.name)}</option>`).join('');
-      const mtgOpts   = meetings.map(m=>`<option value="${esc(m.id)}" ${item.targetMeetingId===m.id?'selected':''}>${esc(m.title)} (${m.date||''})</option>`).join('');
-
-      const catChips = CATS.map(({k,label}) =>
-        `<span class="mtg-cat-chip${cat===k?' active':''}" onclick="setItemCat(${i})">${label}</span>`
-      ).join('');
-
-      let catFields = '';
-      if (cat === 'task') {
-        catFields = `
-          <div class="ext-field"><label>Owner</label><select onchange="S.parsedItems[${i}].owner=this.value">${ownerOpts}</select></div>
-          <div class="ext-field"><label>Due</label><input type="date" value="${item.due||''}" oninput="S.parsedItems[${i}].due=this.value"></div>
-          <div class="ext-field"><label>Priority</label><select onchange="S.parsedItems[${i}].priority=this.value">${prioSel}</select></div>`;
-      } else if (cat === 'event') {
-        catFields = `
-          <div class="ext-field"><label>Date</label><input type="date" value="${item.due||''}" oninput="S.parsedItems[${i}].due=this.value"></div>
-          <div class="ext-field"><label>Time</label><input type="time" value="${item.time||''}" oninput="S.parsedItems[${i}].time=this.value"></div>
-          <div class="ext-field"><label>Owner/Who</label><select onchange="S.parsedItems[${i}].owner=this.value">${ownerOpts}</select></div>`;
-      } else if (cat === 'project') {
-        catFields = `
-          <div class="ext-field" style="grid-column:1/-1">
-            <label>Add to project</label>
-            <select onchange="S.parsedItems[${i}].projectId=this.value;S.parsedItems[${i}].newProject=this.value==='__new__'">
-              <option value="">-- select existing --</option>
-              ${projOpts}
-              <option value="__new__">+ Create new project</option>
-            </select>
-          </div>
-          <div class="ext-field"><label>Owner</label><select onchange="S.parsedItems[${i}].owner=this.value">${ownerOpts}</select></div>
-          <div class="ext-field"><label>Due</label><input type="date" value="${item.due||''}" oninput="S.parsedItems[${i}].due=this.value"></div>`;
-      } else if (cat === 'nextmtg') {
-        const mtgTypeOpts = ['daily','weekly','biweekly','monthly','quarterly'].map(t=>`<option value="${t}" ${item.nextMtgType===t?'selected':''}>${{daily:'Daily',weekly:'Weekly',biweekly:'Biweekly',monthly:'Monthly',quarterly:'Quarterly'}[t]}</option>`).join('');
-        catFields = `
-          <div class="ext-field" style="grid-column:1/-1">
-            <label>Add to meeting</label>
-            <select onchange="S.parsedItems[${i}].targetMeetingId=this.value">
-              <option value="">-- create new / schedule --</option>
-              ${mtgOpts}
-            </select>
-          </div>
-          <div class="ext-field"><label>Meeting type</label>
-            <select onchange="S.parsedItems[${i}].nextMtgType=this.value">${mtgTypeOpts}</select>
-          </div>
-          <div class="ext-field"><label>Scheduled date</label>
-            <input type="date" value="${item.due||''}" oninput="S.parsedItems[${i}].due=this.value">
-          </div>`;
-      }
-
-      return `<div class="extracted-item" id="ext-item-${i}" style="opacity:${item.confirmed===false?'.5':'1'}">
-        <div class="ext-header">
-          <input style="flex:1;margin:0 8px 0 0;font-weight:600;font-size:13px;border:none;background:transparent;color:var(--text)" value="${esc(item.title)}" oninput="S.parsedItems[${i}].title=this.value">
-          <label style="display:flex;align-items:center;gap:4px;margin:0;cursor:pointer;font-size:12px;white-space:nowrap">
-            <input type="checkbox" ${item.confirmed!==false?'checked':''} onchange="S.parsedItems[${i}].confirmed=this.checked;document.getElementById('ext-item-${i}').style.opacity=this.checked?'1':'.5'"> Include
-          </label>
-        </div>
-        <div class="mtg-cat-chips" style="padding:6px 8px 0">${catChips}</div>
-        <div class="ext-body">${catFields}
-          <div class="ext-field"><label>Confidence</label>
-            <div class="conf-bar" style="flex:1"><div class="conf-fill" style="width:${item.confidence||0}%;background:${confColor}"></div></div>
-            <span style="font-size:11px;color:var(--text3);min-width:28px">${item.confidence||0}%</span>
-          </div>
-        </div>
-      </div>`;
-    }).join('');
-}
-
-function setItemCat(i, cat) {
-  // Find which chip was clicked by reading from the element
-  const chips = document.querySelectorAll(`#ext-item-${i} .mtg-cat-chip`);
-  const cats = ['task','event','project','nextmtg'];
-  chips.forEach((chip, idx) => {
-    if (chip === event.target || chip.contains(event.target)) cat = cats[idx];
-  });
-  if (cat) S.parsedItems[i].cat = cat;
-  const container = document.getElementById('mtg-extracted-items') || document.getElementById('extracted-items');
-  renderExtractedItems(container);
-}
-
-/* ---------- Save extracted items from detail notes ---------- */
-async function mtgSaveExtracted(meetingId) {
-  const m = (S.meetings||[]).find(x=>x.id===meetingId);
-  if (!m) return;
-  const confirmed = (S.parsedItems||[]).filter(i => i.confirmed !== false);
-  if (!confirmed.length) { toast('No items to save'); return; }
-
-  const taskItems    = confirmed.filter(i => (i.cat||'task') === 'task');
-  const eventItems   = confirmed.filter(i => i.cat === 'event');
-  const dept = m.department||'';
-  const reqBy = m.attendees||'';
-
-  toast(`Saving ${confirmed.length} item(s)...`);
-
-  if (taskItems.length) {
-    await api('saveMeetingItems', {}, { meetingId, items: taskItems.map(i=>({...i,item_type:'task'})), department: dept, requestedBy: reqBy });
-    m.taskCount = (parseInt(m.taskCount)||0) + taskItems.length;
-    api('updateMeetingNote', {}, { id: meetingId, taskCount: m.taskCount });
-  }
-
-  for (const item of eventItems) {
-    const ev = { title: item.title, date: item.due||m.date, time: item.time||'', department: dept, description: `From meeting: ${m.title}` };
-    const saved = await api('createEvent', {}, ev);
-    if (saved?.id) { S.events = S.events||[]; S.events.push({...ev, id: saved.id}); }
-    await api('saveMeetingItems', {}, { meetingId, items: [{...item,item_type:'event'}], department: dept, requestedBy: reqBy });
-  }
-
-  S.parsedItems = [];
-  toast('Items saved');
-  S._lastLoaded = 0;
-  loadData(true).then(() => { renderMeetings(); openMeetingDetail(meetingId); });
-}
-
-/* ---------- Pin toggle ---------- */
-async function toggleMeetingPin(id) {
-  const m = (S.meetings||[]).find(x=>x.id===id);
-  if (!m) return;
-  m.pinned = m.pinned==='true' ? 'false' : 'true';
-  renderMeetings();
+async function addMtgAgenda(id) {
+  const input = document.getElementById('mtg-ag-'+id);
+  const text = input?.value?.trim(); if (!text) return;
+  const mtg = (S.meetings||[]).find(m => m.id === id); if (!mtg) return;
+  let agenda = mtg.agenda ? (typeof mtg.agenda === 'string' ? JSON.parse(mtg.agenda||'[]') : mtg.agenda) : [];
+  agenda.push({text, done: false});
+  mtg.agenda = agenda;
+  input.value = '';
+  await updateMtgField(id, 'agenda', JSON.stringify(agenda));
   openMeetingDetail(id);
-  api('updateMeetingNote', {}, { id, pinned: m.pinned });
 }
 
-/* ---------- Edit meeting fields via modal ---------- */
-function mtgEditFields(id) {
-  const m = (S.meetings||[]).find(x=>x.id===id);
-  if (!m) return;
-  const typeOpts = [
-    {v:'daily',l:'Daily Standup'},{v:'weekly',l:'Weekly Sync'},{v:'biweekly',l:'Biweekly Sync'},
-    {v:'monthly',l:'Monthly Review'},{v:'quarterly',l:'Quarterly Review'},{v:'adhoc',l:'Ad-hoc'}
-  ];
-  showModal(`<div style="padding:1.5rem;min-width:380px">
-    <h3 style="margin:0 0 1rem">Edit Meeting</h3>
-    <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;color:var(--text2)">Type</label>
-    <select id="em-type" style="margin-bottom:8px">${typeOpts.map(o=>`<option value="${o.v}"${o.v===(m.type||'adhoc')?' selected':''}>${o.l}</option>`).join('')}</select>
-    <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;color:var(--text2)">Date</label>
-    <input id="em-date" type="date" value="${m.date||''}" style="margin-bottom:8px">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-      <div><label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;color:var(--text2)">Start</label><input id="em-start" type="time" value="${m.startTime||m.start_time||''}"></div>
-      <div><label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;color:var(--text2)">End</label><input id="em-end" type="time" value="${m.endTime||m.end_time||''}"></div>
+async function toggleMtgAgenda(id, idx, checked) {
+  const mtg = (S.meetings||[]).find(m => m.id === id); if (!mtg) return;
+  let agenda = typeof mtg.agenda === 'string' ? JSON.parse(mtg.agenda||'[]') : (mtg.agenda||[]);
+  if (agenda[idx]) agenda[idx].done = checked;
+  mtg.agenda = agenda;
+  await updateMtgField(id, 'agenda', JSON.stringify(agenda));
+}
+
+async function addMtgDecision(id) {
+  const input = document.getElementById('mtg-dec-'+id);
+  const text = input?.value?.trim(); if (!text) return;
+  const mtg = (S.meetings||[]).find(m => m.id === id); if (!mtg) return;
+  let decisions = mtg.decisions ? (typeof mtg.decisions === 'string' ? JSON.parse(mtg.decisions||'[]') : mtg.decisions) : [];
+  decisions.push({text, date: todayStr()});
+  mtg.decisions = decisions;
+  input.value = '';
+  await updateMtgField(id, 'decisions', JSON.stringify(decisions));
+  openMeetingDetail(id);
+}
+
+async function addMtgActionItem(id) {
+  const input = document.getElementById('mtg-act-'+id);
+  const title = input?.value?.trim(); if (!title) return;
+  const task = { title, status:'todo', priority:'P2', source:'meeting', meetingId: id, department: S.myDept||'' };
+  const saved = await api('createTask', {}, task);
+  if (saved && saved.id) { S.tasks = S.tasks || []; S.tasks.unshift({...task, id: saved.id, created: todayStr()}); }
+  input.value = '';
+  openMeetingDetail(id);
+  toast('Action item created');
+}
+
+async function mtgDetectItems(id) {
+  const textarea = document.querySelector(`#mtg-extracted-${id}`)?.previousElementSibling?.previousElementSibling;
+  const text = textarea?.value; if (!text) { toast('Paste notes first','warn'); return; }
+  const result = await api('parseMeetingNotes', {}, { text });
+  const container = document.getElementById('mtg-extracted-'+id);
+  if (!container) return;
+  const items = result?.items || [];
+  if (!items.length) { container.innerHTML = '<div style="font-size:12px;color:var(--text3)">No items detected</div>'; return; }
+  container.innerHTML = items.map((item, i) => `<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--border);font-size:12px"><input type="checkbox" checked id="mtg-ext-${i}"><span style="flex:1">${esc(item.title)}</span><span style="font-size:11px;color:var(--text3)">${esc(item.assignee||'')}</span></div>`).join('') + `<button class="btn btn-primary btn-sm" style="margin-top:6px;font-size:11px" onclick="mtgSaveExtracted('${id}')">Save ${items.length} items</button>`;
+  S._mtgExtractedItems = items;
+}
+
+async function mtgSaveExtracted(id) {
+  const items = S._mtgExtractedItems || [];
+  const checked = items.filter((_, i) => document.getElementById('mtg-ext-'+i)?.checked);
+  if (!checked.length) return;
+  await api('saveMeetingItems', {}, { meetingId: id, items: checked });
+  S._mtgExtractedItems = [];
+  toast(checked.length + ' items saved');
+  S._lastLoaded = 0; await loadData(true);
+  openMeetingDetail(id);
+}
+
+function createNewMeeting() {
+  showModal(`<div style="padding:1.5rem;min-width:300px">
+    <h3 style="margin:0 0 1rem">New meeting</h3>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
+      ${['daily','weekly','biweekly','monthly','quarterly','adhoc'].map(t => `<button class="btn btn-secondary btn-sm" onclick="closeModal();quickCreateMeeting('${t}')" style="font-size:12px">${MTG_TYPE_LABELS[t]||t}</button>`).join('')}
     </div>
-    <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;color:var(--text2)">Department</label>
-    <input id="em-dept" type="text" value="${esc(m.department||'')}" style="margin-bottom:8px">
-    <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;color:var(--text2)">Attendees</label>
-    <input id="em-attendees" type="text" value="${esc(m.attendees||'')}" style="margin-bottom:12px">
-    <div style="display:flex;gap:.5rem;justify-content:flex-end">
-      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="mtgSaveFields('${id}')">Save</button>
-    </div>
+    <div style="text-align:right"><button class="btn btn-secondary btn-sm" onclick="closeModal()">Cancel</button></div>
   </div>`);
 }
 
-async function mtgSaveFields(id) {
-  const m = (S.meetings||[]).find(x=>x.id===id);
-  if (!m) return;
-  m.type = document.getElementById('em-type').value;
-  m.date = document.getElementById('em-date').value;
-  m.startTime = document.getElementById('em-start').value;
-  m.endTime = document.getElementById('em-end').value;
-  m.department = document.getElementById('em-dept').value;
-  m.attendees = document.getElementById('em-attendees').value;
-  closeModal();
-  renderMeetings();
-  openMeetingDetail(id);
-  await api('updateMeetingNote', {}, { id, type: m.type, date: m.date, startTime: m.startTime, endTime: m.endTime, department: m.department, attendees: m.attendees });
-  toast('Meeting updated');
+async function quickCreateMeeting(type) {
+  const today = todayStr();
+  const title = MTG_TITLES[type] ? MTG_TITLES[type](today) : type + ' meeting';
+  const body = { title, type, date: today, startTime:'', endTime:'', department: S.myDept||'', attendees:'', rawNotes:'' };
+  const saved = await api('createMeetingNote', {}, body);
+  if (saved && saved.id) {
+    S.meetings = S.meetings || [];
+    S.meetings.unshift({...body, id: saved.id, created: today});
+    openMeetingDetail(saved.id);
+    toast('Meeting created');
+  }
 }
 
-/* ---------- Legacy compat: keep old function names working ---------- */
-function newMeeting(type) { mtgNewMeeting(type); }
-function openMeeting(id) { openMeetingDetail(id); }
-function saveMeeting() { /* no-op: old form removed, new flow uses confirmNewMeeting + mtgSaveExtracted */ }
-function parseNotes() { if(S._activeMeetingId) mtgParseNotes(S._activeMeetingId); }
-function cancelMeetingForm() { /* no-op */ }
-function editMeeting(id) { mtgEditFields(id); }
-function showScheduleMeetingModal() { mtgNewMeeting(); }
-function confirmScheduleMeeting() { confirmNewMeeting(); }
-
-function filterMeetings(q) {
-  renderMeetings();
+function mtgScrollToToday() {
+  if (S._mtgView === 'cal') { S._mtgCalY=new Date().getFullYear(); S._mtgCalM=new Date().getMonth(); renderMtgCal(); return; }
+  const today = todayStr().slice(0,7);
+  const w = document.getElementById('mtg-list-view'); if (!w) return;
+  const headers = w.querySelectorAll('td[colspan]');
+  for (const td of headers) {
+    if (td.textContent.includes(new Date(today+'-01T00:00:00').toLocaleDateString('en-US',{month:'long',year:'numeric'}))) {
+      td.closest('tr').scrollIntoView({behavior:'smooth',block:'start'}); return;
+    }
+  }
 }
 
-// ===================== MEDIA =====================
+function mtgCalShift(dir) {
+  S._mtgCalM += dir;
+  if (S._mtgCalM > 11) { S._mtgCalM = 0; S._mtgCalY++; }
+  if (S._mtgCalM < 0) { S._mtgCalM = 11; S._mtgCalY--; }
+  renderMtgCal();
+}
+
+function renderMtgCal() {
+  const w = document.getElementById('mtg-cal-grid');
+  const label = document.getElementById('mtg-cal-month');
+  if (!w || !label) return;
+  const y = S._mtgCalY, m = S._mtgCalM, today = todayStr();
+  label.textContent = _MON[m] + ' ' + y;
+  const byDate = {};
+  (S.meetings||[]).forEach(mtg => { if (!mtg.date) return; if (!byDate[mtg.date]) byDate[mtg.date]=[]; byDate[mtg.date].push(mtg); });
+  const firstDay = new Date(y,m,1).getDay(), daysInMonth = new Date(y,m+1,0).getDate();
+  let html = '<div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:1px;background:var(--border);border:1px solid var(--border)">';
+  ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d => { html += `<div style="background:var(--surface2);padding:6px;text-align:center;font-size:11px;font-weight:700;color:var(--text3)">${d}</div>`; });
+  for (let i=0;i<firstDay;i++) html += '<div style="background:var(--surface2);padding:3px;min-height:70px"></div>';
+  for (let d=1;d<=daysInMonth;d++) {
+    const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday = ds === today;
+    const items = byDate[ds]||[];
+    const pills = items.map(mtg => {
+      const color = MTG_TYPE_COLORS[mtg.type||'adhoc']||'#616161';
+      return `<div onclick="event.stopPropagation();openMeetingDetail('${mtg.id}')" style="background:${color};color:#fff;font-size:9px;font-weight:600;border-radius:3px;padding:1px 4px;margin-bottom:1px;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;${mtg.status==='completed'?'opacity:.4':''}">${mtg.startTime||mtg.time?to12h(mtg.startTime||mtg.time)+' ':''}${esc(mtg.title)}</div>`;
+    }).join('');
+    html += `<div style="background:var(--surface);padding:3px;min-height:70px;${isToday?'outline:2px solid var(--brand);outline-offset:-2px':''}"><div style="font-size:11px;font-weight:600;color:${isToday?'var(--brand)':'var(--text2)'};margin-bottom:2px">${d}</div>${pills}</div>`;
+  }
+  const total=firstDay+daysInMonth; const trail=total%7===0?0:7-(total%7);
+  for(let i=0;i<trail;i++) html+='<div style="background:var(--surface2);padding:3px;min-height:70px"></div>';
+  html += '</div>';
+  w.innerHTML = html;
+}
+
+// ===================== MEDIA// ===================== MEDIA =====================
 function renderMedia() { renderContentProduction(); }
 
 function mediaTab(tab, btn) {
