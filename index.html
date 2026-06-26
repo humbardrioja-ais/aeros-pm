@@ -2865,20 +2865,53 @@ function saveFeedCache() {
   try { localStorage.setItem('aeros_feed_events', JSON.stringify({ _ver: _FEED_CACHE_VER, events: S.feedEvents })); } catch(_) {}
 }
 
+S._lastFeedSync = 0;
+const FEED_SYNC_INTERVAL = 5 * 60 * 1000; // 5 minutes
+
 async function autoLoadFeeds() {
   const enabled = (S.feeds||[]).filter(f => f.enabled !== 'false');
   if (!enabled.length) return;
   loadFeedCache();
+  const now = Date.now();
+  const needsRefresh = now - S._lastFeedSync > FEED_SYNC_INTERVAL;
   const unloaded = enabled.filter(f => !(S.feedEvents||[]).some(e => e._feedId === f.id));
-  if (!unloaded.length) {
+
+  if (!unloaded.length && !needsRefresh) {
     if ((S.feedEvents||[]).length) renderCalendar();
     return;
   }
+
+  // If feeds are cached but stale, refresh ALL in background
+  if (!unloaded.length && needsRefresh) {
+    S._lastFeedSync = now;
+    _backgroundFeedRefresh(enabled);
+    if ((S.feedEvents||[]).length) renderCalendar();
+    return;
+  }
+
+  // First load — fetch unloaded feeds
   await Promise.all(unloaded.map(feed => fetchFeedEvents(feed)));
+  S._lastFeedSync = now;
   saveFeedCache();
   renderFeedList();
   renderCalendar();
 }
+
+async function _backgroundFeedRefresh(feeds) {
+  try {
+    await Promise.all(feeds.map(feed => fetchFeedEvents(feed)));
+    saveFeedCache();
+    renderCalendar();
+  } catch(_) {}
+}
+
+// Auto-refresh feeds every 5 minutes
+setInterval(() => {
+  const enabled = (S.feeds||[]).filter(f => f.enabled !== 'false');
+  if (enabled.length && S.currentView === 'calendar') {
+    _backgroundFeedRefresh(enabled);
+  }
+}, FEED_SYNC_INTERVAL);
 
 function feedEventsInRange(startDate, endDate) {
   return (S.feedEvents||[]).filter(e => {
