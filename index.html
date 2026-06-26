@@ -5623,18 +5623,26 @@ function _pillCheckHtml(item, type) {
   return `<div onclick="event.stopPropagation();pillToggleCheck('${id}','${type}',true)" style="width:18px;height:18px;border-radius:50%;border:2px solid rgba(0,0,0,.2);flex-shrink:0;cursor:pointer" title="Mark done"></div>`;
 }
 
+function _renderCalKeepScroll() {
+  const wrap = document.getElementById('cal-months-wrap');
+  const content = document.getElementById('content');
+  const scrollTop = content ? content.scrollTop : 0;
+  renderCalendar();
+  if (content) requestAnimationFrame(() => { content.scrollTop = scrollTop; });
+}
+
 function pillToggleCheck(id, type, done) {
   if (type === 'ical') {
     if (!S._icalChecked) S._icalChecked = new Set();
     if (done) S._icalChecked.add(id); else S._icalChecked.delete(id);
     try { localStorage.setItem('aeros_ical_checked', JSON.stringify([...S._icalChecked])); } catch(_) {}
-    renderCalendar();
+    _renderCalKeepScroll();
     return;
   }
   if (type === 'task' || type === 'blocked') {
     const t = S.tasks.find(x => x.id === id);
     if (t) { t.status = done ? 'done' : 'todo'; t.updated = nowIso(); }
-    renderCalendar();
+    _renderCalKeepScroll();
     api('updateTask', {}, { id, status: done ? 'done' : 'todo', updated: nowIso() });
     toast(done ? 'Task completed' : 'Task reopened');
     return;
@@ -5642,28 +5650,28 @@ function pillToggleCheck(id, type, done) {
   if (type === 'event') {
     const e = (S.events||[]).find(x => x.id === id);
     if (e) { e.completed = done; e.updated = nowIso(); }
-    renderCalendar();
+    _renderCalKeepScroll();
     api('updateEvent', {}, { id, completed: done, updated: nowIso() });
     return;
   }
   if (type === 'meeting') {
     const m = (S.meetings||[]).find(x => x.id === id);
     if (m) { m.status = done ? 'completed' : 'scheduled'; m.updated = nowIso(); }
-    renderCalendar();
+    _renderCalKeepScroll();
     api('updateMeetingNote', {}, { id, status: done ? 'completed' : 'scheduled', updated: nowIso() });
     return;
   }
   if (type === 'shoot') {
     const s = (S.shoots||[]).find(x => x.id === id);
     if (s) { s.status = done ? 'Complete' : 'Scheduled'; }
-    renderCalendar();
+    _renderCalKeepScroll();
     api('updateShootSession', {}, { id, status: done ? 'Complete' : 'Scheduled' });
     return;
   }
   if (type === 'mission') {
     const ms = (S.missions||[]).find(x => x.id === id);
     if (ms) { ms.status = done ? 'approved' : 'pending'; }
-    renderCalendar();
+    _renderCalKeepScroll();
     api('updateMission', {}, { id, status: done ? 'approved' : 'pending' });
     return;
   }
