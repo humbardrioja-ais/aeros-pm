@@ -5604,9 +5604,79 @@ function calPillHtml(item,type,clickJs){
       <div style="font-size:10px;font-weight:600;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:3px">${checkSvg}${titleText}</div>
       <div style="font-size:9px;color:rgba(0,0,0,.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:3px">${esc(sub)}${prio}${lockSvg}</div>
     </div>
-    ${time?`<span style="font-size:9px;color:rgba(0,0,0,.45);margin-left:auto;padding-left:4px;flex-shrink:0">${time}</span>`:''}
+    ${time?`<span style="font-size:9px;color:rgba(0,0,0,.45);padding-left:4px;flex-shrink:0">${time}</span>`:''}
+    ${_pillCheckHtml(item, type)}
   </div>`;
 }
+
+function _pillCheckHtml(item, type) {
+  const id = item.id || '';
+  const isIcal = type === 'ical';
+  const isDone = item.status === 'done' || item.completed || (isIcal && (S._icalChecked||new Set()).has(id));
+  const isCheckable = ['task','blocked','event','meeting','shoot','mission','ical'].includes(type);
+  if (!isCheckable) return '';
+
+  if (isDone) {
+    const color = isIcal ? '#1967d2' : '#137333';
+    return `<div onclick="event.stopPropagation();pillToggleCheck('${id}','${type}',false)" style="width:18px;height:18px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer" title="Done"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>`;
+  }
+  return `<div onclick="event.stopPropagation();pillToggleCheck('${id}','${type}',true)" style="width:18px;height:18px;border-radius:50%;border:2px solid rgba(0,0,0,.2);flex-shrink:0;cursor:pointer" title="Mark done"></div>`;
+}
+
+function pillToggleCheck(id, type, done) {
+  if (type === 'ical') {
+    if (!S._icalChecked) S._icalChecked = new Set();
+    if (done) S._icalChecked.add(id); else S._icalChecked.delete(id);
+    try { localStorage.setItem('aeros_ical_checked', JSON.stringify([...S._icalChecked])); } catch(_) {}
+    renderCalendar();
+    return;
+  }
+  if (type === 'task' || type === 'blocked') {
+    const t = S.tasks.find(x => x.id === id);
+    if (t) { t.status = done ? 'done' : 'todo'; t.updated = nowIso(); }
+    renderCalendar();
+    api('updateTask', {}, { id, status: done ? 'done' : 'todo', updated: nowIso() });
+    toast(done ? 'Task completed' : 'Task reopened');
+    return;
+  }
+  if (type === 'event') {
+    const e = (S.events||[]).find(x => x.id === id);
+    if (e) { e.completed = done; e.updated = nowIso(); }
+    renderCalendar();
+    api('updateEvent', {}, { id, completed: done, updated: nowIso() });
+    return;
+  }
+  if (type === 'meeting') {
+    const m = (S.meetings||[]).find(x => x.id === id);
+    if (m) { m.status = done ? 'completed' : 'scheduled'; m.updated = nowIso(); }
+    renderCalendar();
+    api('updateMeetingNote', {}, { id, status: done ? 'completed' : 'scheduled', updated: nowIso() });
+    return;
+  }
+  if (type === 'shoot') {
+    const s = (S.shoots||[]).find(x => x.id === id);
+    if (s) { s.status = done ? 'Complete' : 'Scheduled'; }
+    renderCalendar();
+    api('updateShootSession', {}, { id, status: done ? 'Complete' : 'Scheduled' });
+    return;
+  }
+  if (type === 'mission') {
+    const ms = (S.missions||[]).find(x => x.id === id);
+    if (ms) { ms.status = done ? 'approved' : 'pending'; }
+    renderCalendar();
+    api('updateMission', {}, { id, status: done ? 'approved' : 'pending' });
+    return;
+  }
+}
+
+// Load iCal checked state from localStorage
+(function() {
+  try {
+    const stored = localStorage.getItem('aeros_ical_checked');
+    if (stored) S._icalChecked = new Set(JSON.parse(stored));
+    else S._icalChecked = new Set();
+  } catch(_) { S._icalChecked = new Set(); }
+})();
 
 /* ===================== CALENDAR DRAG & DROP ===================== */
 let _calDrag=null;
