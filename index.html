@@ -2758,7 +2758,7 @@ async function fetchFeedEvents(feed) {
   const result = await api('fetchIcal', { url: feed.url, feedId: feed.id });
   if (result && result.events) {
     S.feedEvents = (S.feedEvents||[]).filter(e => e._feedId !== feed.id);
-    S.feedEvents.push(...result.events.map(e => ({ ...e, _feedId: feed.id, _feedColor: feed.color, _feedTextColor: feed.text_color || feed.color, _feedName: feed.name })));
+    S.feedEvents.push(...result.events.map(e => ({ ...e, description: cleanHtml(e.description||''), _feedId: feed.id, _feedColor: feed.color, _feedTextColor: feed.text_color || feed.color, _feedName: feed.name })));
     feed.last_synced = new Date().toISOString();
     return;
   }
@@ -2767,7 +2767,7 @@ async function fetchFeedEvents(feed) {
   if (result && result.raw && result.raw.includes('BEGIN:VCALENDAR')) {
     const events = parseIcalClient(result.raw, feed.id);
     S.feedEvents = (S.feedEvents||[]).filter(e => e._feedId !== feed.id);
-    S.feedEvents.push(...events.map(e => ({ ...e, _feedId: feed.id, _feedColor: feed.color, _feedTextColor: feed.text_color || feed.color, _feedName: feed.name })));
+    S.feedEvents.push(...events.map(e => ({ ...e, description: cleanHtml(e.description||''), _feedId: feed.id, _feedColor: feed.color, _feedTextColor: feed.text_color || feed.color, _feedName: feed.name })));
     feed.last_synced = new Date().toISOString();
     return;
   }
@@ -2847,7 +2847,7 @@ function parseIcalDtClient(s) {
   return null;
 }
 
-const _FEED_CACHE_VER = 4;
+const _FEED_CACHE_VER = 5;
 function loadFeedCache() {
   try {
     const raw = localStorage.getItem('aeros_feed_events');
@@ -2857,7 +2857,7 @@ function loadFeedCache() {
       localStorage.removeItem('aeros_feed_events');
       return;
     }
-    S.feedEvents = parsed.events || [];
+    S.feedEvents = (parsed.events || []).map(e => { if (e.description) e.description = cleanHtml(e.description); return e; });
   } catch(_) { localStorage.removeItem('aeros_feed_events'); }
 }
 
