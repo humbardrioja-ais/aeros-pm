@@ -2437,14 +2437,14 @@ function renderMiniCal(y, m, today) {
   const wrap = document.getElementById('cal-mini-wrap');
   if (!wrap) return;
   const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  const first = new Date(y, m, 1).getDay();
+  const first = (new Date(y, m, 1).getDay()+6)%7;
   const days  = new Date(y, m+1, 0).getDate();
   const datesWithEvents = new Set([
     ...filteredTasks().map(t=>t.due),
     ...(S.feedEvents||[]).filter(e=>(S.feeds||[]).find(f=>f.id===e._feedId&&f.enabled!=='false')).map(e=>e.date),
     ...(S.events||[]).map(e=>e.date)
   ]);
-  let hdrs = ['S','M','T','W','T','F','S'].map(d=>`<div class="cal-mini-hdr">${d}</div>`).join('');
+  let hdrs = ['M','T','W','T','F','S','S'].map(d=>`<div class="cal-mini-hdr">${d}</div>`).join('');
   let cells = '';
   for (let i = 0; i < first; i++) cells += '<div></div>';
   for (let d = 1; d <= days; d++) {
@@ -3841,9 +3841,9 @@ function renderMtgCal() {
   label.textContent = _MON[m] + ' ' + y;
   const byDate = {};
   (S.meetings||[]).forEach(mtg => { if (!mtg.date) return; if (!byDate[mtg.date]) byDate[mtg.date]=[]; byDate[mtg.date].push(mtg); });
-  const firstDay = new Date(y,m,1).getDay(), daysInMonth = new Date(y,m+1,0).getDate();
+  const firstDay = (new Date(y,m,1).getDay()+6)%7, daysInMonth = new Date(y,m+1,0).getDate();
   let html = '<div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:1px;background:var(--border);border:1px solid var(--border)">';
-  ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d => { html += `<div style="background:var(--surface2);padding:6px;text-align:center;font-size:11px;font-weight:700;color:var(--text3)">${d}</div>`; });
+  ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].forEach(d => { html += `<div style="background:var(--surface2);padding:6px;text-align:center;font-size:11px;font-weight:700;color:var(--text3)">${d}</div>`; });
   for (let i=0;i<firstDay;i++) html += '<div style="background:var(--surface2);padding:3px;min-height:70px"></div>';
   for (let d=1;d<=daysInMonth;d++) {
     const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
@@ -5492,7 +5492,7 @@ function _loadNextCalMonth(){
 }
 
 const _MON=['January','February','March','April','May','June','July','August','September','October','November','December'];
-const _DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const _DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 
 function _buildMonthBlock(y,m){
   const today=todayStr();
@@ -5512,7 +5512,7 @@ function _buildMonthBlock(y,m){
   // grid
   const grid=document.createElement('div');
   grid.style.cssText='display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:1px;background:var(--border);border:1px solid var(--border)';
-  const firstDay=new Date(y,m,1).getDay();
+  const firstDay=(new Date(y,m,1).getDay()+6)%7;
   const daysInMonth=new Date(y,m+1,0).getDate();
   const prevDays=new Date(y,m,0).getDate();
   for(let i=0;i<firstDay;i++){
@@ -6665,7 +6665,7 @@ function renderTeamSchedule() {
   for (let d = 1; d <= daysInMonth; d++) {
     const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const dow = new Date(ds+'T00:00:00').getDay();
-    const isWE = dow === 0 || dow === 6;
+    const isWE = dow === 0 || dow === 6; // Sun=0 or Sat=6 in getDay()
     const isToday = ds === today;
     header += `<th style="min-width:36px;text-align:center;font-size:10px;padding:4px 2px;${isWE?'background:var(--surface2);color:var(--text3)':''}${isToday?';outline:2px solid var(--brand);outline-offset:-2px':''}">${d}<div style="font-size:8px;color:var(--text3)">${['S','M','T','W','T','F','S'][dow]}</div></th>`;
   }
@@ -7279,7 +7279,7 @@ function renderTsCal() {
   
   // Build calendar grid
   let html = '<div class="ts-cal-grid">';
-  ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d => { html += `<div class="ts-cal-hdr">${d}</div>`; });
+  ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].forEach(d => { html += `<div class="ts-cal-hdr">${d}</div>`; });
   
   // Padding cells before month starts
   for (let i = 0; i < firstDay; i++) html += '<div class="ts-cal-cell weekend" style="background:var(--surface2)"></div>';
@@ -7287,7 +7287,7 @@ function renderTsCal() {
   for (let d = 1; d <= daysInMonth; d++) {
     const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const dow = new Date(ds+'T00:00:00').getDay();
-    const isWE = dow === 0 || dow === 6;
+    const isWE = dow === 0 || dow === 6; // Sun=0 or Sat=6 in getDay()
     const isToday = ds === today;
     const items = byDate[ds] || [];
     
@@ -7634,12 +7634,12 @@ function renderEvtCal() {
     }
   });
 
-  const firstDay = new Date(y, m, 1).getDay();
+  const firstDay = (new Date(y, m, 1).getDay()+6)%7;
   const daysInMonth = new Date(y, m+1, 0).getDate();
   const prevDays = new Date(y, m, 0).getDate();
 
   let html = '<div class="evt-cal-grid">';
-  ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d => { html += `<div class="evt-cal-hdr">${d}</div>`; });
+  ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].forEach(d => { html += `<div class="evt-cal-hdr">${d}</div>`; });
 
   // Previous month padding
   for (let i = firstDay - 1; i >= 0; i--) {
@@ -7650,7 +7650,7 @@ function renderEvtCal() {
   for (let d = 1; d <= daysInMonth; d++) {
     const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const dow = new Date(ds+'T00:00:00').getDay();
-    const isWE = dow === 0 || dow === 6;
+    const isWE = dow === 0 || dow === 6; // Sun=0 or Sat=6 in getDay()
     const isToday = ds === today;
     const items = byDate[ds] || [];
 
@@ -7728,9 +7728,9 @@ async function _evtDrop(event, cell) {
 function _renderEvtMiniCal(y, m, today, byDate) {
   const wrap = document.getElementById('evt-mini-cal-wrap');
   if (!wrap) return;
-  const first = new Date(y, m, 1).getDay();
+  const first = (new Date(y, m, 1).getDay()+6)%7;
   const days = new Date(y, m+1, 0).getDate();
-  let hdrs = ['S','M','T','W','T','F','S'].map(d=>`<div class="evt-mini-hdr">${d}</div>`).join('');
+  let hdrs = ['M','T','W','T','F','S','S'].map(d=>`<div class="evt-mini-hdr">${d}</div>`).join('');
   let cells = '';
   for (let i = 0; i < first; i++) cells += '<div></div>';
   for (let d = 1; d <= days; d++) {
