@@ -3548,8 +3548,8 @@ function setMtgView(v) {
 
 function renderMtgTypeChips() {
   const w = document.getElementById('mtg-type-chips'); if (!w) return;
-  const types = ['all','daily','weekly','biweekly','monthly','quarterly','adhoc'];
-  const labels = {all:'All',daily:'Daily',weekly:'Weekly',biweekly:'Biweekly',monthly:'Monthly',quarterly:'Quarterly',adhoc:'Ad-hoc'};
+  const types = ['all','daily','weekly','biweekly','monthly','quarterly','adhoc','ical'];
+  const labels = {all:'All',daily:'Daily',weekly:'Weekly',biweekly:'Biweekly',monthly:'Monthly',quarterly:'Quarterly',adhoc:'Ad-hoc',ical:'iCal'};
   w.innerHTML = types.map(t => {
     const active = S._mtgTypeFilter === t;
     const color = t === 'all' ? 'var(--brand)' : MTG_TYPE_COLORS[t] || '#616161';
@@ -3562,7 +3562,22 @@ function renderMtgList() {
   const q = (document.getElementById('mtg-search')||{}).value?.toLowerCase() || '';
   const today = todayStr();
   let meetings = [...(S.meetings||[])];
-  if (S._mtgTypeFilter !== 'all') meetings = meetings.filter(m => (m.type||'adhoc') === S._mtgTypeFilter);
+
+  // Add iCal calendar events as meetings (from feeds with "calendar" in name)
+  if (S._mtgTypeFilter === 'all' || S._mtgTypeFilter === 'ical') {
+    (S.feedEvents||[]).forEach(e => {
+      const feed = (S.feeds||[]).find(f => f.id === e._feedId);
+      if (!feed) return;
+      // Check if this iCal event already has an internal meeting linked
+      const alreadyLinked = meetings.some(m => m.icalEventId === e.id);
+      if (!alreadyLinked) {
+        meetings.push({...e, _isIcal: true, type: 'ical', startTime: e.time||'', endTime: e.end_time||'', _feedName: feed.name||'iCal', _feedColor: feed.color||'#888'});
+      }
+    });
+  }
+
+  if (S._mtgTypeFilter !== 'all' && S._mtgTypeFilter !== 'ical') meetings = meetings.filter(m => !m._isIcal && (m.type||'adhoc') === S._mtgTypeFilter);
+  if (S._mtgTypeFilter === 'ical') meetings = meetings.filter(m => m._isIcal);
   if (q) meetings = meetings.filter(m => (m.title||'').toLowerCase().includes(q) || (m.attendees||'').toLowerCase().includes(q));
   meetings.sort((a,b) => (a.date||'').localeCompare(b.date||''));
 
@@ -3584,25 +3599,28 @@ function renderMtgList() {
     rows += `<tr><td colspan="7" style="padding:0;border:none;height:12px;background:transparent"></td></tr>
     <tr><td colspan="7" style="padding:10px 14px;font-size:16px;font-weight:700;color:#fff;background:var(--brand);border-radius:6px">${month} <span style="font-weight:400;font-size:12px;opacity:.8">(${items.length} meetings)</span></td></tr>`;
     items.forEach(m => {
+      const isIcal = m._isIcal;
       const type = m.type || 'adhoc';
-      const typeColor = MTG_TYPE_COLORS[type] || '#616161';
-      const typeLabel = MTG_TYPE_LABELS[type] || 'Ad-hoc';
+      const typeColor = isIcal ? (m._feedColor||'#888') : (MTG_TYPE_COLORS[type] || '#616161');
+      const typeLabel = isIcal ? (m._feedName||'iCal') : (MTG_TYPE_LABELS[type] || 'Ad-hoc');
       const isToday = m.date === today;
       const isDone = m.status === 'completed';
       const time = m.startTime || m.time || '';
       const endTime = m.endTime || m.end_time || '';
-      const actionTasks = (S.tasks||[]).filter(t => t.source === 'meeting' && t.meetingId === m.id);
+      const clickFn = isIcal ? `openIcalMeetingDetail('${m.id}')` : `openMeetingDetail('${m.id}')`;
+      const actionTasks = isIcal ? [] : (S.tasks||[]).filter(t => t.source === 'meeting' && t.meetingId === m.id);
       const doneTasks = actionTasks.filter(t => t.status === 'done').length;
+      const lockIcon = isIcal ? '<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,.3)" stroke-width="2.5" style="margin-left:4px;vertical-align:-1px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>' : '';
 
-      rows += `<tr onclick="openMeetingDetail('${m.id}')" style="cursor:pointer;${isToday?'outline:2px solid var(--brand);outline-offset:-2px;border-radius:4px':''};${isDone?'opacity:.4':''}" onmouseenter="this.style.background='var(--surface2)'" onmouseleave="this.style.background=''">
+      rows += `<tr onclick="${clickFn}" style="cursor:pointer;${isToday?'outline:2px solid var(--brand);outline-offset:-2px;border-radius:4px':''};${isDone?'opacity:.4':''}" onmouseenter="this.style.background='var(--surface2)'" onmouseleave="this.style.background=''">
         <td style="white-space:nowrap;font-weight:600;font-size:12px">${fmtDateLong(m.date)}<div style="font-size:10px;color:var(--text3);font-weight:400">${m.date?['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date(m.date+'T00:00:00').getDay()]:''}</div></td>
-        <td><span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;background:${typeColor};color:#fff">${typeLabel}</span></td>
+        <td><span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;background:${typeColor};color:#fff">${esc(typeLabel)}</span>${lockIcon}</td>
         <td style="font-weight:500;font-size:13px">${esc(m.title)}</td>
         <td style="font-size:12px;color:var(--text2)">${time?to12h(time)+(endTime?'–'+to12h(endTime):''):''}</td>
-        <td style="font-size:12px;color:var(--text3)">${esc(m.attendees||'')}</td>
-        <td style="font-size:11px;color:var(--text3)">${actionTasks.length?doneTasks+'/'+actionTasks.length:''}</td>
+        <td style="font-size:12px;color:var(--text3)">${esc(isIcal?(m.location||''):(m.attendees||''))}</td>
+        <td style="font-size:11px;color:var(--text3)">${actionTasks.length?doneTasks+'/'+actionTasks.length:(isIcal?'<span style="font-size:10px;color:var(--brand);cursor:pointer" onclick="event.stopPropagation();createMeetingFromIcal(\''+m.id+'\')">+ Notes</span>':'')}</td>
         <td style="width:30px">
-          <div onclick="event.stopPropagation();toggleMtgDone('${m.id}',${!isDone})" style="width:18px;height:18px;border-radius:50%;${isDone?'background:#137333;display:flex;align-items:center;justify-content:center':'border:2px solid rgba(0,0,0,.2)'};cursor:pointer">${isDone?'<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>':''}</div>
+          ${isIcal?'<div style="width:18px;height:18px;border-radius:50%;border:2px solid rgba(0,0,0,.1)"></div>':`<div onclick="event.stopPropagation();toggleMtgDone('${m.id}',${!isDone})" style="width:18px;height:18px;border-radius:50%;${isDone?'background:#137333;display:flex;align-items:center;justify-content:center':'border:2px solid rgba(0,0,0,.2)'};cursor:pointer">${isDone?'<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>':''}</div>`}
         </td>
       </tr>`;
     });
@@ -3841,6 +3859,16 @@ function renderMtgCal() {
   label.textContent = _MON[m] + ' ' + y;
   const byDate = {};
   (S.meetings||[]).forEach(mtg => { if (!mtg.date) return; if (!byDate[mtg.date]) byDate[mtg.date]=[]; byDate[mtg.date].push(mtg); });
+  // Add iCal events to calendar
+  (S.feedEvents||[]).forEach(e => {
+    const feed = (S.feeds||[]).find(f => f.id === e._feedId);
+    if (!feed || !e.date) return;
+    const alreadyLinked = (S.meetings||[]).some(m => m.icalEventId === e.id);
+    if (!alreadyLinked) {
+      if (!byDate[e.date]) byDate[e.date]=[];
+      byDate[e.date].push({...e, _isIcal:true, type:'ical', startTime:e.time||'', _feedColor:feed.color||'#888', _feedName:feed.name||'iCal'});
+    }
+  });
   const firstDay = (new Date(y,m,1).getDay()+6)%7, daysInMonth = new Date(y,m+1,0).getDate();
   let html = '<div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:1px;background:var(--border);border:1px solid var(--border)">';
   ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].forEach(d => { html += `<div style="background:var(--surface2);padding:6px;text-align:center;font-size:11px;font-weight:700;color:var(--text3)">${d}</div>`; });
@@ -3850,8 +3878,11 @@ function renderMtgCal() {
     const isToday = ds === today;
     const items = byDate[ds]||[];
     const pills = items.map(mtg => {
-      const color = MTG_TYPE_COLORS[mtg.type||'adhoc']||'#616161';
-      return `<div onclick="event.stopPropagation();openMeetingDetail('${mtg.id}')" style="background:${color};color:#fff;font-size:9px;font-weight:600;border-radius:3px;padding:1px 4px;margin-bottom:1px;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;${mtg.status==='completed'?'opacity:.4':''}">${mtg.startTime||mtg.time?to12h(mtg.startTime||mtg.time)+' ':''}${esc(mtg.title)}</div>`;
+      const isIcal = mtg._isIcal;
+      const color = isIcal ? (mtg._feedColor||'#888') : (MTG_TYPE_COLORS[mtg.type||'adhoc']||'#616161');
+      const clickFn = isIcal ? `openIcalMeetingDetail('${mtg.id}')` : `openMeetingDetail('${mtg.id}')`;
+      const lock = isIcal ? ' <svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="2.5" style="vertical-align:-1px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>' : '';
+      return `<div onclick="event.stopPropagation();${clickFn}" style="background:${color};color:#fff;font-size:9px;font-weight:600;border-radius:3px;padding:1px 4px;margin-bottom:1px;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;${mtg.status==='completed'?'opacity:.4':''}">${mtg.startTime||mtg.time?to12h(mtg.startTime||mtg.time)+' ':''}${esc(mtg.title)}${lock}</div>`;
     }).join('');
     html += `<div style="background:var(--surface);padding:3px;min-height:70px;${isToday?'outline:2px solid var(--brand);outline-offset:-2px':''}"><div style="font-size:11px;font-weight:600;color:${isToday?'var(--brand)':'var(--text2)'};margin-bottom:2px">${d}</div>${pills}</div>`;
   }
