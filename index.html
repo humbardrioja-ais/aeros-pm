@@ -7599,7 +7599,7 @@ function showFeedEventModal(eventId) {
 /* ===================== EVENTS MODULE ===================== */
 const _debouncedRenderEvents = _debounce(()=>renderEvtCurrentView(), 150);
 const EVT_CAT_COLORS = {Holidays:'#c5221f',Marketing:'#1967d2',Internal:'#e37400',Academic:'#137333',Thematic:'#7b1fa2'};
-(function(){ const sc = localStorage.getItem('evt_cat_colors'); if(sc) try{const parsed=JSON.parse(sc);Object.keys(parsed).forEach(k=>{if(parsed[k])EVT_CAT_COLORS[k]=parsed[k];})}catch(e){} })();
+(function(){ const sc = localStorage.getItem('evt_cat_colors'); if(sc) try{const parsed=JSON.parse(sc);Object.keys(parsed).forEach(k=>{if(parsed[k]&&parsed[k].startsWith('#')&&parsed[k].length>=4)EVT_CAT_COLORS[k]=parsed[k];})}catch(e){localStorage.removeItem('evt_cat_colors');} })();
 const EVT_CATS = ['Holidays','Marketing','Internal','Academic','Thematic'];
 
 function _evtHexToTint(hex, lightness) {
@@ -7829,6 +7829,10 @@ function setEvtView(v) {
   document.getElementById('events-cal').classList.toggle('hidden', v !== 'cal');
   document.getElementById('evt-view-list').classList.toggle('active', v === 'list');
   document.getElementById('evt-view-cal').classList.toggle('active', v === 'cal');
+  const statsEl = document.getElementById('evt-stats-sticky');
+  if (statsEl) statsEl.style.display = v === 'list' ? '' : 'none';
+  const searchEl = document.getElementById('events-search');
+  if (searchEl) searchEl.style.display = v === 'list' ? '' : 'none';
   if (v === 'list') renderEvents();
   else renderEvtCal();
 }
