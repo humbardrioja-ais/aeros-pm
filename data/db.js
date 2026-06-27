@@ -211,6 +211,27 @@ const GH = {
       },
       body: JSON.stringify(body),
     });
+    if (putRes.status === 409) {
+      // SHA conflict — retry once with fresh SHA
+      const retryMeta = await fetch(`${this.apiBase}/${filePath}?ref=${this.branch}`, {
+        headers: { Authorization: 'Bearer ' + this.token, Accept: 'application/vnd.github.v3+json' }
+      });
+      if (retryMeta.ok) {
+        const rm = await retryMeta.json();
+        body.sha = rm.sha;
+        const retryRes = await fetch(`${this.apiBase}/${filePath}`, {
+          method: 'PUT',
+          headers: { Authorization: 'Bearer ' + this.token, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        if (!retryRes.ok) {
+          const err2 = await retryRes.json().catch(() => ({}));
+          throw new Error(`GitHub write retry failed (${retryRes.status}): ${err2.message || 'unknown'}`);
+        }
+        this._bustCache[collection] = Date.now();
+        return retryRes.json();
+      }
+    }
     if (!putRes.ok) {
       const err = await putRes.json().catch(() => ({}));
       throw new Error(`GitHub write failed (${putRes.status}): ${err.message || 'unknown'}`);
