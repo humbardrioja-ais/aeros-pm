@@ -3709,7 +3709,7 @@ function renderMtgList() {
       const clickFn = isIcal ? `openIcalMeetingDetail('${m.id}')` : `openMeetingDetail('${m.id}')`;
       const actionTasks = isIcal ? [] : (S.tasks||[]).filter(t => t.source === 'meeting' && t.meetingId === m.id);
       const doneTasks = actionTasks.filter(t => t.status === 'done').length;
-      const lockIcon = isIcal ? '<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,.3)" stroke-width="2.5" style="margin-left:4px;vertical-align:-1px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>' : '';
+      const lockIcon = '';
 
       const loc = isIcal ? (m.location||'') : (m.attendees||'');
       rows += `<div onclick="${clickFn}" style="display:grid;grid-template-columns:130px 70px 85px 1fr 300px 40px 20px;align-items:center;padding:0 16px;height:36px;border-bottom:1px solid var(--border);cursor:pointer;gap:4px;${isToday?'outline:2px solid var(--brand);outline-offset:-2px;border-radius:4px':''};${isDone?'opacity:.4':''}" onmouseenter="this.style.background='var(--surface2)'" onmouseleave="this.style.background=''">
