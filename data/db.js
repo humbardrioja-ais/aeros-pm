@@ -56,7 +56,11 @@ const GH = {
     updateMember:     { collection: 'team' },
     // Meetings
     createMeeting:    { collection: 'meetings',       idPrefix: 'MTG' },
+    createMeetingNote:{ collection: 'meetings',       idPrefix: 'MTG' },
+    updateMeeting:    { collection: 'meetings' },
     updateMeetingNote:{ collection: 'meetings' },
+    deleteMeeting:    { collection: 'meetings',       op: 'delete' },
+    deleteMeetingNote:{ collection: 'meetings',       op: 'delete' },
     saveMeetingItems: { collection: 'meetings',       op: 'saveMeetingItems' },
     parseMeetingNotes:{ collection: 'meetings',       op: 'passthrough' },
     // Missions
