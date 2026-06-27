@@ -3647,7 +3647,7 @@ function renderMtgList() {
         <td style="font-size:10px;color:var(--text2)">${time?to12h(time)+(endTime?'\u2013'+to12h(endTime):''):''}</td>
         <td><span style="display:inline-block;padding:1px 6px;border-radius:3px;font-size:9px;font-weight:600;background:${typeColor};color:#fff">${esc(typeLabel)}</span>${lockIcon}</td>
         <td style="font-weight:500;font-size:12px;overflow:hidden;text-overflow:ellipsis">${esc(m.title)}</td>
-        <td style="font-size:10px;color:var(--text3);overflow:hidden;text-overflow:ellipsis" title="${esc(loc)}">${esc(loc)}</td>
+        <td style="font-size:10px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(loc)}">${esc(loc)}</td>
         <td style="font-size:10px;color:var(--text3)">${actionTasks.length?doneTasks+'/'+actionTasks.length:(isIcal?'<span style="color:var(--brand);cursor:pointer" onclick="event.stopPropagation();createMeetingFromIcal(\''+m.id+'\')">+Notes</span>':'')}</td>
         <td>
           ${isIcal?'<div style="width:14px;height:14px;border-radius:50%;border:1.5px solid rgba(0,0,0,.1)"></div>':`<div onclick="event.stopPropagation();toggleMtgDone('${m.id}',${!isDone})" style="width:14px;height:14px;border-radius:50%;${isDone?'background:#137333;display:flex;align-items:center;justify-content:center':'border:1.5px solid rgba(0,0,0,.15)'};cursor:pointer">${isDone?'<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>':''}</div>`}
