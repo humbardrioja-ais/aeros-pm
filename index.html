@@ -7980,12 +7980,16 @@ function openIcalMeetingDetail(eventId) {
 async function createMeetingFromIcal(eventId) {
   const e = (S.feedEvents||[]).find(x => x.id === eventId);
   if (!e) return;
+  const feed = (S.feeds||[]).find(f => f.id === e._feedId) || {};
   const body = {
     title: e.title, type: 'adhoc', date: e.date,
     startTime: e.time||'', endTime: e.end_time||'',
     department: '', attendees: '',
+    location: e.location||'',
     rawNotes: cleanHtml(e.description||''),
-    icalEventId: eventId
+    icalEventId: eventId,
+    icalFeedName: feed.name||'iCal',
+    icalFeedColor: feed.color||'#888'
   };
   const saved = await api('createMeetingNote', {}, body);
   if (saved && saved.id) {
