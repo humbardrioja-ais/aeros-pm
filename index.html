@@ -3498,7 +3498,7 @@ const MTG_TITLES = {
   biweekly:  d => `Biweekly Sync — ${fmtDate(d)}`,
   monthly:   d => `Monthly Review — ${fmtDate(d, true)}`,
   quarterly: d => `Quarterly Review — Q${Math.ceil((new Date(d+'T00:00:00').getMonth()+1)/3)} ${new Date(d+'T00:00:00').getFullYear()}`,
-  adhoc:     ()  => '',
+  adhoc:     ()  => 'Ad-hoc Meeting',
 };
 
 function fmtDateLong(iso){if(!iso)return'';const d=new Date(iso+'T00:00:00');return d.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});}
@@ -3727,17 +3727,17 @@ function renderMtgList() {
   });
 
   w.innerHTML = `<div style="position:sticky;top:80px;z-index:5;background:var(--surface);display:grid;grid-template-columns:130px 70px 85px 1fr 300px 40px 20px;align-items:center;padding:0 16px;height:28px;font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;border-bottom:1px solid var(--border);gap:4px">
-    <span>Date</span><span>Time</span><span>Type</span><span>Title</span><span>Location</span><span></span><span></span>
+    <span>Date</span><span>Time</span><span>Type</span><span>Title</span><span>Details</span><span></span><span></span>
   </div>${rows}`;
 
   // Scroll to current month
   setTimeout(() => {
     const todayMonth = today.slice(0,7);
-    const headers = w.querySelectorAll('td[colspan]');
-    for (const td of headers) {
-      if (td.textContent.includes(new Date(todayMonth+'-01T00:00:00').toLocaleDateString('en-US',{month:'long',year:'numeric'}))) {
-        td.closest('tr').scrollIntoView({behavior:'instant',block:'start'});
-        break;
+    const monthLabel = new Date(todayMonth+'-01T00:00:00').toLocaleDateString('en-US',{month:'long',year:'numeric'});
+    const divs = w.querySelectorAll('div');
+    for (const d of divs) {
+      if (d.textContent.includes(monthLabel) && d.style.background) {
+        d.scrollIntoView({behavior:'instant',block:'start'}); break;
       }
     }
   }, 50);
@@ -3855,6 +3855,7 @@ async function toggleMtgAgenda(id, idx, checked) {
   if (agenda[idx]) agenda[idx].done = checked;
   mtg.agenda = agenda;
   await updateMtgField(id, 'agenda', JSON.stringify(agenda));
+  openMeetingDetail(id);
 }
 
 async function addMtgDecision(id) {
@@ -3930,10 +3931,11 @@ function mtgScrollToToday() {
   if (S._mtgView === 'cal') { S._mtgCalY=new Date().getFullYear(); S._mtgCalM=new Date().getMonth(); renderMtgCal(); return; }
   const today = todayStr().slice(0,7);
   const w = document.getElementById('mtg-list-view'); if (!w) return;
-  const headers = w.querySelectorAll('td[colspan]');
-  for (const td of headers) {
-    if (td.textContent.includes(new Date(today+'-01T00:00:00').toLocaleDateString('en-US',{month:'long',year:'numeric'}))) {
-      td.closest('tr').scrollIntoView({behavior:'smooth',block:'start'}); return;
+  const monthLabel = new Date(today+'-01T00:00:00').toLocaleDateString('en-US',{month:'long',year:'numeric'});
+  const divs = w.querySelectorAll('div');
+  for (const d of divs) {
+    if (d.textContent.includes(monthLabel) && d.style.background) {
+      d.scrollIntoView({behavior:'smooth',block:'start'}); return;
     }
   }
 }
@@ -4715,7 +4717,7 @@ function calShowMore(ds) {
     ...pubs.map(pb=>({item:{...pb,owner:pb.lead||''},type:'pub',fn:`closeModal();openItemDrawer('publication','${pb.id}')`})),
     ...seos.map(sp=>({item:{...sp,owner:sp.lead||''},type:'seo',fn:`closeModal();openItemDrawer('seo','${sp.id}')`})),
     ...websites.map(wp=>({item:{...wp,owner:wp.lead||''},type:'website',fn:`closeModal();openItemDrawer('website','${wp.id}')`})),
-    ...meetings.map(mt=>({item:{...mt,owner:''},type:'meeting',fn:`closeModal();openMeeting('${mt.id}')`})),
+    ...meetings.map(mt=>({item:{...mt,owner:''},type:'meeting',fn:`closeModal();openMeetingDetail('${mt.id}')`})),
     ...shoots.map(s=>({item:{...s,title:s.title||'Shoot',owner:s.photographer||''},type:'shoot',fn:`closeModal();openItemDrawer('shoot','${s.id}')`})),
     ...missions.map(ms=>({item:{...ms,title:`${ms.memberName||ms.employee||''} — mission`},type:'mission',fn:`closeModal();openItemDrawer('mission','${ms.id}')`})),
     ...leaves.map(l=>({item:{...l,title:`${l.memberName||l.employee||''} — ${l.leaveType||l.leave_type||'leave'}`},type:'leave',fn:`closeModal();openItemDrawer('leave','${l.id}')`})),
@@ -5699,7 +5701,7 @@ function _buildDayCell(ds,d,isToday){
     ...pubs.map(pb=>({item:{...pb,owner:pb.lead||''},type:'pub',fn:`openItemDrawer('publication','${pb.id}')`})),
     ...seos.map(sp=>({item:{...sp,owner:sp.lead||''},type:'seo',fn:`openItemDrawer('seo','${sp.id}')`})),
     ...websites.map(wp=>({item:{...wp,owner:wp.lead||''},type:'website',fn:`openItemDrawer('website','${wp.id}')`})),
-    ...meetings.map(mt=>({item:{...mt,owner:''},type:'meeting',fn:`openMeeting('${mt.id}')`})),
+    ...meetings.map(mt=>({item:{...mt,owner:''},type:'meeting',fn:`openMeetingDetail('${mt.id}')`})),
     ...shoots.map(s=>({item:{...s,title:s.title||'Shoot',owner:s.photographer||''},type:'shoot',fn:`openItemDrawer('shoot','${s.id}')`})),
     ...missions.map(ms=>({item:{...ms,title:`${ms.memberName||ms.employee||''} — mission`},type:'mission',fn:`openItemDrawer('mission','${ms.id}')`})),
     ...leaves.map(l=>({item:{...l,title:`${l.memberName||l.employee||''} — ${l.leaveType||l.leave_type||'leave'}`},type:'leave',fn:`openItemDrawer('leave','${l.id}')`})),
@@ -6426,6 +6428,18 @@ const ID_CONFIGS = {
       {key:'time',label:'Start Time',type:'time'},{key:'end_time',label:'End Time',type:'time'},
       {key:'location',label:'Location',type:'text',full:true},
       {key:'description',label:'Description',type:'textarea'}
+    ]
+  },
+  meeting: {
+    label:'Meeting', color:'#e37400', collection:'meetings',
+    apiCreate:'createMeetingNote', apiUpdate:'updateMeetingNote', apiDelete:'deleteMeetingNote',
+    idPrefix:'MTG', fields:[
+      {key:'title',label:'Title',type:'text',required:true,full:true},
+      {key:'type',label:'Type',type:'select',options:['daily','weekly','biweekly','monthly','quarterly','adhoc']},
+      {key:'date',label:'Date',type:'date'},
+      {key:'startTime',label:'Start Time',type:'time'},{key:'endTime',label:'End Time',type:'time'},
+      {key:'department',label:'Department',type:'text',default:'myDept'},
+      {key:'attendees',label:'Attendees',type:'text',full:true}
     ]
   },
   video: {
@@ -7914,13 +7928,24 @@ function evtSaveCatColors() {
 function openIcalMeetingDetail(eventId) {
   S._mtgSelectedId = eventId;
   if (typeof renderMtgList === 'function') renderMtgList();
-  const w = document.getElementById('mtg-detail'); if (!w) return;
+  const w = document.getElementById('id-body');
+  if (!w) { openItemDrawer('ical', eventId); return; }
   const e = (S.feedEvents||[]).find(x => x.id === eventId);
   if (!e) return;
   const feed = (S.feeds||[]).find(f => f.id === e._feedId) || {};
   const desc = cleanHtml(e.description||'');
 
-  w.innerHTML = `<div style="padding:20px">
+  document.getElementById('item-drawer-overlay').classList.add('open');
+  document.getElementById('item-drawer').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  document.getElementById('id-type-badge').textContent = 'iCal Meeting';
+  document.getElementById('id-type-badge').style.background = feed.color||'#888';
+  document.getElementById('id-type-badge').style.color = '#fff';
+  document.getElementById('id-save-btn').style.display = 'none';
+  document.getElementById('id-delete-btn').style.display = 'none';
+  _idType = 'ical'; _idItem = e; _idIsNew = false;
+  w.scrollTop = 0;
+  w.innerHTML = `<div style="padding:0">
     <div style="margin-bottom:12px;display:flex;align-items:center;gap:8px">
       <span style="padding:3px 10px;border-radius:4px;background:${feed.color||'#888'};color:#fff;font-size:11px;font-weight:600">${esc(feed.name||'iCal')}</span>
       <span style="font-size:12px;color:var(--text3)">External calendar event</span>
