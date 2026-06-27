@@ -485,9 +485,9 @@ label{font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bot
 
 .evt-view-btn.active{background:var(--brand);color:#fff}
 /* Events calendar grid */
-.evt-cal-layout{display:grid;grid-template-columns:1fr 220px;gap:16px}
-@media(max-width:800px){.evt-cal-layout{grid-template-columns:1fr}.evt-cal-sidebar{display:none;display:none}}
-.evt-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+
+
+.evt-cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:8px;overflow:hidden}
 .evt-cal-hdr{background:var(--surface2);padding:6px;text-align:center;font-size:11px;font-weight:700;color:var(--text3)}
 .evt-cal-cell{background:var(--surface);padding:4px;min-height:100px;vertical-align:top;cursor:pointer;position:relative}
 .evt-cal-cell:hover{background:var(--surface2)}
@@ -875,13 +875,7 @@ select.sd-val{appearance:auto;cursor:pointer}
             <button class="btn btn-secondary btn-sm" onclick="evtCalShift(1)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></button>
             <button class="btn btn-secondary btn-sm" onclick="S._evtCalY=new Date().getFullYear();S._evtCalM=new Date().getMonth();renderEvtCal()">Today</button>
           </div>
-          <div class="evt-cal-layout">
-            <div id="evt-cal-grid"></div>
-            <div class="evt-cal-sidebar">
-              <div id="evt-mini-cal-wrap" style="margin-bottom:16px"></div>
-              <div id="evt-upcoming-sidebar"></div>
-            </div>
-          </div>
+          <div id="evt-cal-grid"></div>
         </div>
       </div>
 
@@ -7669,7 +7663,7 @@ function renderEvtCal() {
   const daysInMonth = new Date(y, m+1, 0).getDate();
   const prevDays = new Date(y, m, 0).getDate();
 
-  let html = '<div class="evt-cal-grid">';
+  let html = '<div class="evt-cal-grid" style="width:100%">';
   ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].forEach(d => { html += `<div class="evt-cal-hdr">${d}</div>`; });
 
   // Previous month padding
