@@ -3726,7 +3726,7 @@ function renderMtgList() {
       const lockIcon = '';
 
       const loc = isIcal ? (m.location||'') : (m.attendees||'');
-      rows += `<div onclick="${clickFn}" style="display:grid;grid-template-columns:130px 70px 85px 1fr 300px 40px 20px;align-items:center;padding:0 16px;height:36px;border-bottom:1px solid var(--border);cursor:pointer;gap:4px;${todayHighlight}${isDone?'opacity:.4':''}" onmouseenter="this.style.background='var(--surface2)'" onmouseleave="this.style.background=''">
+      rows += `<div onclick="${clickFn}" style="display:grid;grid-template-columns:130px 90px 85px 1fr 250px 40px 20px;align-items:center;padding:0 16px;height:36px;border-bottom:1px solid var(--border);cursor:pointer;gap:4px;${todayHighlight}${isDone?'opacity:.4':''}" onmouseenter="this.style.background='var(--surface2)'" onmouseleave="this.style.background=''">
         <span style="font-size:11px;font-weight:500;white-space:nowrap">${fmtMtgDate(m.date)}</span>
         <span style="font-size:10px;color:var(--text2);white-space:nowrap">${time?to12h(time)+(endTime?'\u2013'+to12h(endTime):''):''}</span>
         <span><span style="display:inline-block;padding:1px 6px;border-radius:3px;font-size:8px;font-weight:600;background:${typeColor};color:#fff;white-space:nowrap;max-width:80px;overflow:hidden;text-overflow:ellipsis">${esc(typeLabel)}</span>${lockIcon}</span>
@@ -3740,7 +3740,7 @@ function renderMtgList() {
     });
   });
 
-  w.innerHTML = `<div style="position:sticky;top:80px;z-index:5;background:var(--surface);display:grid;grid-template-columns:130px 70px 85px 1fr 300px 40px 20px;align-items:center;padding:0 16px;height:28px;font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;border-bottom:1px solid var(--border);gap:4px">
+  w.innerHTML = `<div style="position:sticky;top:80px;z-index:5;background:var(--surface);display:grid;grid-template-columns:130px 90px 85px 1fr 250px 40px 20px;align-items:center;padding:0 16px;height:28px;font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;border-bottom:1px solid var(--border);gap:4px">
     <span>Date</span><span>Time</span><span>Type</span><span>Title</span><span>Details</span><span></span><span></span>
   </div>${rows}`;
 
